@@ -1,0 +1,76 @@
+name,type,serve_with,category,style,course
+Chicken Karahi,nonveg,roti,karahi,rich,main
+Mutton Karahi,nonveg,roti,karahi,rich,main
+Chicken Salan,nonveg,both,curry,rich,main
+Mutton Salan,nonveg,both,curry,rich,main
+Beef Curry,nonveg,both,curry,rich,main
+Chicken Qorma,nonveg,both,curry,rich,main
+Mutton Qorma,nonveg,both,curry,rich,main
+Chicken White Qorma,nonveg,both,curry,rich,main
+Achari Chicken,nonveg,both,curry,rich,main
+Achari Gosht,nonveg,both,curry,rich,main
+Chicken Handi,nonveg,both,curry,rich,main
+Mutton Handi,nonveg,both,curry,rich,main
+Chicken Jalfrezi,nonveg,both,curry,rich,main
+Palak Gosht,nonveg,both,curry,light,main
+Aloo Gosht,nonveg,both,curry,rich,main
+Bhindi Gosht,nonveg,both,curry,light,main
+Karele Gosht,nonveg,both,curry,light,main
+Nihari,nonveg,both,specialty,rich,main
+Paya,nonveg,both,specialty,rich,main
+Haleem,nonveg,both,specialty,rich,main
+Chicken Tikka,nonveg,roti,bbq,light,side
+Seekh Kebab,nonveg,roti,bbq,rich,side
+Chicken Boti,nonveg,roti,bbq,light,side
+Malai Boti,nonveg,roti,bbq,rich,side
+Bihari Kebab,nonveg,roti,bbq,rich,side
+Reshmi Kebab,nonveg,roti,bbq,rich,side
+Chapli Kebab,nonveg,roti,bbq,rich,side
+Grilled Fish,nonveg,roti,bbq,light,side
+Fish Curry,nonveg,both,curry,light,main
+Fried Fish,nonveg,none,snack,rich,side
+Shrimp Curry,nonveg,both,curry,rich,main
+Egg Curry,nonveg,both,curry,light,main
+Omelette,nonveg,roti,quick,light,side
+Egg Bhurji,nonveg,roti,quick,light,side
+Chicken Biryani,nonveg,rice,rice-dish,rich,main
+Mutton Biryani,nonveg,rice,rice-dish,rich,main
+Beef Biryani,nonveg,rice,rice-dish,rich,main
+Chicken Pulao,nonveg,rice,rice-dish,rich,main
+Mutton Pulao,nonveg,rice,rice-dish,rich,main
+Kabuli Pulao,nonveg,rice,rice-dish,rich,main
+Keema Matar,nonveg,both,curry,rich,main
+Keema Aloo,nonveg,both,curry,rich,main
+Kofta Curry,nonveg,both,curry,rich,main
+Chicken Cutlets,nonveg,none,snack,rich,side
+Masoor Daal,veg,both,lentil,light,side
+Chana Daal,veg,both,lentil,light,side
+Moong Daal,veg,both,lentil,light,side
+Daal Makhani,veg,both,lentil,rich,side
+Mash ki Daal,veg,both,lentil,light,side
+Sabz Daal,veg,both,lentil,light,side
+Aloo Gobi,veg,roti,sabzi,light,side
+Bhindi Masala,veg,roti,sabzi,light,side
+Baingan Bharta,veg,roti,sabzi,light,side
+Palak Paneer,veg,roti,sabzi,rich,main
+Aloo Palak,veg,roti,sabzi,light,side
+Karele,veg,roti,sabzi,light,side
+Tinday,veg,roti,sabzi,light,side
+Aloo Matar,veg,roti,sabzi,light,side
+Shalgam,veg,roti,sabzi,light,side
+Mixed Vegetable Curry,veg,both,sabzi,light,side
+Chana Masala,veg,both,curry,light,main
+Rajma,veg,both,curry,light,main
+Paneer Karahi,veg,roti,karahi,rich,main
+Paneer Tikka,veg,roti,bbq,light,side
+Shahi Paneer,veg,roti,curry,rich,main
+Vegetable Pulao,veg,rice,rice-dish,light,main
+Khichdi,veg,rice,rice-dish,light,main
+Vegetable Biryani,veg,rice,rice-dish,rich,main
+Aloo Paratha,veg,none,breakfast,rich,side
+Chana Chaat,veg,none,snack,light,side
+Fries,veg,none,snack,rich,side
+Loaded Fries,nonveg,none,snack,rich,side
+Samosa,veg,none,snack,rich,side
+Sheer Khurma,veg,none,sweet,rich,dessert
+Kheer,veg,none,sweet,rich,dessert

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Chef Chat{% endblock %}</title>
+<style>
+  :root {
+    --terracotta: #C44536;
+    --dark: #3A211C;
+    --cream: #FDF6E8;
+    --gold: #FAD49A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Georgia, serif;
+    background: linear-gradient(180deg, #E06A41 0%, var(--gold) 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .card {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    align-self: flex-start;
+  }
+  h1 { color: var(--dark); font-size: 26px; margin: 0 0 4px; text-align: center; }
+  p.subtitle { text-align: center; color: var(--dark); opacity: 0.75; margin: 0 0 24px; font-size: 14px; }
+  label { display: block; font-weight: 600; color: var(--dark); font-size: 14px; margin-bottom: 6px; }
+  .field { margin-bottom: 16px; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+    width: 100%; padding: 12px; border: 2px solid var(--gold); border-radius: 12px;
+    font-size: 15px; color: var(--dark); background: white;
+  }
+  button, .btn {
+    display: block; width: 100%; padding: 14px; background: var(--terracotta); color: var(--cream);
+    border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
+    text-align: center; text-decoration: none; box-sizing: border-box;
+  }
+  button:hover, .btn:hover { opacity: 0.92; }
+  .btn-secondary { background: transparent; color: var(--terracotta); border: 2px solid var(--terracotta); }
+  .error {
+    background: #F8D7CF; color: #7A2A16; padding: 10px 14px; border-radius: 10px;
+    font-size: 14px; margin-bottom: 16px;
+  }
+  .footline { text-align: center; font-size: 13px; color: var(--dark); opacity: 0.75; margin-top: 18px; }
+  .footline a { color: var(--terracotta); font-weight: 600; text-decoration: none; }
+  fieldset { border: none; padding: 0; margin: 0 0 22px; }
+  legend { font-weight: 600; color: var(--dark); margin-bottom: 10px; font-size: 15px; padding: 0; }
+  .options { display: flex; flex-wrap: wrap; gap: 10px; }
+  .option { flex: 1; min-width: 100px; }
+  .option input { display: none; }
+  .option label {
+    display: block; text-align: center; padding: 10px 12px; border: 2px solid var(--gold);
+    border-radius: 12px; cursor: pointer; color: var(--dark); font-size: 14px; margin-bottom: 0;
+    font-weight: 400;
+  }
+  .option input:checked + label { background: var(--terracotta); border-color: var(--terracotta); color: var(--cream); }
+  {% block extra_style %}{% endblock %}
+</style>
+</head>
+<body>
+  <div class="card">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Quick Quiz{% endblock %}
+
+{% block extra_style %}
+  .card { max-width: 600px; }
+  .dish-option-card {
+    border: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s ease;
+  }
+  .dish-option-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border-color: var(--terracotta);
+  }
+  .dish-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .dish-info {
+    text-align: left;
+  }
+  .dish-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .dish-meta {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .recipe-link {
+    font-size: 12px;
+    color: var(--terracotta);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .recipe-link:hover {
+    text-decoration: underline;
+  }
+  .side-pairing-box {
+    background: var(--cream);
+    border: 1px dashed var(--gold);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dish-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .log-btn {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+    margin: 0;
+  }
+  .reject-btn {
+    width: auto;
+    padding: 8px 14px;
+    font-size: 13px;
+    margin: 0;
+    background: transparent;
+    border: 2px solid var(--terracotta);
+    color: var(--terracotta);
+  }
+  .results-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 28px 0 14px;
+    text-align: center;
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--terracotta);
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    width: 100%;
+  }
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--dark);
+    cursor: pointer;
+  }
+  .checkbox-label input {
+    accent-color: var(--terracotta);
+    width: 18px;
+    height: 18px;
+  }
+{% endblock %}
+
+{% block content %}
+  <h1>⚡ Quick Preference Quiz</h1>
+  <p class="subtitle">Filter dishes instantly based on your mood and kitchen ingredients.</p>
+
+  <form method="post" action="/quick_quiz">
+    <fieldset>
+      <legend>What protein or type do you want today?</legend>
+      <div class="options">
+        <div class="option">
+          <input type="radio" id="prot_veg" name="protein" value="veg" {% if preferences.protein == 'veg' %}checked{% endif %} required>
+          <label for="prot_veg">Veg 🥗</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="prot_chicken" name="protein" value="chicken" {% if preferences.protein == 'chicken' or not preferences %}checked{% endif %}>
+          <label for="prot_chicken">Chicken 🍗</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="prot_beef" name="protein" value="beef" {% if preferences.protein == 'beef' %}checked{% endif %}>
+          <label for="prot_beef">Beef 🥩</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="prot_mutton" name="protein" value="mutton" {% if preferences.protein == 'mutton' %}checked{% endif %}>
+          <label for="prot_mutton">Mutton 🐑</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="prot_fish" name="protein" value="fish" {% if preferences.protein == 'fish' %}checked{% endif %}>
+          <label for="prot_fish">Fish 🐟</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Do you want to cook with Rice or Roti?</legend>
+      <div class="options">
+        <div class="option">
+          <input type="radio" id="side_roti" name="serve_with" value="roti" {% if preferences.serve_with == 'roti' or not preferences %}checked{% endif %} required>
+          <label for="side_roti">Roti 🫓</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="side_rice" name="serve_with" value="rice" {% if preferences.serve_with == 'rice' %}checked{% endif %}>
+          <label for="side_rice">Rice 🍚</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="side_any" name="serve_with" value="any" {% if preferences.serve_with == 'any' %}checked{% endif %}>
+          <label for="side_any">Any / No Pref 🍽️</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>What style of dish would you prefer?</legend>
+      <div class="options">
+        <div class="option">
+          <input type="radio" id="style_light" name="style" value="light" {% if preferences.style == 'light' %}checked{% endif %} required>
+          <label for="style_light">Light & Healthy 🥑</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="style_rich" name="style" value="rich" {% if preferences.style == 'rich' %}checked{% endif %}>
+          <label for="style_rich">Rich & Indulgent 🥘</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="style_any" name="style" value="any" {% if preferences.style == 'any' or not preferences %}checked{% endif %}>
+          <label for="style_any">Any / No Pref ⚖️</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>What meal slot is this for?</legend>
+      <div class="options">
+        <div class="option">
+          <input type="radio" id="slot_any" name="meal_slot" value="any" {% if preferences.meal_slot == 'any' or not preferences %}checked{% endif %} required>
+          <label for="slot_any">Any / No Pref 🍽️</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="slot_breakfast" name="meal_slot" value="breakfast" {% if preferences.meal_slot == 'breakfast' %}checked{% endif %}>
+          <label for="slot_breakfast">Breakfast 🥞</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="slot_lunch_dinner" name="meal_slot" value="lunch_dinner" {% if preferences.meal_slot == 'lunch_dinner' %}checked{% endif %}>
+          <label for="slot_lunch_dinner">Lunch / Dinner 🍛</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Select Course Types:</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="course" value="main" id="chk_main" {% if not preferences or 'main' in preferences.courses %}checked{% endif %} onchange="toggleSideCheckbox()">
+          <span>Main Course 🍛</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="course" value="side" id="chk_side" {% if preferences and 'side' in preferences.courses %}checked{% endif %}>
+          <span>Side Dish / Snack 🍟</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="course" value="dessert" id="chk_dessert" {% if preferences and 'dessert' in preferences.courses %}checked{% endif %}>
+          <span>Dessert / Sweet Dish 🍨</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset id="side_pairing_field" style="margin-top: 14px;">
+      <label class="checkbox-label">
+        <input type="checkbox" name="include_sides" value="yes" {% if preferences.include_sides %}checked{% endif %}>
+        <strong>Include side dish suggestions with main courses? 🍟🥩</strong>
+      </label>
+    </fieldset>
+
+    <button type="submit">Generate 5 Best Suggestions 🚀</button>
+  </form>
+
+  {% if suggestions %}
+    <h2 class="results-title">🍽️ Recommended Dishes for You</h2>
+    <div class="suggestions-list">
+      {% for dish in suggestions %}
+        <div class="dish-option-card">
+          <div class="dish-header">
+            <div class="dish-info">
+              <div class="dish-title">{{ dish.name }}</div>
+              <div class="dish-meta">
+                <span>Category: {{ dish.category }}</span> • 
+                <span>Style: {{ dish.style }}</span> • 
+                <span>Serve with: {{ dish.serve_with }}</span>
+              </div>
+              <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="recipe-link">View Recipe 📖</a>
+            </div>
+          </div>
+
+          {% if dish.side_pairing %}
+            <div class="side-pairing-box">
+              <div>
+                🥗 <strong>Suggested Side:</strong> {{ dish.side_pairing }}
+                <div style="margin-top: 4px;">
+                  <a href="https://www.youtube.com/results?search_query={{ dish.side_pairing | replace(' ', '+') }}+recipe" target="_blank" class="recipe-link" style="font-size:11px;">View Side Recipe 📖</a>
+                </div>
+              </div>
+              <form method="post" action="/reject" style="margin:0;">
+                <input type="hidden" name="dish" value="{{ dish.side_pairing }}">
+                <button type="submit" class="btn reject-btn" style="padding: 4px 8px; font-size:11px; margin:0;">Block Side ❌</button>
+              </form>
+            </div>
+          {% endif %}
+
+          <div class="dish-actions-row">
+            <form method="post" action="/reject" style="margin:0;">
+              <input type="hidden" name="dish" value="{{ dish.name }}">
+              <button type="submit" class="btn reject-btn">Don't suggest again ❌</button>
+            </form>
+            <form method="post" action="/log" style="margin:0;">
+              <input type="hidden" name="dish" value="{{ dish.name }}">
+              <input type="hidden" name="category" value="{{ dish.type }}">
+              <button type="submit" class="btn log-btn">Cook this! ✅</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif preferences %}
+    <p class="footline" style="color: var(--terracotta); font-weight: 600;">No matching dishes found. Try relaxing your filters!</p>
+  {% endif %}
+
+  <a href="/" class="back-link">← Back to Dashboard</a>
+
+  <script>
+    function toggleSideCheckbox() {
+      const chkMain = document.getElementById("chk_main");
+      const sideField = document.getElementById("side_pairing_field");
+      sideField.style.display = chkMain.checked ? "block" : "none";
+    }
+    toggleSideCheckbox();
+  </script>
+{% endblock %}

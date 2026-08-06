@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Today{% endblock %}
+{% block extra_style %}
+  .suggestion { background: white; border: 2px solid var(--gold); border-radius: 14px; padding: 18px; margin-bottom: 16px; color: var(--dark); font-size: 15px; line-height: 1.5; }
+  .actions { display: flex; gap: 10px; margin-bottom: 24px; }
+  .actions form { flex: 1; margin: 0; }
+  .history { font-size: 13px; color: var(--dark); opacity: 0.8; }
+  .history ul { padding-left: 18px; margin: 6px 0 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .topbar span { font-size: 12px; color: var(--dark); opacity: 0.6; }
+  .topbar a { font-size: 12px; color: var(--terracotta); text-decoration: none; font-weight: 600; }
+{% endblock %}
+{% block content %}
+  <div class="topbar">
+    <span>{{ email }}</span>
+    <a href="/logout">Log out</a>
+  </div>
+  <h1>🍳 What to cook today</h1>
+  <div class="suggestion">
+    {{ suggestion }}
+    {% if last_suggested %}
+      <div style="margin-top: 10px;">
+        <a href="https://www.youtube.com/results?search_query={{ last_suggested | replace(' ', '+') }}+recipe" target="_blank" style="font-size: 13px; color: var(--terracotta); text-decoration: none; font-weight: 600;">View Recipe 📖</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="actions" style="margin-bottom: 12px;">
+    <form method="post" action="/reject">
+      <button type="submit" class="btn-secondary" style="background:transparent;border:2px solid var(--terracotta);color:var(--terracotta);padding:10px 14px;font-size:14px;">Don't suggest this again</button>
+    </form>
+    <a href="/quick_quiz" class="btn" style="flex: 1; padding: 10px 14px; font-size: 14px; text-decoration: none;">⚡ Take Mood Quiz</a>
+  </div>
+
+  <fieldset>
+    <legend>What did you actually cook today?</legend>
+    <form method="post" action="/log" class="field" style="display:flex; gap:8px; margin-bottom:0;">
+      <input type="text" name="dish" placeholder="e.g. Chicken Karahi" required style="flex:1;">
+      <button type="submit" style="width:auto; padding:12px 18px;">Log it</button>
+    </form>
+  </fieldset>
+
+  {% if history %}
+  <div class="history">
+    <strong>Recently logged:</strong>
+    <ul>
+      {% for meal in history %}
+        <li>{{ meal.meal_date }} — {{ meal.dish }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+{% endblock %}

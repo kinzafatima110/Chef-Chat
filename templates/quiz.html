@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Quick setup{% endblock %}
+{% block extra_style %}
+  #diet_rule_wrap { display: none; margin-top: 12px; }
+{% endblock %}
+{% block content %}
+  <h1>🍳 Chef Chat setup</h1>
+  <p class="subtitle">A couple minutes now saves a lot of "what should I cook" moments later.</p>
+  <form method="post" action="/quiz">
+
+    <fieldset>
+      <legend>Do you cook daily?</legend>
+      <div class="options">
+        <div class="option"><input type="radio" id="cd_yes" name="cooks_daily" value="yes" required><label for="cd_yes">Yes</label></div>
+        <div class="option"><input type="radio" id="cd_no" name="cooks_daily" value="no"><label for="cd_no">No</label></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Would you like help deciding what to cook each day?</legend>
+      <div class="options">
+        <div class="option"><input type="radio" id="ws_yes" name="wants_suggestions" value="yes" required><label for="ws_yes">Yes</label></div>
+        <div class="option"><input type="radio" id="ws_no" name="wants_suggestions" value="no"><label for="ws_no">No</label></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>What's your household's diet?</legend>
+      <div class="options">
+        <div class="option"><input type="radio" id="dt_veg" name="diet_type" value="veg" required><label for="dt_veg">Veg</label></div>
+        <div class="option"><input type="radio" id="dt_nonveg" name="diet_type" value="nonveg"><label for="dt_nonveg">Non-veg</label></div>
+        <div class="option"><input type="radio" id="dt_alt" name="diet_type" value="alternate"><label for="dt_alt">Alternate</label></div>
+      </div>
+      <div id="diet_rule_wrap">
+        <input type="text" name="diet_rule" placeholder="e.g. meat on Saturday and Sunday">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>How many people do you usually cook for daily?</legend>
+      <input type="number" name="household_size" min="1" required>
+    </fieldset>
+
+    <fieldset>
+      <legend>What is your WhatsApp Phone Number?</legend>
+      <input type="tel" name="wa_id" placeholder="e.g. 923232459573" required>
+      <p class="helper-text" style="font-size: 0.8rem; color: #666; margin-top: 4px;">Enter with country code, no spaces or + symbol (e.g. 92 for Pakistan followed by number).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Is your family health/calorie conscious, or do you prefer rich, oily food?</legend>
+      <div class="options">
+        <div class="option"><input type="radio" id="hc_healthy" name="health_conscious" value="healthy" required><label for="hc_healthy">Healthy</label></div>
+        <div class="option"><input type="radio" id="hc_indulgent" name="health_conscious" value="indulgent"><label for="hc_indulgent">Indulgent</label></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Should I keep track of what you cook to suggest meals based on your history?</legend>
+      <div class="options">
+        <div class="option"><input type="radio" id="th_yes" name="track_history" value="yes" required><label for="th_yes">Yes</label></div>
+        <div class="option"><input type="radio" id="th_no" name="track_history" value="no"><label for="th_no">No</label></div>
+      </div>
+    </fieldset>
+
+    <button type="submit">Save my preferences</button>
+  </form>
+
+  <script>
+    const dietRadios = document.querySelectorAll('input[name="diet_type"]');
+    const ruleWrap = document.getElementById('diet_rule_wrap');
+    function toggleRule() {
+      const checked = document.querySelector('input[name="diet_type"]:checked');
+      ruleWrap.style.display = checked && checked.value === 'alternate' ? 'block' : 'none';
+    }
+    dietRadios.forEach(r => r.addEventListener('change', toggleRule));
+    toggleRule();
+  </script>
+{% endblock %}
