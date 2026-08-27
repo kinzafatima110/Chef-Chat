@@ -17,6 +17,20 @@
       <label for="confirm">Confirm password</label>
       <input type="password" id="confirm" name="confirm" minlength="8" required>
     </div>
+    <div class="field">
+      <label for="security_question">Security Question (For Password Recovery)</label>
+      <select id="security_question" name="security_question" required style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px; background: white; font-size: 13px;">
+        <option value="">-- Select a Question --</option>
+        <option value="What is your favorite home-cooked dish?">What is your favorite home-cooked dish?</option>
+        <option value="What city were you born in?">What city were you born in?</option>
+        <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="security_answer">Security Answer</label>
+      <input type="text" id="security_answer" name="security_answer" required placeholder="Your secret answer (not case-sensitive)">
+    </div>
     <button type="submit">Create account</button>
   </form>
   <p class="footline">Already have an account? <a href="/login">Log in</a></p>

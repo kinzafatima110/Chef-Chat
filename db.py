@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
     last_suggested TEXT,
     wa_id TEXT,
     suggestion_seed_offset INTEGER DEFAULT 0,
+    security_question TEXT,
+    security_answer TEXT,
     created_at TEXT NOT NULL
 );
 
@@ -115,6 +117,12 @@ def init_db():
     if "suggestion_seed_offset" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN suggestion_seed_offset INTEGER DEFAULT 0")
         conn.commit()
+    if "security_question" not in columns:
+        conn.execute("ALTER TABLE users ADD COLUMN security_question TEXT")
+        conn.commit()
+    if "security_answer" not in columns:
+        conn.execute("ALTER TABLE users ADD COLUMN security_answer TEXT")
+        conn.commit()
     conn.close()
 
 
@@ -132,11 +140,11 @@ def get_user_by_email(email):
     return dict(row) if row else None
 
 
-def create_user(email, password_hash):
+def create_user(email, password_hash, security_question=None, security_answer=None):
     conn = get_conn()
     conn.execute(
-        "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)",
-        (email, password_hash, datetime.utcnow().isoformat()),
+        "INSERT INTO users (email, password_hash, security_question, security_answer, created_at) VALUES (?, ?, ?, ?, ?)",
+        (email.strip().lower(), password_hash, security_question, security_answer, datetime.utcnow().isoformat()),
     )
     conn.commit()
     conn.close()

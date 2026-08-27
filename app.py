@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 
 import suggestions
 from auth import current_user, hash_password, is_valid_email, login_required, verify_password
@@ -32,6 +32,8 @@ def signup():
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
     confirm = request.form.get("confirm", "")
+    security_question = request.form.get("security_question", "").strip()
+    security_answer = request.form.get("security_answer", "").strip().lower()
 
     if not is_valid_email(email):
         error = "Enter a valid email address."
@@ -39,6 +41,8 @@ def signup():
         error = "Password must be at least 8 characters."
     elif password != confirm:
         error = "Passwords don't match."
+    elif not security_question or not security_answer:
+        error = "Security question and answer are required for password recovery."
     elif get_user_by_email(email):
         error = "An account with this email already exists."
     else:
@@ -47,7 +51,7 @@ def signup():
     if error:
         return render_template("signup.html", error=error, email=email)
 
-    user = create_user(email, hash_password(password))
+    user = create_user(email, hash_password(password), security_question, security_answer)
     session["user_id"] = user["id"]
     return redirect(url_for("quiz_form"))
 
@@ -71,6 +75,95 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "GET":
+        return render_template("forgot_password.html", step="email", email="", error=None)
+
+    step = request.form.get("step")
+    email = request.form.get("email", "").strip().lower()
+
+    if step == "verify_email":
+        if not email:
+            return render_template("forgot_password.html", step="email", email="", error="Please enter your email.")
+        
+        user = get_user_by_email(email)
+        if not user:
+            return render_template("forgot_password.html", step="email", email=email, error="No account found with this email.")
+        
+        # Determine if they have a security question configured
+        has_security_question = bool(user.get("security_question"))
+        return render_template(
+            "forgot_password.html",
+            step="verify",
+            email=email,
+            has_security_question=has_security_question,
+            security_question=user.get("security_question"),
+            error=None
+        )
+
+    elif step == "reset":
+        user = get_user_by_email(email)
+        if not user:
+            return render_template("forgot_password.html", step="email", email="", error="Session expired or invalid user. Please start again.")
+        
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+        
+        # Verify identity first
+        has_security_question = bool(user.get("security_question"))
+        verified = False
+        
+        if has_security_question:
+            answer = request.form.get("security_answer", "").strip().lower()
+            correct_answer = (user.get("security_answer") or "").strip().lower()
+            if answer and answer == correct_answer:
+                verified = True
+        else:
+            submitted_wa = request.form.get("wa_id", "").strip().replace(" ", "").replace("+", "").replace("-", "")
+            saved_wa = (user.get("wa_id") or "").strip().replace(" ", "").replace("+", "").replace("-", "")
+            if submitted_wa and submitted_wa == saved_wa:
+                verified = True
+
+        if not verified:
+            error_msg = "Incorrect security answer." if has_security_question else "Incorrect registered WhatsApp number."
+            return render_template(
+                "forgot_password.html",
+                step="verify",
+                email=email,
+                has_security_question=has_security_question,
+                security_question=user.get("security_question"),
+                error=error_msg
+            )
+            
+        if len(new_password) < 8:
+            return render_template(
+                "forgot_password.html",
+                step="verify",
+                email=email,
+                has_security_question=has_security_question,
+                security_question=user.get("security_question"),
+                error="Password must be at least 8 characters long."
+            )
+            
+        if new_password != confirm_password:
+            return render_template(
+                "forgot_password.html",
+                step="verify",
+                email=email,
+                has_security_question=has_security_question,
+                security_question=user.get("security_question"),
+                error="Passwords do not match."
+            )
+            
+        # Update user password in DB
+        update_user(user["id"], password_hash=hash_password(new_password))
+        flash("Password reset successfully! Please log in with your new password.")
+        return redirect(url_for("login"))
+
     return redirect(url_for("login"))
 
 
