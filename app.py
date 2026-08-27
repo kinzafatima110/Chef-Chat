@@ -19,6 +19,11 @@ app.secret_key = SECRET_KEY
 init_db()
 
 
+@app.context_processor
+def inject_user():
+    return dict(user=current_user())
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "GET":
@@ -101,18 +106,149 @@ def dashboard():
     user = current_user()
     if not user["onboarded"]:
         return redirect(url_for("quiz_form"))
-    suggestion = suggestions.suggest_dish(user)
+    suggestion = suggestions.suggest_dish(user, as_dict=True)
     # Reload user to get updated last_suggested
     user = current_user()
     last_suggested = user.get("last_suggested")
     history = recent_dishes(user["id"], limit=7)
+    
+    # Calculate active pool size
+    category = suggestions.today_category(user)
+    inventory = suggestions.get_personalized_inventory(user["id"])
+    pool = [d for d in inventory if d["type"] == category and d["course"] == "main"]
+    from db import blocked_dishes
+    blocked = {b.lower() for b in blocked_dishes(user["id"])}
+    pool = [d for d in pool if d["name"].lower() not in blocked]
+    if user.get("health_conscious"):
+        pool = [d for d in pool if d["style"] == "light"] or pool
+    pool_size = len(pool)
+    
+    import datetime
+    current_day_name = datetime.date.today().strftime("%A")
+    
     return render_template(
         "dashboard.html",
         suggestion=suggestion,
         last_suggested=last_suggested,
         history=history,
+        pool_size=pool_size,
+        category=category,
+        current_day_name=current_day_name,
         email=user["email"]
     )
+
+
+@app.route("/weekly", methods=["GET"])
+@login_required
+def weekly_plan_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+    from db import get_weekly_plan
+    weekly_plan = get_weekly_plan(user["id"])
+    return render_template(
+        "weekly.html",
+        weekly_plan=weekly_plan,
+        email=user["email"]
+    )
+
+
+@app.route("/weekly/generate", methods=["POST"])
+@login_required
+def generate_weekly():
+    user = current_user()
+    start_type = request.form.get("start_type", "nonveg")
+    pattern = request.form.get("pattern", "alternate")
+    
+    suggestions.generate_weekly_plan(user["id"], start_type, pattern)
+    return redirect(url_for("weekly_plan_view"))
+
+
+@app.route("/weekly/reroll", methods=["POST"])
+@login_required
+def reroll_weekly():
+    user = current_user()
+    day_index = int(request.form.get("day_index"))
+    
+    suggestions.reroll_weekly_day(user["id"], day_index, None, None)
+    return redirect(url_for("weekly_plan_view"))
+
+
+@app.route("/reroll_today", methods=["POST"])
+@login_required
+def reroll_today():
+    user = current_user()
+    current_offset = user.get("suggestion_seed_offset") or 0
+    from db import update_user
+    update_user(user["id"], suggestion_seed_offset=current_offset + 1)
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/custom_dish", methods=["GET"])
+@login_required
+def custom_dish_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+    from db import get_custom_dishes, get_blocked_dishes, get_friends, get_pending_friend_requests, get_friend_dish_suggestions
+    custom_dishes = get_custom_dishes(user["id"])
+    blocked_dishes_list = get_blocked_dishes(user["id"])
+    inventory = suggestions.get_personalized_inventory(user["id"])
+    existing_names = [d["name"] for d in inventory]
+    
+    # Load social network metrics
+    friends = get_friends(user["id"])
+    friend_requests = get_pending_friend_requests(user["id"])
+    raw_suggestions = get_friend_dish_suggestions(user["id"])
+    
+    # Filter out suggestions that are already in core static CSV menu
+    core_names = {d["name"].lower() for d in suggestions.DISHES}
+    friend_suggestions = [d for d in raw_suggestions if d["name"].lower() not in core_names]
+    
+    return render_template(
+        "custom_dish.html",
+        custom_dishes=custom_dishes,
+        blocked_dishes=blocked_dishes_list,
+        existing_names=existing_names,
+        friends=friends,
+        friend_requests=friend_requests,
+        friend_suggestions=friend_suggestions,
+        email=user["email"]
+    )
+
+
+@app.route("/unblock", methods=["POST"])
+@login_required
+def unblock():
+    user = current_user()
+    dish = request.form.get("dish")
+    if dish:
+        from db import unblock_dish
+        unblock_dish(user["id"], dish)
+    return redirect(request.referrer or url_for("custom_dish_view"))
+
+
+@app.route("/custom_dish/add", methods=["POST"])
+@login_required
+def add_custom():
+    user = current_user()
+    name = request.form.get("name")
+    type_ = request.form.get("type")
+    serve_with = request.form.get("serve_with", "both")
+    category = request.form.get("category", "curry")
+    style = request.form.get("style", "rich")
+    course = request.form.get("course", "main")
+    
+    from db import add_custom_dish
+    success = add_custom_dish(user["id"], name, type_, serve_with, category, style, course)
+    
+    from flask import flash
+    if not success:
+        flash(f"Failed to add '{name}'. It might already exist in your custom inventory!")
+    else:
+        flash(f"Successfully added '{name}' to your kitchen menu!")
+        
+    return redirect(url_for("custom_dish_view"))
 
 
 @app.route("/quick_quiz", methods=["GET", "POST"])
@@ -247,6 +383,149 @@ def webhook_receive():
         print("Error parsing webhook:", e)
 
     return "OK", 200
+
+
+@app.route("/fridge", methods=["GET"])
+@login_required
+def fridge_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+        
+    from db import get_fridge_inventory
+    inventory = get_fridge_inventory(user["id"])
+    
+    # Extract list of available item names for recipe matching
+    available_items = [item["item_name"] for item in inventory]
+    
+    # Run the ingredient matcher
+    from suggestions import match_dishes_by_ingredients
+    matches = match_dishes_by_ingredients(user["id"], available_items)
+    
+    # Group inventory items by location
+    fridge_items = [item for item in inventory if item["location"] == "fridge"]
+    freezer_items = [item for item in inventory if item["location"] == "freezer"]
+    pantry_items = [item for item in inventory if item["location"] == "pantry"]
+    
+    return render_template(
+        "fridge.html",
+        fridge_items=fridge_items,
+        freezer_items=freezer_items,
+        pantry_items=pantry_items,
+        matches=matches,
+        email=user["email"]
+    )
+
+
+@app.route("/fridge/add", methods=["POST"])
+@login_required
+def fridge_add():
+    user = current_user()
+    item_name = request.form.get("item_name")
+    location = request.form.get("location")
+    quantity = request.form.get("quantity")
+    
+    if item_name and location:
+        from db import add_fridge_item
+        add_fridge_item(user["id"], item_name, location, quantity)
+        
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/update", methods=["POST"])
+@login_required
+def fridge_update():
+    user = current_user()
+    item_id = request.form.get("item_id")
+    quantity = request.form.get("quantity")
+    
+    if item_id:
+        from db import update_fridge_item
+        update_fridge_item(user["id"], int(item_id), quantity)
+        
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/delete", methods=["POST"])
+@login_required
+def fridge_delete():
+    user = current_user()
+    item_id = request.form.get("item_id")
+    
+    if item_id:
+        from db import delete_fridge_item
+        delete_fridge_item(user["id"], int(item_id))
+        
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/tips", methods=["GET"])
+@login_required
+def tips_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+        
+    return render_template("tips.html", email=user["email"])
+
+
+@app.route("/friends/request", methods=["POST"])
+@login_required
+def send_friend_request_route():
+    user = current_user()
+    friend_email = request.form.get("friend_email")
+    if friend_email:
+        from db import add_friend_request
+        success, msg = add_friend_request(user["id"], friend_email)
+        flash(msg)
+    else:
+        flash("Please enter a valid email address.")
+    return redirect(url_for("custom_dish_view"))
+
+
+@app.route("/friends/accept", methods=["POST"])
+@login_required
+def accept_friend_request_route():
+    user = current_user()
+    requester_id = request.form.get("requester_id")
+    if requester_id:
+        from db import accept_friend_request
+        accept_friend_request(user["id"], int(requester_id))
+        flash("Friend request accepted! 🤝 You can now see each other's custom recipes!")
+    return redirect(url_for("custom_dish_view"))
+
+
+@app.route("/friends/reject", methods=["POST"])
+@login_required
+def reject_friend_request_route():
+    user = current_user()
+    requester_id = request.form.get("requester_id")
+    if requester_id:
+        from db import reject_friend_request
+        reject_friend_request(user["id"], int(requester_id))
+        flash("Friend request declined/cancelled.")
+    return redirect(url_for("custom_dish_view"))
+
+
+@app.route("/custom_dish/add_friend_suggestion", methods=["POST"])
+@login_required
+def add_friend_suggestion_route():
+    user = current_user()
+    name = request.form.get("name")
+    type_ = request.form.get("type")
+    serve_with = request.form.get("serve_with")
+    category = request.form.get("category")
+    style = request.form.get("style")
+    course = request.form.get("course")
+    
+    if name and type_ and serve_with and category and style and course:
+        from db import add_custom_dish
+        success = add_custom_dish(user["id"], name, type_, serve_with, category, style, course)
+        if success:
+            flash(f"Added \"{name}\" to your private menu inventory! ➕")
+        else:
+            flash("Failed to add dish. It might already be in your menu.")
+    return redirect(url_for("custom_dish_view"))
 
 
 if __name__ == "__main__":

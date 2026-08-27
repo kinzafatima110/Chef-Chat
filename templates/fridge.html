@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}My Fridge & Matcher{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+  <!-- Macro helper function to render inventory lists -->
+  {%- macro render_inventory_list(items) -%}
+    <div style="max-height: 250px; overflow-y: auto; padding-right: 4px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <tbody>
+          {% for item in items %}
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.1s;">
+              <td style="padding: 10px 0; font-weight: bold; color: var(--dark); text-transform: capitalize;">{{ item.item_name }}</td>
+              
+              <!-- Update Quantity Form -->
+              <td style="padding: 10px 0; text-align: right;">
+                <form method="post" action="/fridge/update" style="margin: 0; display: inline-flex; align-items: center; gap: 4px;">
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <input type="text" name="quantity" value="{{ item.quantity }}" placeholder="qty" style="width: 70px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; text-align: center;">
+                  <button type="submit" style="background: #efefef; border: 1px solid #ccc; border-radius: 4px; padding: 3px 6px; cursor: pointer; font-size: 10px; font-weight: bold; color: #444;">💾</button>
+                </form>
+              </td>
+              
+              <!-- Delete Form -->
+              <td style="padding: 10px 0; text-align: right; width: 30px;">
+                <form method="post" action="/fridge/delete" style="margin: 0; display: inline;">
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <button type="submit" style="background: transparent; border: none; color: #dc3545; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {%- endmacro -%}
+
+  <h1 style="margin-top: 8px;">❄️ Fridge & Pantry Inventory</h1>
+  <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+    Track what is in your fridge, freezer, and pantry (food rashan) to automatically match and suggest dinner ideas!
+  </p>
+
+  <!-- Add Item Form Section -->
+  <fieldset style="border: 2px solid var(--gold); border-radius: 16px; padding: 20px; background: #fffcf9; margin-bottom: 24px; box-sizing: border-box;">
+    <legend style="font-weight: 800; padding: 0 10px; color: var(--terracotta); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;">➕ Log Item / Food Rashan</legend>
+    <form method="post" action="/fridge/add" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin: 0;">
+      <div style="flex: 1; min-width: 200px;">
+        <label for="item_name" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Ingredient Name</label>
+        <input type="text" id="item_name" name="item_name" required placeholder="e.g. Chicken, Spinach, Rice, Potato" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+      </div>
+      
+      <div style="width: 150px; min-width: 120px;">
+        <label for="location" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Storage Location</label>
+        <select id="location" name="location" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; background: white; box-sizing: border-box;">
+          <option value="freezer">Freezer ❄️</option>
+          <option value="fridge">Fridge 🥦</option>
+          <option value="pantry">Pantry/Rashan 🌾</option>
+        </select>
+      </div>
+      
+      <div style="width: 150px; min-width: 120px;">
+        <label for="quantity" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Quantity / Weight</label>
+        <input type="text" id="quantity" name="quantity" placeholder="e.g. 2 kg, 3 packs" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+      </div>
+      
+      <div style="min-width: 100px;">
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 11px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; border: none; background: var(--terracotta); color: white; cursor: pointer; transition: all 0.2s;">Log Item 🍳</button>
+      </div>
+    </form>
+  </fieldset>
+
+  <!-- Inventory Grid Section -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    
+    <!-- Freezer Inventory -->
+    <div style="border: 1.5px solid #bce2fa; border-radius: 16px; padding: 16px; background: #f2f9fe;">
+      <h3 style="margin-top: 0; color: #0275d8; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #bce2fa; padding-bottom: 8px;">❄️ Freezer Items</h3>
+      {% if freezer_items %}
+        {{ render_inventory_list(freezer_items) }}
+      {% else %}
+        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No freezer items logged.</p>
+      {% endif %}
+    </div>
+
+    <!-- Fridge Inventory -->
+    <div style="border: 1.5px solid #d4edda; border-radius: 16px; padding: 16px; background: #f8fff9;">
+      <h3 style="margin-top: 0; color: #28a745; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #d4edda; padding-bottom: 8px;">🥦 Fridge Items</h3>
+      {% if fridge_items %}
+        {{ render_inventory_list(fridge_items) }}
+      {% else %}
+        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No fridge items logged.</p>
+      {% endif %}
+    </div>
+
+    <!-- Pantry / Rashan Inventory -->
+    <div style="border: 1.5px solid #ffeeba; border-radius: 16px; padding: 16px; background: #fffdf6;">
+      <h3 style="margin-top: 0; color: #856404; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #ffeeba; padding-bottom: 8px;">🌾 Pantry & Rashan</h3>
+      {% if pantry_items %}
+        {{ render_inventory_list(pantry_items) }}
+      {% else %}
+        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No pantry items logged.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Auto Match Suggestions -->
+  <fieldset style="border: 2px solid var(--gold); border-radius: 16px; padding: 20px; background: white; box-sizing: border-box;">
+    <legend style="font-weight: 800; padding: 0 10px; color: var(--terracotta); text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px;">🍳 What can I cook right now?</legend>
+    
+    {% if matches %}
+      <p style="font-size: 12px; color: #555; margin-top: 0; margin-bottom: 16px;">
+        The system matched these recipes from your inventory with the ingredients in your fridge/freezer:
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+        {% for match in matches %}
+          <div style="border: 1.5px solid #eee; border-radius: 14px; padding: 14px; background: #fffdfa; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: all 0.2s;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.3;">{{ match.dish.name }}</span>
+                <span style="font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; background: {% if match.dish.type == 'veg' %}rgba(40,167,69,0.1); color: #28a745;{% else %}rgba(214,90,49,0.1); color: var(--terracotta);{% endif %}">
+                  {{ 'Non-Meat' if match.dish.type == 'veg' else 'Meat' }}
+                </span>
+              </div>
+              
+              <div style="font-size: 11px; color: #777; margin-bottom: 10px; text-transform: capitalize;">
+                Style: <strong>{{ match.dish.style }}</strong> | Course: <strong>{{ match.dish.course }}</strong>
+              </div>
+
+              <!-- Matching Ingredients Tag -->
+              <div style="margin-bottom: 12px;">
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: 800; color: #888; margin-bottom: 4px;">Matched Ingredients:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                  {% for ing in match.matching_ingredients %}
+                    <span style="background: #e2f5e7; color: #1e7e34; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                      ✓ {{ ing }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #f5f5f5; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+              <a href="https://www.youtube.com/results?search_query={{ match.dish.name | replace(' ', '+') }}+food+fusion+recipe" target="_blank" style="font-size: 11.5px; font-weight: bold; color: var(--terracotta); text-decoration: none; border-bottom: 1px solid var(--terracotta);">Watch Recipe 📺</a>
+              <span style="font-size: 10px; color: #aaa; font-style: italic;">
+                Matches: {{ 'Food Fusion' if match.matched_from == 'scraped' else 'Synonym Map' }}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 30px; color: #666;">
+        <span style="font-size: 32px;">🍳</span>
+        <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">No recipes matched yet!</p>
+        <p style="font-size: 12px; color: #999; margin: 0;">Add key items like <strong>Chicken, Beef, Spinach, Rice, or Potatoes</strong> to your inventory to automatically load suggestions.</p>
+      </div>
+    {% endif %}
+  </fieldset>
+
+
+
+{% endblock %}

@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Add Custom Dish{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block extra_style %}
+  .weekly-card {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 24px;
+    border: 3px solid var(--gold);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .weekly-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+    text-align: center;
+    margin: 0 0 16px;
+  }
+
+  #dup-warning {
+    color: #d65a31;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 4px;
+    min-height: 15px;
+  }
+{% endblock %}
+
+{% block content %}
+
+
+  <!-- Personalized Kitchen Section -->
+  <div class="weekly-card" style="background: white;">
+    <h2 class="weekly-title" style="margin-bottom: 8px;">🍽️ My Personalized Kitchen</h2>
+    <p style="font-size: 12px; text-align: center; color: #555; margin-top: 0; margin-bottom: 16px;">
+      Add family recipes or custom dishes that are private to your account.
+    </p>
+
+    <!-- Form to add custom dishes -->
+    <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-sizing: border-box;">
+      <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">➕ Add Private Custom Dish</legend>
+      <form method="post" action="/custom_dish/add">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Dish Name:</label>
+            <input type="text" name="name" id="dish-name-input" placeholder="e.g. Grandma's Curry" list="existing-dishes-list" required autocomplete="off" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box;">
+            <div id="dup-warning"></div>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Dish Type:</label>
+            <select name="type" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
+              <option value="veg">Non-Meat 🥗</option>
+              <option value="nonveg">Meat 🍗</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Serve With:</label>
+            <select name="serve_with" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
+              <option value="both">Roti or Rice 🍛</option>
+              <option value="roti">Roti Only 🫓</option>
+              <option value="rice">Rice Only 🍚</option>
+              <option value="none">None 🍽️</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Course Level:</label>
+            <select name="course" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
+              <option value="main">Main Course 🍲</option>
+              <option value="side">Side Dish / Snack 🍟</option>
+              <option value="dessert">Dessert 🍨</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Meal Style:</label>
+            <select name="style" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
+              <option value="rich">Rich & Indulgent 🧈</option>
+              <option value="light" selected>Light & Healthy 🥗</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Category Tag:</label>
+            <select name="category" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
+              <option value="curry">Curry 🍛</option>
+              <option value="sabzi">Sabzi 🥦</option>
+              <option value="karahi">Karahi 🍳</option>
+              <option value="rice-dish">Rice Dish 🌾</option>
+              <option value="bbq">Barbeque 🍢</option>
+              <option value="sweet">Sweet 🍬</option>
+              <option value="snack">Snack 🍿</option>
+              <option value="quick">Quick Meal ⏱️</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" id="submit-dish-btn" class="btn" style="padding: 10px 14px; font-size: 13px; width: 100%; transition: all 0.2s;">Add Dish to Personalized Menu 🚀</button>
+      </form>
+    </fieldset>
+
+    <!-- Datalist for Autocomplete options -->
+    <datalist id="existing-dishes-list">
+      {% for name in existing_names %}
+        <option value="{{ name }}"></option>
+      {% endfor %}
+    </datalist>
+
+    <!-- List of custom dishes -->
+    {% if custom_dishes %}
+      <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-bottom: 0; box-sizing: border-box;">
+        <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">📋 Private Dish Inventory ({{ custom_dishes | length }})</legend>
+        <div style="max-height: 220px; overflow-y: auto; padding-right: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="border-bottom: 1.5px solid var(--gold); text-align: left; font-weight: bold; color: #555;">
+                <th style="padding: 6px 0;">Name</th>
+                <th style="padding: 6px 0;">Type</th>
+                <th style="padding: 6px 0;">Course</th>
+                <th style="padding: 6px 0;">Serve With</th>
+                <th style="padding: 6px 0; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cdish in custom_dishes %}
+                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
+                  <td style="padding: 6px 0; font-weight: 600;">{{ cdish.name }}</td>
+                  <td style="padding: 6px 0;">{{ 'Non-Meat' if cdish.type == 'veg' else 'Meat' }}</td>
+                  <td style="padding: 6px 0; text-transform: capitalize;">{{ cdish.course }}</td>
+                  <td style="padding: 6px 0; text-transform: capitalize;">{{ cdish.serve_with }}</td>
+                  <td style="padding: 6px 0; text-align: right;">
+                    <form method="post" action="/reject" style="margin: 0; display: inline;">
+                      <input type="hidden" name="dish" value="{{ cdish.name }}">
+                      <button type="submit" style="background: transparent; border: none; color: red; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline;">Remove ❌</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </fieldset>
+    {% endif %}
+
+    <!-- List of blocked core recipes -->
+    {% if blocked_dishes %}
+      <fieldset style="border: 2px solid #e74c3c; border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box;">
+        <legend style="font-weight: bold; padding: 0 8px; color: #e74c3c;">🚫 Blocked Recipes ({{ blocked_dishes | length }})</legend>
+        <p style="font-size: 11px; color: #777; margin: 0 0 10px;">Recipes you've hidden from daily suggestions. Click unblock to restore them.</p>
+        <div style="max-height: 180px; overflow-y: auto; padding-right: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="border-bottom: 1.5px solid #e74c3c; text-align: left; font-weight: bold; color: #555;">
+                <th style="padding: 6px 0;">Dish Name</th>
+                <th style="padding: 6px 0; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bdish in blocked_dishes %}
+                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
+                  <td style="padding: 6px 0; font-weight: 600;">{{ bdish }}</td>
+                  <td style="padding: 6px 0; text-align: right;">
+                    <form method="post" action="/unblock" style="margin: 0; display: inline;">
+                      <input type="hidden" name="dish" value="{{ bdish }}">
+                      <button type="submit" style="background: transparent; border: none; color: green; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline; font-weight: bold;">Unblock & Restore ✅</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </fieldset>
+    {% endif %}
+
+    <!-- List of custom dishes shared by friends -->
+    {% if friend_suggestions %}
+      <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box; background: #fffdfb;">
+        <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">🤝 Suggested Recipes from Friends ({{ friend_suggestions | length }})</legend>
+        <p style="font-size: 11px; color: #777; margin: 0 0 10px;">Recipes added by your friends that you don't have. Copy them to your menu with one click!</p>
+        <div style="max-height: 250px; overflow-y: auto; padding-right: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="border-bottom: 1.5px solid var(--gold); text-align: left; font-weight: bold; color: #555;">
+                <th style="padding: 6px 0;">Dish Name</th>
+                <th style="padding: 6px 0;">Diet</th>
+                <th style="padding: 6px 0;">Creator</th>
+                <th style="padding: 6px 0; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for suggestion in friend_suggestions %}
+                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
+                  <td style="padding: 8px 0; font-weight: 600;">{{ suggestion.name }}</td>
+                  <td style="padding: 8px 0;">
+                    <span style="background: rgba(214, 90, 49, 0.1); color: var(--terracotta); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">
+                      {{ 'Non-Meat' if suggestion.type == 'veg' else 'Meat' }}
+                    </span>
+                  </td>
+                  <td style="padding: 8px 0; color: #666; font-size: 11px;">{{ suggestion.creator_email }}</td>
+                  <td style="padding: 8px 0; text-align: right;">
+                    <form method="post" action="/custom_dish/add_friend_suggestion" style="margin: 0; display: inline;">
+                      <input type="hidden" name="name" value="{{ suggestion.name }}">
+                      <input type="hidden" name="type" value="{{ suggestion.type }}">
+                      <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
+                      <input type="hidden" name="category" value="{{ suggestion.category }}">
+                      <input type="hidden" name="style" value="{{ suggestion.style }}">
+                      <input type="hidden" name="course" value="{{ suggestion.course }}">
+                      <button type="submit" style="background: var(--terracotta); border: none; color: white; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: bold; transition: opacity 0.2s;">Add to Menu ➕</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </fieldset>
+    {% endif %}
+
+    <!-- Friends Network Manager -->
+    <fieldset style="border: 2px solid #ccc; border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box; background: #fafafa;">
+      <legend style="font-weight: bold; padding: 0 8px; color: #555;">👥 Kitchen Friends Network</legend>
+      
+      <!-- Send Friend Request Form -->
+      <form method="post" action="/friends/request" style="display: flex; gap: 8px; margin-bottom: 16px; align-items: flex-end;">
+        <div style="flex: 1;">
+          <label for="friend_email" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #555;">Add Friend by Email</label>
+          <input type="email" id="friend_email" name="friend_email" required placeholder="friend@example.com" style="width: 100%; padding: 8px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 12px; box-sizing: border-box;">
+        </div>
+        <button type="submit" class="btn-primary" style="padding: 9px 16px; font-size: 12px; border-radius: 6px; font-weight: bold; background: #555; color: white; border: none; cursor: pointer; transition: all 0.2s;">Send Request 🤝</button>
+      </form>
+
+      <!-- Incoming Friend Requests -->
+      {% if friend_requests %}
+        <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 10px; margin-bottom: 14px; font-size: 12px;">
+          <strong style="color: #856404; display: block; margin-bottom: 6px;">📥 Pending Friend Invites:</strong>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for req in friend_requests %}
+              <li style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.05);">
+                <span>{{ req.email }}</span>
+                <div style="display: flex; gap: 6px;">
+                  <form method="post" action="/friends/accept" style="margin: 0;">
+                    <input type="hidden" name="requester_id" value="{{ req.id }}">
+                    <button type="submit" style="background: #28a745; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">Accept ✅</button>
+                  </form>
+                  <form method="post" action="/friends/reject" style="margin: 0;">
+                    <input type="hidden" name="requester_id" value="{{ req.id }}">
+                    <button type="submit" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">Decline ❌</button>
+                  </form>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- Accepted Friends list -->
+      <div style="font-size: 12px;">
+        <strong style="color: #444; display: block; margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">👥 Your Kitchen Connections:</strong>
+        {% if friends %}
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for friend in friends %}
+              <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <span style="font-weight: 600; color: var(--dark);">{{ friend.email }}</span>
+                <form method="post" action="/friends/reject" style="margin: 0; display: inline;">
+                  <input type="hidden" name="requester_id" value="{{ friend.id }}">
+                  <button type="submit" style="background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; font-size: 10px;" title="Remove connection">✖</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-style: italic; color: #888; margin: 4px 0 0;">You haven't linked with any kitchen friends yet. Add them above by email!</p>
+        {% endif %}
+      </div>
+
+    </fieldset>
+  </div>
+
+  <script>
+    const existing = {{ existing_names | tojson }};
+    const inputField = document.getElementById('dish-name-input');
+    const warningDiv = document.getElementById('dup-warning');
+    const submitBtn = document.getElementById('submit-dish-btn');
+
+    inputField.addEventListener('input', function(e) {
+      const val = e.target.value.trim().toLowerCase();
+      
+      // Check if value matches any existing dishes in inventory (case-insensitive)
+      const isDuplicate = existing.map(x => x.toLowerCase()).includes(val);
+      
+      if (isDuplicate) {
+        warningDiv.textContent = "⚠️ This dish is already in your kitchen inventory!";
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+      } else {
+        warningDiv.textContent = "";
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+      }
+    });
+  </script>
+{% endblock %}

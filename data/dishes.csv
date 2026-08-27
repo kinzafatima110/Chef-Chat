@@ -43,22 +43,22 @@ Keema Matar,nonveg,both,curry,rich,main
 Keema Aloo,nonveg,both,curry,rich,main
 Kofta Curry,nonveg,both,curry,rich,main
 Chicken Cutlets,nonveg,none,snack,rich,side
-Masoor Daal,veg,both,lentil,light,side
-Chana Daal,veg,both,lentil,light,side
-Moong Daal,veg,both,lentil,light,side
-Daal Makhani,veg,both,lentil,rich,side
-Mash ki Daal,veg,both,lentil,light,side
-Sabz Daal,veg,both,lentil,light,side
-Aloo Gobi,veg,roti,sabzi,light,side
-Bhindi Masala,veg,roti,sabzi,light,side
-Baingan Bharta,veg,roti,sabzi,light,side
+Masoor Daal,veg,both,lentil,light,main
+Chana Daal,veg,both,lentil,light,main
+Moong Daal,veg,both,lentil,light,main
+Daal Makhani,veg,both,lentil,rich,main
+Mash ki Daal,veg,both,lentil,light,main
+Sabz Daal,veg,both,lentil,light,main
+Aloo Gobi,veg,roti,sabzi,light,main
+Bhindi Masala,veg,roti,sabzi,light,main
+Baingan Bharta,veg,roti,sabzi,light,main
 Palak Paneer,veg,roti,sabzi,rich,main
-Aloo Palak,veg,roti,sabzi,light,side
-Karele,veg,roti,sabzi,light,side
-Tinday,veg,roti,sabzi,light,side
-Aloo Matar,veg,roti,sabzi,light,side
-Shalgam,veg,roti,sabzi,light,side
-Mixed Vegetable Curry,veg,both,sabzi,light,side
+Aloo Palak,veg,roti,sabzi,light,main
+Karele,veg,roti,sabzi,light,main
+Tinday,veg,roti,sabzi,light,main
+Aloo Matar,veg,roti,sabzi,light,main
+Shalgam,veg,roti,sabzi,light,main
+Mixed Vegetable Curry,veg,both,sabzi,light,main
 Chana Masala,veg,both,curry,light,main
 Rajma,veg,both,curry,light,main
 Paneer Karahi,veg,roti,karahi,rich,main
@@ -74,3 +74,32 @@ Loaded Fries,nonveg,none,snack,rich,side
 Samosa,veg,none,snack,rich,side
 Sheer Khurma,veg,none,sweet,rich,dessert
 Kheer,veg,none,sweet,rich,dessert
+Chicken White Karahi,nonveg,roti,karahi,rich,main
+Mutton Shinwari Karahi,nonveg,roti,karahi,rich,main
+Kunna Gosht,nonveg,both,specialty,rich,main
+Beef Shami Kebab,nonveg,roti,bbq,rich,side
+Chicken Manchurian,nonveg,rice,curry,light,main
+Egg Fried Rice,nonveg,rice,rice-dish,light,main
+Chicken Shawarma,nonveg,none,quick,light,side
+Chicken Paratha Roll,nonveg,none,quick,rich,side
+Kashmiri Chai,veg,none,sweet,light,dessert
+Matar Paneer,veg,roti,sabzi,rich,main
+Kadhi Pakora,veg,rice,curry,rich,main
+Mooli Paratha,veg,none,breakfast,rich,side
+Halwa Puri,veg,none,breakfast,rich,side
+Suji ka Halwa,veg,none,sweet,rich,dessert
+Gajar ka Halwa,veg,none,sweet,rich,dessert
+Shahi Tukray,veg,none,sweet,rich,dessert
+Ras Malai,veg,none,sweet,rich,dessert
+Gol Gappey,veg,none,snack,light,side
+Dahi Bhallay,veg,none,snack,light,side
+Pakoras,veg,none,snack,rich,side
+Zeera Rice,veg,rice,rice-dish,light,side
+Kashmiri Pulao,veg,rice,rice-dish,rich,main
+Daal Chawal,veg,both,lentil,light,main
+Sarson ka Saag,veg,roti,sabzi,light,main
+Bhindi Karahi,veg,roti,karahi,light,side
+Dum Pukht,nonveg,both,specialty,rich,main
+Chicken Ginger,nonveg,both,curry,light,main
+Peshawari Charsi Tikka,nonveg,roti,bbq,light,side
+Beef Paya,nonveg,both,specialty,rich,main

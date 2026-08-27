@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Kitchen Tips for Beginners{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+  <h1 style="margin-top: 8px;">💡 Beginner Kitchen Tips & Guides</h1>
+  <p style="font-size: 13px; color: #666; margin-bottom: 24px;">
+    Essential guides, boiling reference charts, and meat identification tips to kickstart your home kitchen journey!
+  </p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    
+    <!-- Meat Identification Card -->
+    <div style="border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; background: #fffdfb; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+      <h3 style="margin-top: 0; color: var(--terracotta); border-bottom: 1.5px solid var(--gold); padding-bottom: 8px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+        🥩 Beef vs. Mutton: How to Differentiate
+      </h3>
+      <p style="font-size: 12.5px; color: #444; line-height: 1.5; margin-bottom: 12px;">
+        New to the kitchen and confused at the butcher shop? Here is how to easily tell them apart:
+      </p>
+      <ul style="font-size: 12px; color: #555; padding-left: 20px; line-height: 1.6; margin: 0;">
+        <li style="margin-bottom: 8px;">
+          <strong>🔴 Color:</strong> Beef meat is a darker, deep cherry-red color. Mutton (goat/sheep) meat has a lighter, pinkish-red hue.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>⚪ Fat Color:</strong> Beef fat is distinctly yellowish-white. Mutton fat is stark pure-white and much firmer.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>🦴 Bone Size:</strong> Beef bones are thick, wide, and heavy. Mutton bones are much thinner, cylindrical, and lighter.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>👃 Texture & Aroma:</strong> Mutton has a strong, distinct gamey smell and a fine-grained, tender texture. Beef has a milder, classic meat aroma with a coarser grain.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Boiling & Cooking Times Reference -->
+    <div style="border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; background: #fffdfb; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+      <h3 style="margin-top: 0; color: var(--terracotta); border-bottom: 1.5px solid var(--gold); padding-bottom: 8px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+        ⏳ Meat Boiling & Cooking Times
+      </h3>
+      <p style="font-size: 12.5px; color: #444; line-height: 1.5; margin-bottom: 12px;">
+        Estimates for boiling raw meat until it's tender (timings may vary depending on chunk sizes):
+      </p>
+      
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; margin-top: 8px;">
+        <thead>
+          <tr style="border-bottom: 1.5px solid #ddd; font-weight: bold; color: var(--dark);">
+            <th style="padding: 6px 4px;">Ingredient</th>
+            <th style="padding: 6px 4px;">⚡ Pressure Cooker</th>
+            <th style="padding: 6px 4px;">🍲 Normal Pot (Open)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid #f2f2f2;">
+            <td style="padding: 8px 4px; font-weight: bold;">Chicken 🍗</td>
+            <td style="padding: 8px 4px; color: #28a745;">5 - 8 mins</td>
+            <td style="padding: 8px 4px; color: #666;">20 - 25 mins</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f2f2f2;">
+            <td style="padding: 8px 4px; font-weight: bold;">Mutton 🥩</td>
+            <td style="padding: 8px 4px; color: #28a745;">12 - 15 mins</td>
+            <td style="padding: 8px 4px; color: #666;">45 - 60 mins</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f2f2f2;">
+            <td style="padding: 8px 4px; font-weight: bold;">Beef 🥩</td>
+            <td style="padding: 8px 4px; color: #28a745;">20 - 25 mins</td>
+            <td style="padding: 8px 4px; color: #666;">1.5 - 2 hours</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f2f2f2;">
+            <td style="padding: 8px 4px; font-weight: bold;">Yellow Lentils 🥣</td>
+            <td style="padding: 8px 4px; color: #28a745;">6 - 8 mins</td>
+            <td style="padding: 8px 4px; color: #666;">25 - 30 mins</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f2f2f2;">
+            <td style="padding: 8px 4px; font-weight: bold;">Chickpeas (Soaked) 🌾</td>
+            <td style="padding: 8px 4px; color: #28a745;">10 - 12 mins</td>
+            <td style="padding: 8px 4px; color: #666;">40 - 50 mins</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Advanced Beginner Tips -->
+  <fieldset style="border: 2px solid var(--gold); border-radius: 16px; padding: 20px; background: white; box-sizing: border-box;">
+    <legend style="font-weight: 800; padding: 0 10px; color: var(--terracotta); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;">🧂 Chef's Secret Ratios & Kitchen Hacks</legend>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; font-size: 12.5px; line-height: 1.5; color: #555;">
+      
+      <div>
+        <h4 style="margin: 0 0 6px; color: var(--dark); font-size: 14px;">🧂 Standard Salting Ratio</h4>
+        <p style="margin: 0;">
+          As a rule of thumb, use <strong>1 teaspoon of salt per 1 kg</strong> of meat or vegetables. For rice, use <strong>1.5 teaspoons of salt per 2 cups</strong> of dry rice when boiling.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="margin: 0 0 6px; color: var(--dark); font-size: 14px;">🧅 The Onion Base Hack</h4>
+        <p style="margin: 0;">
+          For a smooth desi gravy (Salan), fry your onions until golden brown, then blend them with yogurt before adding to the curry. This prevents raw onion pieces floating in your karahi!
+        </p>
+      </div>
+
+      <div>
+        <h4 style="margin: 0 0 6px; color: var(--dark); font-size: 14px;">❄️ Freezer Meat Storage</h4>
+        <p style="margin: 0;">
+          Always wash and portion meat into smaller recipe-sized ziploc bags *before* freezing. Thawing and refreezing a large block of meat ruins the texture and breeds bacteria!
+        </p>
+      </div>
+
+    </div>
+  </fieldset>
+
+{% endblock %}

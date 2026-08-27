@@ -29,6 +29,16 @@
     width: 100%;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     align-self: flex-start;
+    position: relative;
+    z-index: 10;
+    transition: max-width 0.3s ease;
+    box-sizing: border-box;
+  }
+  .card.wide {
+    max-width: 980px;
+  }
+  .card.dashboard {
+    max-width: 580px;
   }
   h1 { color: var(--dark); font-size: 26px; margin: 0 0 4px; text-align: center; }
   p.subtitle { text-align: center; color: var(--dark); opacity: 0.75; margin: 0 0 24px; font-size: 14px; }
@@ -62,11 +72,299 @@
     font-weight: 400;
   }
   .option input:checked + label { background: var(--terracotta); border-color: var(--terracotta); color: var(--cream); }
+  .floating-food-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .food-item-card {
+    position: absolute;
+    width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    user-select: none;
+    animation: floatLeftToRight 32s infinite linear;
+  }
+  .food-item-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+    border: 3px solid var(--gold);
+    animation: rotateDish 15s infinite linear;
+  }
+  .food-item-label {
+    margin-top: -20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    line-height: 1;
+    z-index: 5;
+  }
+  .label-yellow {
+    color: #FFD700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 1.5px 1.5px 0px #000, -1.5px -1.5px 0px #000, 1.5px -1.5px 0px #000, -1.5px 1.5px 0px #000, 1.5px 1.5px 0px #000;
+  }
+  .label-white {
+    color: #FFFFFF;
+    font-size: 13px;
+    text-transform: uppercase;
+    text-shadow: 1.5px 1.5px 0px #000, -1.5px -1.5px 0px #000, 1.5px -1.5px 0px #000, -1.5px 1.5px 0px #000, 1.5px 1.5px 0px #000;
+  }
+  .row-1 { top: 10%; }
+  .row-2 { top: 30%; animation-direction: reverse; animation-duration: 36s; }
+  .row-2 .food-item-img { animation-direction: reverse; }
+  .row-3 { top: 50%; }
+  .row-4 { top: 70%; animation-direction: reverse; animation-duration: 40s; }
+  .row-4 .food-item-img { animation-direction: reverse; }
+  .row-5 { top: 88%; }
+
+  @keyframes floatLeftToRight {
+    0% {
+      transform: translateX(-150px);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.55;
+    }
+    90% {
+      opacity: 0.55;
+    }
+    100% {
+      transform: translateX(105vw);
+      opacity: 0;
+    }
+  }
+
+  @keyframes rotateDish {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .nav-tabs {
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 24px;
+    border: 1.5px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    gap: 4px;
+  }
+  .nav-tabs a {
+    flex: 1;
+    text-align: center;
+    padding: 10px 4px;
+    text-decoration: none;
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 11.5px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tabs a:hover {
+    background: rgba(214, 90, 49, 0.08);
+    color: var(--terracotta);
+  }
+  .nav-tabs a.active {
+    background: var(--terracotta);
+    color: var(--cream);
+  }
+
+  /* Chef Welcome Header Styling */
+  .chef-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #FFFDF9 0%, #FFF5EB 100%);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  }
+  .chef-logo-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--gold);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background: white;
+  }
+  .chef-header-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .chef-info {
+    flex: 1;
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .chef-brand {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--terracotta);
+    margin: 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .chef-welcome {
+    font-size: 13px;
+    color: var(--dark);
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+  .chef-email {
+    font-weight: 700;
+    color: var(--terracotta);
+  }
+  .chef-logout-wrap {
+    margin-left: 12px;
+  }
+  .chef-logout-btn {
+    font-size: 11.5px;
+    color: var(--terracotta);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 8px 12px;
+    border: 1.5px solid var(--terracotta);
+    border-radius: 10px;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .chef-logout-btn:hover {
+    background: var(--terracotta);
+    color: var(--cream);
+  }
+
+  /* Responsive Media Queries to prevent tab bar overflow */
+  @media (max-width: 680px) {
+    .nav-tabs {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .nav-tabs a {
+      flex: 1 1 45%; /* Drop to 2 tabs per row! */
+      font-size: 11px;
+      padding: 8px;
+    }
+    .chef-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+      padding: 18px;
+    }
+    .chef-info {
+      margin-left: 0;
+    }
+    .chef-logout-wrap {
+      margin-left: 0;
+      width: 100%;
+    }
+    .chef-logout-btn {
+      display: block;
+      text-align: center;
+    }
+  }
+
   {% block extra_style %}{% endblock %}
 </style>
 </head>
 <body>
-  <div class="card">
+  <div class="floating-food-container">
+    <div class="food-item-card row-1" style="animation-delay: 0s;">
+      <img class="food-item-img" src="{{ url_for('static', filename='images/biryani.jpg') }}">
+      <div class="food-item-label">
+        <span class="label-yellow">TASTY</span>
+        <span class="label-white">BIRYANI</span>
+      </div>
+    </div>
+    <div class="food-item-card row-2" style="animation-delay: 8s;">
+      <img class="food-item-img" src="{{ url_for('static', filename='images/karahi.jpg') }}">
+      <div class="food-item-label">
+        <span class="label-yellow">SPICY</span>
+        <span class="label-white">KARAHI</span>
+      </div>
+    </div>
+    <div class="food-item-card row-3" style="animation-delay: 4s;">
+      <img class="food-item-img" src="{{ url_for('static', filename='images/samosa.jpg') }}">
+      <div class="food-item-label">
+        <span class="label-yellow">CRISPY</span>
+        <span class="label-white">SAMOSA</span>
+      </div>
+    </div>
+    <div class="food-item-card row-4" style="animation-delay: 14s;">
+      <img class="food-item-img" src="{{ url_for('static', filename='images/biryani.jpg') }}">
+      <div class="food-item-label">
+        <span class="label-yellow">YUMMY</span>
+        <span class="label-white">BIRYANI</span>
+      </div>
+    </div>
+    <div class="food-item-card row-5" style="animation-delay: 18s;">
+      <img class="food-item-img" src="{{ url_for('static', filename='images/karahi.jpg') }}">
+      <div class="food-item-label">
+        <span class="label-yellow">HOT</span>
+        <span class="label-white">KARAHI</span>
+      </div>
+    </div>
+  </div>
+  <div class="card {% block card_class %}{% endblock %}">
+    {% if session.get('user_id') and user %}
+      <div class="chef-header">
+        <div class="chef-logo-wrap">
+          <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Chef Chat Logo" class="chef-header-logo">
+        </div>
+        <div class="chef-info">
+          <h1 class="chef-brand">Chef Chat</h1>
+          <div class="chef-welcome">Welcome back, <span class="chef-email">{{ user.email }}</span>! 👨‍🍳</div>
+        </div>
+        <div class="chef-logout-wrap">
+          <a href="/logout" class="chef-logout-btn">Logout 🚪</a>
+        </div>
+      </div>
+      
+      <nav class="nav-tabs">
+        <a href="/" class="{% if request.path == '/' %}active{% endif %}">Today 🍳</a>
+        <a href="/quick_quiz" class="{% if request.path == '/quick_quiz' %}active{% endif %}">Mood Quiz ⚡</a>
+        <a href="/weekly" class="{% if request.path.startswith('/weekly') %}active{% endif %}">Weekly 📅</a>
+        <a href="/fridge" class="{% if request.path.startswith('/fridge') %}active{% endif %}">My Fridge ❄️</a>
+        <a href="/tips" class="{% if request.path == '/tips' %}active{% endif %}">Tips 💡</a>
+        <a href="/custom_dish" class="{% if request.path.startswith('/custom_dish') %}active{% endif %}">Add Dish 🍽️</a>
+      </nav>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #eef9ff; border: 1.5px solid #209cee; padding: 12px; border-radius: 8px; margin-bottom: 16px; color: #1c5b8c; font-size: 13px; text-align: center; font-weight: 500;">
+          {% for message in messages %}
+            <div>{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </div>
 </body>

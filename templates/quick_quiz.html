@@ -1,8 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Chef Chat — Quick Quiz{% endblock %}
-
+{% block card_class %}wide{% endblock %}
 {% block extra_style %}
-  .card { max-width: 600px; }
+  .suggestions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
   .dish-option-card {
     border: 2px solid var(--gold);
     border-radius: 14px;
@@ -126,7 +131,7 @@
       <div class="options">
         <div class="option">
           <input type="radio" id="prot_veg" name="protein" value="veg" {% if preferences.protein == 'veg' %}checked{% endif %} required>
-          <label for="prot_veg">Veg 🥗</label>
+          <label for="prot_veg">Non-Meat 🥗</label>
         </div>
         <div class="option">
           <input type="radio" id="prot_chicken" name="protein" value="chicken" {% if preferences.protein == 'chicken' or not preferences %}checked{% endif %}>
@@ -238,6 +243,7 @@
             <div class="dish-info">
               <div class="dish-title">{{ dish.name }}</div>
               <div class="dish-meta">
+                <span>Type: {{ 'Non-Meat' if dish.type == 'veg' else 'Meat' }}</span> • 
                 <span>Category: {{ dish.category }}</span> • 
                 <span>Style: {{ dish.style }}</span> • 
                 <span>Serve with: {{ dish.serve_with }}</span>
