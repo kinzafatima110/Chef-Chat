@@ -217,6 +217,13 @@ def dashboard():
     pool_size = len(pool)
     
     import datetime
+    today_str = datetime.date.today().isoformat()
+    today_logged_meal = None
+    for meal in history:
+        if meal["meal_date"] == today_str:
+            today_logged_meal = meal["dish"]
+            break
+            
     current_day_name = datetime.date.today().strftime("%A")
     
     return render_template(
@@ -227,6 +234,7 @@ def dashboard():
         pool_size=pool_size,
         category=category,
         current_day_name=current_day_name,
+        today_logged_meal=today_logged_meal,
         email=user["email"]
     )
 
