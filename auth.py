@@ -29,7 +29,8 @@ def current_user():
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if not session.get("user_id"):
+        if not current_user():
+            session.clear()
             return redirect(url_for("login"))
         return view(*args, **kwargs)
 
