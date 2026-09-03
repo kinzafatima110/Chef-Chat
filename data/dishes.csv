@@ -1,105 +1,105 @@
-name,type,serve_with,category,style,course
-Chicken Karahi,nonveg,roti,karahi,rich,main
-Mutton Karahi,nonveg,roti,karahi,rich,main
-Chicken Salan,nonveg,both,curry,rich,main
-Mutton Salan,nonveg,both,curry,rich,main
-Beef Curry,nonveg,both,curry,rich,main
-Chicken Qorma,nonveg,both,curry,rich,main
-Mutton Qorma,nonveg,both,curry,rich,main
-Chicken White Qorma,nonveg,both,curry,rich,main
-Achari Chicken,nonveg,both,curry,rich,main
-Achari Gosht,nonveg,both,curry,rich,main
-Chicken Handi,nonveg,both,curry,rich,main
-Mutton Handi,nonveg,both,curry,rich,main
-Chicken Jalfrezi,nonveg,both,curry,rich,main
-Palak Gosht,nonveg,both,curry,light,main
-Aloo Gosht,nonveg,both,curry,rich,main
-Bhindi Gosht,nonveg,both,curry,light,main
-Karele Gosht,nonveg,both,curry,light,main
-Nihari,nonveg,both,specialty,rich,main
-Paya,nonveg,both,specialty,rich,main
-Haleem,nonveg,both,specialty,rich,main
-Chicken Tikka,nonveg,roti,bbq,light,side
-Seekh Kebab,nonveg,roti,bbq,rich,side
-Chicken Boti,nonveg,roti,bbq,light,side
-Malai Boti,nonveg,roti,bbq,rich,side
-Bihari Kebab,nonveg,roti,bbq,rich,side
-Reshmi Kebab,nonveg,roti,bbq,rich,side
-Chapli Kebab,nonveg,roti,bbq,rich,side
-Grilled Fish,nonveg,roti,bbq,light,side
-Fish Curry,nonveg,both,curry,light,main
-Fried Fish,nonveg,none,snack,rich,side
-Shrimp Curry,nonveg,both,curry,rich,main
-Egg Curry,nonveg,both,curry,light,main
-Omelette,nonveg,roti,quick,light,side
-Egg Bhurji,nonveg,roti,quick,light,side
-Chicken Biryani,nonveg,rice,rice-dish,rich,main
-Mutton Biryani,nonveg,rice,rice-dish,rich,main
-Beef Biryani,nonveg,rice,rice-dish,rich,main
-Chicken Pulao,nonveg,rice,rice-dish,rich,main
-Mutton Pulao,nonveg,rice,rice-dish,rich,main
-Kabuli Pulao,nonveg,rice,rice-dish,rich,main
-Keema Matar,nonveg,both,curry,rich,main
-Keema Aloo,nonveg,both,curry,rich,main
-Kofta Curry,nonveg,both,curry,rich,main
-Chicken Cutlets,nonveg,none,snack,rich,side
-Masoor Daal,veg,both,lentil,light,main
-Chana Daal,veg,both,lentil,light,main
-Moong Daal,veg,both,lentil,light,main
-Daal Makhani,veg,both,lentil,rich,main
-Mash ki Daal,veg,both,lentil,light,main
-Sabz Daal,veg,both,lentil,light,main
-Aloo Gobi,veg,roti,sabzi,light,main
-Bhindi Masala,veg,roti,sabzi,light,main
-Baingan Bharta,veg,roti,sabzi,light,main
-Palak Paneer,veg,roti,sabzi,rich,main
-Aloo Palak,veg,roti,sabzi,light,main
-Karele,veg,roti,sabzi,light,main
-Tinday,veg,roti,sabzi,light,main
-Aloo Matar,veg,roti,sabzi,light,main
-Shalgam,veg,roti,sabzi,light,main
-Mixed Vegetable Curry,veg,both,sabzi,light,main
-Chana Masala,veg,both,curry,light,main
-Rajma,veg,both,curry,light,main
-Paneer Karahi,veg,roti,karahi,rich,main
-Paneer Tikka,veg,roti,bbq,light,side
-Shahi Paneer,veg,roti,curry,rich,main
-Vegetable Pulao,veg,rice,rice-dish,light,main
-Khichdi,veg,rice,rice-dish,light,main
-Vegetable Biryani,veg,rice,rice-dish,rich,main
-Aloo Paratha,veg,none,breakfast,rich,side
-Chana Chaat,veg,none,snack,light,side
-Fries,veg,none,snack,rich,side
-Loaded Fries,nonveg,none,snack,rich,side
-Samosa,veg,none,snack,rich,side
-Sheer Khurma,veg,none,sweet,rich,dessert
-Kheer,veg,none,sweet,rich,dessert
-Chicken White Karahi,nonveg,roti,karahi,rich,main
-Mutton Shinwari Karahi,nonveg,roti,karahi,rich,main
-Kunna Gosht,nonveg,both,specialty,rich,main
-Beef Shami Kebab,nonveg,roti,bbq,rich,side
-Chicken Manchurian,nonveg,rice,curry,light,main
-Egg Fried Rice,nonveg,rice,rice-dish,light,main
-Chicken Shawarma,nonveg,none,quick,light,side
-Chicken Paratha Roll,nonveg,none,quick,rich,side
-Kashmiri Chai,veg,none,sweet,light,dessert
-Matar Paneer,veg,roti,sabzi,rich,main
-Kadhi Pakora,veg,rice,curry,rich,main
-Mooli Paratha,veg,none,breakfast,rich,side
-Halwa Puri,veg,none,breakfast,rich,side
-Suji ka Halwa,veg,none,sweet,rich,dessert
-Gajar ka Halwa,veg,none,sweet,rich,dessert
-Shahi Tukray,veg,none,sweet,rich,dessert
-Ras Malai,veg,none,sweet,rich,dessert
-Gol Gappey,veg,none,snack,light,side
-Dahi Bhallay,veg,none,snack,light,side
-Pakoras,veg,none,snack,rich,side
-Zeera Rice,veg,rice,rice-dish,light,side
-Kashmiri Pulao,veg,rice,rice-dish,rich,main
-Daal Chawal,veg,both,lentil,light,main
-Sarson ka Saag,veg,roti,sabzi,light,main
-Bhindi Karahi,veg,roti,karahi,light,side
-Dum Pukht,nonveg,both,specialty,rich,main
-Chicken Ginger,nonveg,both,curry,light,main
-Peshawari Charsi Tikka,nonveg,roti,bbq,light,side
-Beef Paya,nonveg,both,specialty,rich,main
+name,type,serve_with,category,style,course,image
+Chicken Karahi,nonveg,roti,karahi,rich,main,images/karahi.jpg
+Mutton Karahi,nonveg,roti,karahi,rich,main,images/karahi.jpg
+Chicken Salan,nonveg,both,curry,rich,main,images/Handi.png
+Mutton Salan,nonveg,both,curry,rich,main,images/Handi.png
+Beef Curry,nonveg,both,curry,rich,main,images/Handi.png
+Chicken Qorma,nonveg,both,curry,rich,main,images/Handi.png
+Mutton Qorma,nonveg,both,curry,rich,main,images/Handi.png
+Chicken White Qorma,nonveg,both,curry,rich,main,images/Handi.png
+Achari Chicken,nonveg,both,curry,rich,main,images/karahi.jpg
+Achari Gosht,nonveg,both,curry,rich,main,images/karahi.jpg
+Chicken Handi,nonveg,both,curry,rich,main,images/Handi.png
+Mutton Handi,nonveg,both,curry,rich,main,images/Handi.png
+Chicken Jalfrezi,nonveg,both,curry,rich,main,images/karahi.jpg
+Palak Gosht,nonveg,both,curry,light,main,images/Handi.png
+Aloo Gosht,nonveg,both,curry,rich,main,images/Keema Matar Aloo.jpg
+Bhindi Gosht,nonveg,both,curry,light,main,images/Keema Matar Aloo.jpg
+Karele Gosht,nonveg,both,curry,light,main,images/Keema Matar Aloo.jpg
+Nihari,nonveg,both,specialty,rich,main,images/karahi.jpg
+Paya,nonveg,both,specialty,rich,main,images/Handi.png
+Haleem,nonveg,both,specialty,rich,main,images/Handi.png
+Chicken Tikka,nonveg,roti,bbq,light,side,images/karahi.jpg
+Seekh Kebab,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Chicken Boti,nonveg,roti,bbq,light,side,images/karahi.jpg
+Malai Boti,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Bihari Kebab,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Reshmi Kebab,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Chapli Kebab,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Grilled Fish,nonveg,roti,bbq,light,side,images/karahi.jpg
+Fish Curry,nonveg,both,curry,light,main,images/Handi.png
+Fried Fish,nonveg,none,snack,rich,side,images/samosa.jpg
+Shrimp Curry,nonveg,both,curry,rich,main,images/Handi.png
+Egg Curry,nonveg,both,curry,light,main,images/Handi.png
+Omelette,nonveg,roti,quick,light,side,images/samosa.jpg
+Egg Bhurji,nonveg,roti,quick,light,side,images/Keema Matar Aloo.jpg
+Chicken Biryani,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Mutton Biryani,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Beef Biryani,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Chicken Pulao,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Mutton Pulao,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Kabuli Pulao,nonveg,rice,rice-dish,rich,main,images/biryani.jpg
+Keema Matar,nonveg,both,curry,rich,main,images/Keema Matar Aloo.jpg
+Keema Aloo,nonveg,both,curry,rich,main,images/Keema Matar Aloo.jpg
+Kofta Curry,nonveg,both,curry,rich,main,images/Handi.png
+Chicken Cutlets,nonveg,none,snack,rich,side,images/samosa.jpg
+Masoor Daal,veg,both,lentil,light,main,images/Handi.png
+Chana Daal,veg,both,lentil,light,main,images/Handi.png
+Moong Daal,veg,both,lentil,light,main,images/Handi.png
+Daal Makhani,veg,both,lentil,rich,main,images/Handi.png
+Mash ki Daal,veg,both,lentil,light,main,images/Handi.png
+Sabz Daal,veg,both,lentil,light,main,images/Handi.png
+Aloo Gobi,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Bhindi Masala,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Baingan Bharta,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Palak Paneer,veg,roti,sabzi,rich,main,images/Handi.png
+Aloo Palak,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Karele,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Tinday,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Aloo Matar,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Shalgam,veg,roti,sabzi,light,main,images/Keema Matar Aloo.jpg
+Mixed Vegetable Curry,veg,both,sabzi,light,main,images/Handi.png
+Chana Masala,veg,both,curry,light,main,images/Handi.png
+Rajma,veg,both,curry,light,main,images/Handi.png
+Paneer Karahi,veg,roti,karahi,rich,main,images/karahi.jpg
+Paneer Tikka,veg,roti,bbq,light,side,images/karahi.jpg
+Shahi Paneer,veg,roti,curry,rich,main,images/Handi.png
+Vegetable Pulao,veg,rice,rice-dish,light,main,images/biryani.jpg
+Khichdi,veg,rice,rice-dish,light,main,images/biryani.jpg
+Vegetable Biryani,veg,rice,rice-dish,rich,main,images/biryani.jpg
+Aloo Paratha,veg,none,breakfast,rich,side,images/samosa.jpg
+Chana Chaat,veg,none,snack,light,side,images/samosa.jpg
+Fries,veg,none,snack,rich,side,images/samosa.jpg
+Loaded Fries,nonveg,none,snack,rich,side,images/samosa.jpg
+Samosa,veg,none,snack,rich,side,images/samosa.jpg
+Sheer Khurma,veg,none,sweet,rich,dessert,images/Handi.png
+Kheer,veg,none,sweet,rich,dessert,images/Handi.png
+Chicken White Karahi,nonveg,roti,karahi,rich,main,images/karahi.jpg
+Mutton Shinwari Karahi,nonveg,roti,karahi,rich,main,images/karahi.jpg
+Kunna Gosht,nonveg,both,specialty,rich,main,images/Handi.png
+Beef Shami Kebab,nonveg,roti,bbq,rich,side,images/karahi.jpg
+Chicken Manchurian,nonveg,rice,curry,light,main,images/karahi.jpg
+Egg Fried Rice,nonveg,rice,rice-dish,light,main,images/biryani.jpg
+Chicken Shawarma,nonveg,none,quick,light,side,images/samosa.jpg
+Chicken Paratha Roll,nonveg,none,quick,rich,side,images/samosa.jpg
+Kashmiri Chai,veg,none,sweet,light,dessert,images/Handi.png
+Matar Paneer,veg,roti,sabzi,rich,main,images/Handi.png
+Kadhi Pakora,veg,rice,curry,rich,main,images/Handi.png
+Mooli Paratha,veg,none,breakfast,rich,side,images/samosa.jpg
+Halwa Puri,veg,none,breakfast,rich,side,images/samosa.jpg
+Suji ka Halwa,veg,none,sweet,rich,dessert,images/Handi.png
+Gajar ka Halwa,veg,none,sweet,rich,dessert,images/Handi.png
+Shahi Tukray,veg,none,sweet,rich,dessert,images/Handi.png
+Ras Malai,veg,none,sweet,rich,dessert,images/Handi.png
+Gol Gappey,veg,none,snack,light,side,images/samosa.jpg
+Dahi Bhallay,veg,none,snack,light,side,images/samosa.jpg
+Pakoras,veg,none,snack,rich,side,images/samosa.jpg
+Zeera Rice,veg,rice,rice-dish,light,side,images/biryani.jpg
+Kashmiri Pulao,veg,rice,rice-dish,rich,main,images/biryani.jpg
+Daal Chawal,veg,both,lentil,light,main,images/biryani.jpg
+Sarson ka Saag,veg,roti,sabzi,light,main,images/Handi.png
+Bhindi Karahi,veg,roti,karahi,light,side,images/karahi.jpg
+Dum Pukht,nonveg,both,specialty,rich,main,images/karahi.jpg
+Chicken Ginger,nonveg,both,curry,light,main,images/karahi.jpg
+Peshawari Charsi Tikka,nonveg,roti,bbq,light,side,images/karahi.jpg
+Beef Paya,nonveg,both,specialty,rich,main,images/Handi.png

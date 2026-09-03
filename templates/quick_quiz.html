@@ -325,29 +325,38 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
           {% for dish in suggestions %}
             <div class="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow border border-outline-variant/30 flex flex-col justify-between hover:border-primary/50 transition-all">
-              <div>
-                <div class="flex items-start justify-between gap-2 mb-1.5">
-                  <h3 class="font-headline text-lg font-bold text-on-surface leading-tight">{{ dish.name }}</h3>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 {% if dish.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
-                    {{ 'Non-Meat' if dish.type == 'veg' else 'Meat' }}
-                  </span>
+              <div class="flex flex-col sm:flex-row gap-4 mb-3">
+                <!-- Dish Image in front of the dish -->
+                <div class="w-full sm:w-24 sm:h-24 h-40 rounded-xl overflow-hidden bg-surface-variant shrink-0 relative">
+                  <img class="w-full h-full object-cover" 
+                       src="{% if dish.image and dish.image.startswith('http') %}{{ dish.image }}{% else %}{{ url_for('static', filename=dish.image or 'images/biryani.jpg') }}{% endif %}" 
+                       alt="{{ dish.name }}">
                 </div>
 
-                <div class="text-xs text-on-surface-variant space-y-0.5 mb-3">
-                  <div>Category: <strong class="text-on-surface capitalize">{{ dish.category }}</strong> • Style: <strong class="text-on-surface capitalize">{{ dish.style }}</strong></div>
-                  <div>Serve with: <strong class="text-on-surface capitalize">{{ dish.serve_with }}</strong></div>
-                </div>
-
-                {% if dish.side_pairing %}
-                  <div class="bg-surface-container-low p-2 rounded-lg text-xs text-secondary font-semibold mb-3 border border-secondary/20">
-                    🍟 Paired Side: {{ dish.side_pairing }}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-1.5">
+                    <h3 class="font-headline text-lg font-bold text-on-surface leading-tight">{{ dish.name }}</h3>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 {% if dish.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
+                      {{ 'Non-Meat' if dish.type == 'veg' else 'Meat' }}
+                    </span>
                   </div>
-                {% endif %}
 
-                <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="text-xs font-bold text-primary hover:underline inline-flex items-center space-x-1 mb-4">
-                  <span class="material-symbols-outlined text-[14px]">play_circle</span>
-                  <span>View Recipe 📖</span>
-                </a>
+                  <div class="text-xs text-on-surface-variant space-y-0.5 mb-2">
+                    <div>Category: <strong class="text-on-surface capitalize">{{ dish.category }}</strong> • Style: <strong class="text-on-surface capitalize">{{ dish.style }}</strong></div>
+                    <div>Serve with: <strong class="text-on-surface capitalize">{{ dish.serve_with }}</strong></div>
+                  </div>
+
+                  {% if dish.side_pairing %}
+                    <div class="bg-surface-container-low p-1.5 rounded-lg text-[11px] text-secondary font-semibold mb-2 border border-secondary/20">
+                      🍟 Paired Side: {{ dish.side_pairing }}
+                    </div>
+                  {% endif %}
+
+                  <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="text-xs font-bold text-primary hover:underline inline-flex items-center space-x-1 mb-1">
+                    <span class="material-symbols-outlined text-[14px]">play_circle</span>
+                    <span>View Recipe 📖</span>
+                  </a>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-2 pt-3 border-t border-outline-variant/20 items-stretch">

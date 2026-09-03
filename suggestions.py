@@ -18,6 +18,31 @@ def _load_dishes():
 DISHES = _load_dishes()
 
 
+def get_dish_image(dish_or_name):
+    """
+    Returns the appropriate image path or URL for any dish.
+    """
+    if isinstance(dish_or_name, dict):
+        if dish_or_name.get("image"):
+            return dish_or_name["image"]
+        name = (dish_or_name.get("name") or "").lower()
+    else:
+        name = str(dish_or_name or "").lower()
+
+    if "biryani" in name or "pulao" in name or "rice" in name or "khichdi" in name:
+        return "images/biryani.jpg"
+    elif "karahi" in name or "chicken" in name or "jalfrezi" in name or "tikka" in name or "kebab" in name or "boti" in name or "manchurian" in name or "shawarma" in name or "fish" in name or "dum pukht" in name:
+        return "images/karahi.jpg"
+    elif "samosa" in name or "pakora" in name or "snack" in name or "fries" in name or "roll" in name or "cutlet" in name or "chaat" in name or "gol gappey" in name or "dahi bhallay" in name or "paratha" in name or "omelette" in name or "puri" in name:
+        return "images/samosa.jpg"
+    elif "keema" in name or "aloo" in name or "matar" in name or "gobi" in name or "bhindi" in name or "karele" in name or "baingan" in name or "shalgam" in name or "tinday" in name or "bhurji" in name or "mooli" in name:
+        return "images/Keema Matar Aloo.jpg"
+    elif "handi" in name or "curry" in name or "salan" in name or "qorma" in name or "korma" in name or "nihari" in name or "paya" in name or "haleem" in name or "kunna" in name or "paneer" in name or "daal" in name or "chana" in name or "rajma" in name or "saag" in name or "kadhi" in name or "kofta" in name or "shrimp" in name or "sweet" in name or "kheer" in name or "halwa" in name or "tukray" in name or "ras malai" in name or "chai" in name:
+        return "images/Handi.png"
+    
+    return "images/biryani.jpg"
+
+
 def get_personalized_inventory(user_id):
     """
     Returns the combined list of global dishes and user custom dishes.
@@ -53,7 +78,8 @@ def suggest_dish(user, as_dict=False):
             return {
                 "name": f"Out of {category} dishes",
                 "category": category,
-                "serve_phrase": ""
+                "serve_phrase": "",
+                "image": "images/biryani.jpg"
             }
         return (
             f"I'm out of {category} dishes you haven't ruled out — tell me what "
@@ -86,7 +112,10 @@ def suggest_dish(user, as_dict=False):
         return {
             "name": dish["name"],
             "category": category,
-            "serve_phrase": serve_phrase
+            "serve_phrase": serve_phrase,
+            "style": dish.get("style", "rich"),
+            "course": dish.get("course", "main"),
+            "image": get_dish_image(dish)
         }
     return f"How about {dish['name']} today{serve_phrase}? ({category})"
 
@@ -179,6 +208,8 @@ def suggest_by_quiz(user_id, protein, serve_with, style, courses=None, meal_slot
 
     # Make copy of dictionaries to avoid mutating global configuration
     results = [dict(d) for d in selected_dishes]
+    for r in results:
+        r["image"] = get_dish_image(r)
 
     # 6. Smart Side Pairing
     if include_sides:

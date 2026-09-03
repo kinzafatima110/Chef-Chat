@@ -100,22 +100,8 @@
         <div class="bg-surface-container-lowest rounded-2xl overflow-hidden ambient-shadow border border-outline-variant/30 flex flex-col md:flex-row group">
           <!-- Food Image Hero -->
           <div class="w-full md:w-5/12 h-[220px] md:h-auto relative overflow-hidden bg-surface-variant shrink-0">
-            {% set dname = (suggestion.name | lower) if suggestion and suggestion.name else '' %}
-            {% if 'biryani' in dname or 'pulao' in dname %}
-              {% set img_file = 'images/biryani.jpg' %}
-            {% elif 'karahi' in dname or 'chicken' in dname %}
-              {% set img_file = 'images/karahi.jpg' %}
-            {% elif 'samosa' in dname or 'pakora' in dname %}
-              {% set img_file = 'images/samosa.jpg' %}
-            {% elif 'handi' in dname %}
-              {% set img_file = 'images/Handi.png' %}
-            {% elif 'keema' in dname %}
-              {% set img_file = 'images/Keema Matar Aloo.jpg' %}
-            {% else %}
-              {% set img_file = 'images/biryani.jpg' %}
-            {% endif %}
             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                 src="{{ url_for('static', filename=img_file) }}" 
+                 src="{% if suggestion.image and suggestion.image.startswith('http') %}{{ suggestion.image }}{% else %}{{ url_for('static', filename=suggestion.image or 'images/biryani.jpg') }}{% endif %}" 
                  alt="{{ suggestion.name }}">
             
             <!-- Badge Overlay -->

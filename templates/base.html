@@ -152,13 +152,13 @@
           <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
             <span class="material-symbols-outlined text-[24px] text-primary">restaurant</span>
           </div>
-          <span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Chef Chat</span>
+          <span class="font-headline text-2xl md:text-3xl font-bold text-primary tracking-tight">Chef Chat</span>
         </a>
       </div>
 
       {% if session.get('user_id') and user %}
         <!-- User Info & Logout Button -->
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-3 font-body">
           <div class="hidden sm:flex flex-col text-right">
             <span class="text-xs text-on-surface-variant">Logged in as</span>
             <span class="text-xs font-semibold text-primary truncate max-w-[200px]">{{ user.email }}</span>
@@ -172,7 +172,7 @@
           </div>
         </div>
       {% else %}
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2 font-body">
           <a href="/login" class="text-xs font-semibold text-on-surface-variant hover:text-primary px-3 py-1.5 rounded-full transition-colors">Log in</a>
           <a href="/signup" class="bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm hover:bg-primary-container transition-all">Sign up</a>
         </div>
@@ -181,28 +181,28 @@
 
     {% if session.get('user_id') and user %}
       <!-- Desktop Navigation Cluster (Hidden on Mobile) -->
-      <nav class="hidden md:flex justify-center space-x-2 lg:space-x-4 px-container-padding-desktop pb-3 pt-1 border-t border-outline-variant/10 bg-surface-container-lowest/50">
-        <a href="/" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+      <nav class="hidden md:flex justify-center space-x-2 lg:space-x-4 px-container-padding-desktop pb-3 pt-1 border-t border-outline-variant/10 bg-surface-container-lowest/50 font-body">
+        <a href="/" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
           <span>Today</span>
         </a>
-        <a href="/quick_quiz" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/quick_quiz' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+        <a href="/quick_quiz" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/quick_quiz' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">explore</span>
           <span>Mood Quiz</span>
         </a>
-        <a href="/weekly" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/weekly') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+        <a href="/weekly" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/weekly') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">calendar_month</span>
           <span>Weekly Plan</span>
         </a>
-        <a href="/fridge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/fridge') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+        <a href="/fridge" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/fridge') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">kitchen</span>
           <span>My Fridge</span>
         </a>
-        <a href="/tips" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/tips' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+        <a href="/tips" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/tips' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">lightbulb</span>
           <span>Kitchen Tips</span>
         </a>
-        <a href="/custom_dish" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/custom_dish') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+        <a href="/custom_dish" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/custom_dish') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
           <span class="material-symbols-outlined text-[18px]">add_circle</span>
           <span>Add Dish & Friends</span>
         </a>
