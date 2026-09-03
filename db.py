@@ -123,6 +123,35 @@ def init_db():
     if "security_answer" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN security_answer TEXT")
         conn.commit()
+
+    # Automatically seed master user accounts so deployments never lock you out
+    from werkzeug.security import generate_password_hash
+    default_users = [
+        ("kinza.fatima.noorani@gmail.com", "Password123", "What is your favorite home-cooked dish?", "biryani"),
+        ("admin@chefchat.com", "Password123", "What is your favorite home-cooked dish?", "biryani")
+    ]
+    for email, pwd, sec_q, sec_a in default_users:
+        cursor = conn.execute("SELECT id FROM users WHERE email = ?", (email.lower(),))
+        existing_row = cursor.fetchone()
+        pwd_hash = generate_password_hash(pwd, method="pbkdf2:sha256")
+        now = datetime.utcnow().isoformat()
+        if not existing_row:
+            conn.execute(
+                """INSERT INTO users (
+                    email, password_hash, onboarded, cooks_daily, wants_suggestions, 
+                    diet_type, household_size, health_conscious, track_history, 
+                    security_question, security_answer, created_at
+                ) VALUES (?, ?, 1, 1, 1, 'nonveg', 4, 1, 1, ?, ?, ?)""",
+                (email.lower(), pwd_hash, sec_q, sec_a.lower(), now)
+            )
+            conn.commit()
+        else:
+            conn.execute(
+                "UPDATE users SET password_hash = ?, onboarded = 1, security_question = COALESCE(security_question, ?), security_answer = COALESCE(security_answer, ?) WHERE id = ?",
+                (pwd_hash, sec_q, sec_a.lower(), existing_row[0])
+            )
+            conn.commit()
+
     conn.close()
 
 
