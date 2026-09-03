@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_PATH = os.environ.get("DB_PATH", "kitchen.db")
-SECRET_KEY = os.environ.get("SECRET_KEY") or secrets.token_hex(16)
+SECRET_KEY = os.environ.get("SECRET_KEY") or "chef_chat_secure_persistent_session_key_2026"
 
 # Legacy WhatsApp bot config — unused by the website, kept for whatsapp_client.py
 ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
