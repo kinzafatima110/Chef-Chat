@@ -1,298 +1,274 @@
 {% extends "base.html" %}
-{% block title %}Chef Chat — Quick Quiz{% endblock %}
-{% block card_class %}wide{% endblock %}
+{% block title %}Chef Chat — Quick Mood Quiz{% endblock %}
+
 {% block extra_style %}
-  .suggestions-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+<style>
+  .quiz-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .dish-option-card {
-    border: 2px solid var(--gold);
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 14px;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  .quiz-card.selected {
+    border-color: #aa3424;
+    background-color: #fff9e7;
+    box-shadow: 0 0 0 2px #aa3424, 0 8px 16px rgba(170, 52, 36, 0.12);
+    transform: translateY(-2px);
+  }
+  .quiz-card.selected .check-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .quiz-pill {
     transition: all 0.2s ease;
   }
-  .dish-option-card:hover {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border-color: var(--terracotta);
+  .quiz-pill.selected {
+    border-color: #aa3424;
+    background-color: #aa3424;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(170, 52, 36, 0.2);
   }
-  .dish-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+  .quiz-pill.selected .check-icon {
+    opacity: 1;
+    transform: scale(1);
   }
-  .dish-info {
-    text-align: left;
-  }
-  .dish-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--dark);
-    margin-bottom: 4px;
-  }
-  .dish-meta {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 6px;
-  }
-  .recipe-link {
-    font-size: 12px;
-    color: var(--terracotta);
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .recipe-link:hover {
-    text-decoration: underline;
-  }
-  .side-pairing-box {
-    background: var(--cream);
-    border: 1px dashed var(--gold);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-top: 4px;
-    font-size: 13px;
-    color: var(--dark);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .dish-actions-row {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 4px;
-  }
-  .log-btn {
-    width: auto;
-    padding: 8px 16px;
-    font-size: 13px;
-    margin: 0;
-  }
-  .reject-btn {
-    width: auto;
-    padding: 8px 14px;
-    font-size: 13px;
-    margin: 0;
-    background: transparent;
-    border: 2px solid var(--terracotta);
-    color: var(--terracotta);
-  }
-  .results-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--dark);
-    margin: 28px 0 14px;
-    text-align: center;
-  }
-  .back-link {
-    display: inline-block;
-    margin-top: 14px;
-    color: var(--terracotta);
-    font-weight: 600;
-    text-decoration: none;
-    text-align: center;
-    width: 100%;
-  }
-  .checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-  }
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: var(--dark);
-    cursor: pointer;
-  }
-  .checkbox-label input {
-    accent-color: var(--terracotta);
-    width: 18px;
-    height: 18px;
-  }
+</style>
 {% endblock %}
 
 {% block content %}
-  <h1>⚡ Quick Preference Quiz</h1>
-  <p class="subtitle">Filter dishes instantly based on your mood and kitchen ingredients.</p>
+<div class="max-w-3xl mx-auto py-2">
 
-  <form method="post" action="/quick_quiz">
-    <fieldset>
-      <legend>What protein or type do you want today?</legend>
-      <div class="options">
-        <div class="option">
-          <input type="radio" id="prot_veg" name="protein" value="veg" {% if preferences.protein == 'veg' %}checked{% endif %} required>
-          <label for="prot_veg">Non-Meat 🥗</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="prot_chicken" name="protein" value="chicken" {% if preferences.protein == 'chicken' or not preferences %}checked{% endif %}>
-          <label for="prot_chicken">Chicken 🍗</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="prot_beef" name="protein" value="beef" {% if preferences.protein == 'beef' %}checked{% endif %}>
-          <label for="prot_beef">Beef 🥩</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="prot_mutton" name="protein" value="mutton" {% if preferences.protein == 'mutton' %}checked{% endif %}>
-          <label for="prot_mutton">Mutton 🐑</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="prot_fish" name="protein" value="fish" {% if preferences.protein == 'fish' %}checked{% endif %}>
-          <label for="prot_fish">Fish 🐟</label>
-        </div>
+  {% if suggestions is not none %}
+    <!-- Results Screen -->
+    <div class="space-y-stack-md animate-fade-in">
+      <div class="text-center mb-6">
+        <span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+          ✨ Personalized Matches
+        </span>
+        <h1 class="font-headline text-2xl md:text-4xl font-bold text-on-surface mt-2 mb-1">
+          Recipes for Your Mood
+        </h1>
+        <p class="text-xs md:text-sm text-on-surface-variant">
+          Found {{ suggestions | length }} matching recipes tailored to your cravings!
+        </p>
       </div>
-    </fieldset>
 
-    <fieldset>
-      <legend>Do you want to cook with Rice or Roti?</legend>
-      <div class="options">
-        <div class="option">
-          <input type="radio" id="side_roti" name="serve_with" value="roti" {% if preferences.serve_with == 'roti' or not preferences %}checked{% endif %} required>
-          <label for="side_roti">Roti 🫓</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="side_rice" name="serve_with" value="rice" {% if preferences.serve_with == 'rice' %}checked{% endif %}>
-          <label for="side_rice">Rice 🍚</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="side_any" name="serve_with" value="any" {% if preferences.serve_with == 'any' %}checked{% endif %}>
-          <label for="side_any">Any / No Pref 🍽️</label>
-        </div>
-      </div>
-    </fieldset>
+      {% if suggestions %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+          {% for dish in suggestions %}
+            <div class="bg-surface-container-lowest rounded-2xl overflow-hidden ambient-shadow border border-outline-variant/30 flex flex-col justify-between group hover:border-primary/50 transition-all">
+              <div class="p-5 flex flex-col justify-between flex-1">
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="bg-surface-container text-on-surface text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                      {{ 'Non-Meat' if dish.type == 'veg' else 'Meat' }}
+                    </span>
+                    <span class="text-[11px] font-semibold text-primary capitalize">{{ dish.style }} style</span>
+                  </div>
+                  
+                  <h3 class="font-headline text-xl font-bold text-on-surface mb-2 group-hover:text-primary transition-colors">
+                    {{ dish.name }}
+                  </h3>
+                  
+                  <p class="text-xs text-on-surface-variant mb-4">
+                    Best enjoyed served with {{ dish.serve_with or 'roti or rice' }}.
+                  </p>
+                </div>
 
-    <fieldset>
-      <legend>What style of dish would you prefer?</legend>
-      <div class="options">
-        <div class="option">
-          <input type="radio" id="style_light" name="style" value="light" {% if preferences.style == 'light' %}checked{% endif %} required>
-          <label for="style_light">Light & Healthy 🥑</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="style_rich" name="style" value="rich" {% if preferences.style == 'rich' %}checked{% endif %}>
-          <label for="style_rich">Rich & Indulgent 🥘</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="style_any" name="style" value="any" {% if preferences.style == 'any' or not preferences %}checked{% endif %}>
-          <label for="style_any">Any / No Pref ⚖️</label>
-        </div>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>What meal slot is this for?</legend>
-      <div class="options">
-        <div class="option">
-          <input type="radio" id="slot_any" name="meal_slot" value="any" {% if preferences.meal_slot == 'any' or not preferences %}checked{% endif %} required>
-          <label for="slot_any">Any / No Pref 🍽️</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="slot_breakfast" name="meal_slot" value="breakfast" {% if preferences.meal_slot == 'breakfast' %}checked{% endif %}>
-          <label for="slot_breakfast">Breakfast 🥞</label>
-        </div>
-        <div class="option">
-          <input type="radio" id="slot_lunch_dinner" name="meal_slot" value="lunch_dinner" {% if preferences.meal_slot == 'lunch_dinner' %}checked{% endif %}>
-          <label for="slot_lunch_dinner">Lunch / Dinner 🍛</label>
-        </div>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Select Course Types:</legend>
-      <div class="checkbox-group">
-        <label class="checkbox-label">
-          <input type="checkbox" name="course" value="main" id="chk_main" {% if not preferences or 'main' in preferences.courses %}checked{% endif %} onchange="toggleSideCheckbox()">
-          <span>Main Course 🍛</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="course" value="side" id="chk_side" {% if preferences and 'side' in preferences.courses %}checked{% endif %}>
-          <span>Side Dish / Snack 🍟</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="course" value="dessert" id="chk_dessert" {% if preferences and 'dessert' in preferences.courses %}checked{% endif %}>
-          <span>Dessert / Sweet Dish 🍨</span>
-        </label>
-      </div>
-    </fieldset>
-
-    <fieldset id="side_pairing_field" style="margin-top: 14px;">
-      <label class="checkbox-label">
-        <input type="checkbox" name="include_sides" value="yes" {% if preferences.include_sides %}checked{% endif %}>
-        <strong>Include side dish suggestions with main courses? 🍟🥩</strong>
-      </label>
-    </fieldset>
-
-    <button type="submit">Generate 5 Best Suggestions 🚀</button>
-  </form>
-
-  {% if suggestions %}
-    <h2 class="results-title">🍽️ Recommended Dishes for You</h2>
-    <div class="suggestions-list">
-      {% for dish in suggestions %}
-        <div class="dish-option-card">
-          <div class="dish-header">
-            <div class="dish-info">
-              <div class="dish-title">{{ dish.name }}</div>
-              <div class="dish-meta">
-                <span>Type: {{ 'Non-Meat' if dish.type == 'veg' else 'Meat' }}</span> • 
-                <span>Category: {{ dish.category }}</span> • 
-                <span>Style: {{ dish.style }}</span> • 
-                <span>Serve with: {{ dish.serve_with }}</span>
-              </div>
-              <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="recipe-link">View Recipe 📖</a>
-            </div>
-          </div>
-
-          {% if dish.side_pairing %}
-            <div class="side-pairing-box">
-              <div>
-                🥗 <strong>Suggested Side:</strong> {{ dish.side_pairing }}
-                <div style="margin-top: 4px;">
-                  <a href="https://www.youtube.com/results?search_query={{ dish.side_pairing | replace(' ', '+') }}+recipe" target="_blank" class="recipe-link" style="font-size:11px;">View Side Recipe 📖</a>
+                <div class="space-y-2 pt-3 border-t border-outline-variant/20">
+                  <form method="post" action="/log" class="m-0">
+                    <input type="hidden" name="dish" value="{{ dish.name }}">
+                    <input type="hidden" name="category" value="{{ dish.type }}">
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white py-2.5 px-4 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center space-x-1.5 transition-all">
+                      <span>Let's cook this! 🍳</span>
+                    </button>
+                  </form>
+                  <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="block text-center text-[11px] font-bold text-primary hover:underline py-1">
+                    Watch Recipe Video 📺
+                  </a>
                 </div>
               </div>
-              <form method="post" action="/reject" style="margin:0;">
-                <input type="hidden" name="dish" value="{{ dish.side_pairing }}">
-                <button type="submit" class="btn reject-btn" style="padding: 4px 8px; font-size:11px; margin:0;">Block Side ❌</button>
-              </form>
             </div>
-          {% endif %}
-
-          <div class="dish-actions-row">
-            <form method="post" action="/reject" style="margin:0;">
-              <input type="hidden" name="dish" value="{{ dish.name }}">
-              <button type="submit" class="btn reject-btn">Don't suggest again ❌</button>
-            </form>
-            <form method="post" action="/log" style="margin:0;">
-              <input type="hidden" name="dish" value="{{ dish.name }}">
-              <input type="hidden" name="category" value="{{ dish.type }}">
-              <button type="submit" class="btn log-btn">Cook this! ✅</button>
-            </form>
-          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      {% else %}
+        <div class="bg-surface-container-lowest rounded-2xl p-8 text-center ambient-shadow border border-outline-variant/30">
+          <span class="material-symbols-outlined text-[48px] text-outline-variant mb-2">search_off</span>
+          <h3 class="font-headline text-lg font-bold text-on-surface mb-1">No exact matches found</h3>
+          <p class="text-xs text-on-surface-variant mb-4">Try choosing broader options or adding custom dishes to your menu.</p>
+        </div>
+      {% endif %}
+
+      <div class="text-center pt-4">
+        <a href="/quick_quiz" class="inline-flex items-center space-x-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <span>Retake Quiz</span>
+        </a>
+      </div>
     </div>
-  {% elif preferences %}
-    <p class="footline" style="color: var(--terracotta); font-weight: 600;">No matching dishes found. Try relaxing your filters!</p>
+
+  {% else %}
+    <!-- Quiz Question Form -->
+    <form method="post" action="/quick_quiz" id="quiz-form" class="space-y-stack-lg">
+      
+      <!-- Hidden Form Inputs populated by JS -->
+      <input type="hidden" name="style" id="input-style" value="any">
+      <input type="hidden" name="protein" id="input-protein" value="any">
+      <input type="hidden" name="serve_with" id="input-serve-with" value="any">
+      <input type="hidden" name="course" id="input-course" value="main">
+
+      <!-- Question 1: Mood (2x2 Photo Cards) -->
+      <div>
+        <div class="text-center mb-stack-md">
+          <span class="text-primary font-bold text-xs uppercase tracking-widest block mb-1">Step 1</span>
+          <h2 class="font-headline text-2xl md:text-3xl font-bold text-on-background mb-1">What's your mood today?</h2>
+          <p class="text-xs md:text-sm text-on-surface-variant max-w-md mx-auto">Select a vibe to find the perfect recipe match right now.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 md:gap-4 max-w-2xl mx-auto w-full">
+          
+          <!-- Option 1: Light & Fresh -->
+          <div class="quiz-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none" 
+               onclick="selectMood(this, 'light', 'veg', 'any', 'main')">
+            <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant">
+              <img alt="Light & Fresh" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                   src="{{ url_for('static', filename='images/Handi.png') }}">
+              <div class="check-icon absolute top-2.5 right-2.5 bg-primary text-white rounded-full p-1 opacity-0 transform scale-50 transition-all duration-300 shadow-md z-10">
+                <span class="material-symbols-outlined text-[16px] block">check</span>
+              </div>
+            </div>
+            <div class="p-3 md:p-4 bg-surface-container-lowest">
+              <span class="font-bold text-xs md:text-sm text-on-surface block mb-0.5">Light & Fresh</span>
+              <span class="text-[11px] text-on-surface-variant hidden md:block">Crisp, airy, and gentle on the stomach.</span>
+            </div>
+          </div>
+
+          <!-- Option 2: Hearty & Warm -->
+          <div class="quiz-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none" 
+               onclick="selectMood(this, 'rich', 'any', 'rice', 'main')">
+            <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant">
+              <img alt="Hearty & Warm" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                   src="{{ url_for('static', filename='images/biryani.jpg') }}">
+              <div class="check-icon absolute top-2.5 right-2.5 bg-primary text-white rounded-full p-1 opacity-0 transform scale-50 transition-all duration-300 shadow-md z-10">
+                <span class="material-symbols-outlined text-[16px] block">check</span>
+              </div>
+            </div>
+            <div class="p-3 md:p-4 bg-surface-container-lowest">
+              <span class="font-bold text-xs md:text-sm text-on-surface block mb-0.5">Hearty & Warm</span>
+              <span class="text-[11px] text-on-surface-variant hidden md:block">Comforting, filling, and aromatic rice or gravy.</span>
+            </div>
+          </div>
+
+          <!-- Option 3: Bold & Spicy -->
+          <div class="quiz-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none" 
+               onclick="selectMood(this, 'rich', 'chicken', 'roti', 'main')">
+            <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant">
+              <img alt="Bold & Spicy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                   src="{{ url_for('static', filename='images/karahi.jpg') }}">
+              <div class="check-icon absolute top-2.5 right-2.5 bg-primary text-white rounded-full p-1 opacity-0 transform scale-50 transition-all duration-300 shadow-md z-10">
+                <span class="material-symbols-outlined text-[16px] block">check</span>
+              </div>
+            </div>
+            <div class="p-3 md:p-4 bg-surface-container-lowest">
+              <span class="font-bold text-xs md:text-sm text-on-surface block mb-0.5">Bold & Spicy</span>
+              <span class="text-[11px] text-on-surface-variant hidden md:block">Rich wok karahi with a serious masala kick.</span>
+            </div>
+          </div>
+
+          <!-- Option 4: Quick Snack -->
+          <div class="quiz-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none" 
+               onclick="selectMood(this, 'light', 'any', 'any', 'snack')">
+            <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant">
+              <img alt="Quick Snack" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                   src="{{ url_for('static', filename='images/samosa.jpg') }}">
+              <div class="check-icon absolute top-2.5 right-2.5 bg-primary text-white rounded-full p-1 opacity-0 transform scale-50 transition-all duration-300 shadow-md z-10">
+                <span class="material-symbols-outlined text-[16px] block">check</span>
+              </div>
+            </div>
+            <div class="p-3 md:p-4 bg-surface-container-lowest">
+              <span class="font-bold text-xs md:text-sm text-on-surface block mb-0.5">Quick Bites</span>
+              <span class="text-[11px] text-on-surface-variant hidden md:block">Crispy snacks and light appetite pleasers.</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Question 2: Time Available -->
+      <div>
+        <div class="text-center mb-stack-sm">
+          <span class="text-primary font-bold text-xs uppercase tracking-widest block mb-1">Step 2</span>
+          <h2 class="font-headline text-xl md:text-2xl font-bold text-on-background">How much time do you have?</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 max-w-2xl mx-auto w-full">
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectTime(this, 'light')">
+            Under 15 mins
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectTime(this, 'light')">
+            15-30 mins
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold selected" onclick="selectTime(this, 'rich')">
+            30-60 mins
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectTime(this, 'rich')">
+            Over an hour
+          </button>
+        </div>
+      </div>
+
+      <!-- Question 3: Dietary Preference -->
+      <div>
+        <div class="text-center mb-stack-sm">
+          <span class="text-primary font-bold text-xs uppercase tracking-widest block mb-1">Step 3</span>
+          <h2 class="font-headline text-xl md:text-2xl font-bold text-on-background">Any dietary preference?</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 max-w-2xl mx-auto w-full">
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectDiet(this, 'veg')">
+            Vegetarian 🥦
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectDiet(this, 'chicken')">
+            Chicken 🍗
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold" onclick="selectDiet(this, 'beef')">
+            Meat / Beef 🥩
+          </button>
+          <button type="button" class="quiz-pill bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-3 text-center text-xs font-semibold selected" onclick="selectDiet(this, 'any')">
+            Anything goes 🌟
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Area: Submit Button -->
+      <div class="pt-4 flex justify-center w-full max-w-sm mx-auto">
+        <button type="submit" id="find-recipe-btn" class="w-full bg-primary hover:bg-primary-container text-white font-bold text-sm h-12 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all duration-300 active:scale-95">
+          <span>Find my recipe</span>
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
+      </div>
+
+    </form>
   {% endif %}
 
-  <a href="/" class="back-link">← Back to Dashboard</a>
+</div>
 
-  <script>
-    function toggleSideCheckbox() {
-      const chkMain = document.getElementById("chk_main");
-      const sideField = document.getElementById("side_pairing_field");
-      sideField.style.display = chkMain.checked ? "block" : "none";
-    }
-    toggleSideCheckbox();
-  </script>
+<script>
+  function selectMood(element, style, protein, serveWith, course) {
+    document.querySelectorAll('.quiz-card').forEach(c => c.classList.remove('selected'));
+    element.classList.add('selected');
+    
+    document.getElementById('input-style').value = style;
+    if (protein !== 'any') document.getElementById('input-protein').value = protein;
+    if (serveWith !== 'any') document.getElementById('input-serve-with').value = serveWith;
+    document.getElementById('input-course').value = course;
+  }
+
+  function selectTime(element, style) {
+    element.parentElement.querySelectorAll('.quiz-pill').forEach(p => p.classList.remove('selected'));
+    element.classList.add('selected');
+    document.getElementById('input-style').value = style;
+  }
+
+  function selectDiet(element, protein) {
+    element.parentElement.querySelectorAll('.quiz-pill').forEach(p => p.classList.remove('selected'));
+    element.classList.add('selected');
+    document.getElementById('input-protein').value = protein;
+  }
+</script>
 {% endblock %}

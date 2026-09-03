@@ -1,375 +1,263 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Chef Chat{% endblock %}</title>
-<style>
-  :root {
-    --terracotta: #C44536;
-    --dark: #3A211C;
-    --cream: #FDF6E8;
-    --gold: #FAD49A;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Georgia, serif;
-    background: linear-gradient(180deg, #E06A41 0%, var(--gold) 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 32px 16px;
-  }
-  .card {
-    background: var(--cream);
-    border-radius: 20px;
-    padding: 32px 28px;
-    max-width: 720px;
-    width: 100%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    align-self: flex-start;
-    position: relative;
-    z-index: 10;
-    transition: max-width 0.3s ease;
-    box-sizing: border-box;
-  }
-  .card.wide {
-    max-width: 1020px;
-  }
-  .card.dashboard {
-    max-width: 820px;
-  }
-  h1 { color: var(--dark); font-size: 26px; margin: 0 0 4px; text-align: center; }
-  p.subtitle { text-align: center; color: var(--dark); opacity: 0.75; margin: 0 0 24px; font-size: 14px; }
-  label { display: block; font-weight: 600; color: var(--dark); font-size: 14px; margin-bottom: 6px; }
-  .field { margin-bottom: 16px; }
-  input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
-    width: 100%; padding: 12px; border: 2px solid var(--gold); border-radius: 12px;
-    font-size: 15px; color: var(--dark); background: white;
-  }
-  button, .btn {
-    display: block; width: 100%; padding: 14px; background: var(--terracotta); color: var(--cream);
-    border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
-    text-align: center; text-decoration: none; box-sizing: border-box;
-  }
-  button:hover, .btn:hover { opacity: 0.92; }
-  .btn-secondary { background: transparent; color: var(--terracotta); border: 2px solid var(--terracotta); }
-  .error {
-    background: #F8D7CF; color: #7A2A16; padding: 10px 14px; border-radius: 10px;
-    font-size: 14px; margin-bottom: 16px;
-  }
-  .footline { text-align: center; font-size: 13px; color: var(--dark); opacity: 0.75; margin-top: 18px; }
-  .footline a { color: var(--terracotta); font-weight: 600; text-decoration: none; }
-  fieldset { border: none; padding: 0; margin: 0 0 22px; }
-  legend { font-weight: 600; color: var(--dark); margin-bottom: 10px; font-size: 15px; padding: 0; }
-  .options { display: flex; flex-wrap: wrap; gap: 10px; }
-  .option { flex: 1; min-width: 100px; }
-  .option input { display: none; }
-  .option label {
-    display: block; text-align: center; padding: 10px 12px; border: 2px solid var(--gold);
-    border-radius: 12px; cursor: pointer; color: var(--dark); font-size: 14px; margin-bottom: 0;
-    font-weight: 400;
-  }
-  .option input:checked + label { background: var(--terracotta); border-color: var(--terracotta); color: var(--cream); }
-  .floating-food-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 1;
-    pointer-events: none;
-  }
-  .food-item-card {
-    position: absolute;
-    width: 120px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    opacity: 0;
-    user-select: none;
-    animation: floatLeftToRight 32s infinite linear;
-  }
-  .food-item-img {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    object-fit: cover;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
-    border: 3px solid var(--gold);
-    animation: rotateDish 15s infinite linear;
-  }
-  .food-item-label {
-    margin-top: -20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    line-height: 1;
-    z-index: 5;
-  }
-  .label-yellow {
-    color: #FFD700;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 1.5px 1.5px 0px #000, -1.5px -1.5px 0px #000, 1.5px -1.5px 0px #000, -1.5px 1.5px 0px #000, 1.5px 1.5px 0px #000;
-  }
-  .label-white {
-    color: #FFFFFF;
-    font-size: 13px;
-    text-transform: uppercase;
-    text-shadow: 1.5px 1.5px 0px #000, -1.5px -1.5px 0px #000, 1.5px -1.5px 0px #000, -1.5px 1.5px 0px #000, 1.5px 1.5px 0px #000;
-  }
-  .row-1 { top: 10%; }
-  .row-2 { top: 30%; animation-direction: reverse; animation-duration: 36s; }
-  .row-2 .food-item-img { animation-direction: reverse; }
-  .row-3 { top: 50%; }
-  .row-4 { top: 70%; animation-direction: reverse; animation-duration: 40s; }
-  .row-4 .food-item-img { animation-direction: reverse; }
-  .row-5 { top: 88%; }
-
-  @keyframes floatLeftToRight {
-    0% {
-      transform: translateX(-150px);
-      opacity: 0;
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>{% block title %}Chef Chat{% endblock %}</title>
+  
+  <!-- Google Fonts: Libre Caslon Text + Be Vietnam Pro + Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#aa3424",
+            "on-primary": "#ffffff",
+            "primary-container": "#cc4c39",
+            "on-primary-container": "#ffffff",
+            "primary-fixed": "#ffdad4",
+            "primary-fixed-dim": "#ffb4a7",
+            "on-primary-fixed": "#400100",
+            "on-primary-fixed-variant": "#8a1c0f",
+            "inverse-primary": "#ffb4a7",
+            
+            "secondary": "#506354",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#d0e5d2",
+            "on-secondary-container": "#546758",
+            "secondary-fixed": "#d3e8d5",
+            "secondary-fixed-dim": "#b7ccb9",
+            "on-secondary-fixed": "#0e1f13",
+            "on-secondary-fixed-variant": "#394b3d",
+            
+            "tertiary": "#825500",
+            "on-tertiary": "#ffffff",
+            "tertiary-container": "#9f6d1b",
+            "on-tertiary-container": "#0a0400",
+            "tertiary-fixed": "#ffddb4",
+            "tertiary-fixed-dim": "#f9bb63",
+            "on-tertiary-fixed": "#291800",
+            "on-tertiary-fixed-variant": "#633f00",
+            
+            "background": "#fff9e7",
+            "on-background": "#1e1c10",
+            
+            "surface": "#fff9e7",
+            "on-surface": "#1e1c10",
+            "surface-dim": "#dfdac7",
+            "surface-bright": "#fff9e7",
+            "surface-variant": "#e8e2cf",
+            "on-surface-variant": "#58413d",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f9f4e0",
+            "surface-container": "#f4eeda",
+            "surface-container-high": "#eee8d5",
+            "surface-container-highest": "#e8e2cf",
+            "surface-tint": "#ab3424",
+            
+            "inverse-surface": "#333124",
+            "inverse-on-surface": "#f7f1dd",
+            
+            "outline": "#8c716c",
+            "outline-variant": "#e0bfba",
+            
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a"
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "sm": "0.25rem",
+            "md": "0.75rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "2xl": "2rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "unit": "8px",
+            "gutter": "16px",
+            "stack-sm": "12px",
+            "stack-md": "24px",
+            "stack-lg": "48px",
+            "container-padding-mobile": "16px",
+            "container-padding-desktop": "32px"
+          },
+          fontFamily: {
+            "headline": ["'Libre Caslon Text'", "Georgia", "serif"],
+            "headline-xl": ["'Libre Caslon Text'", "Georgia", "serif"],
+            "headline-lg": ["'Libre Caslon Text'", "Georgia", "serif"],
+            "headline-lg-mobile": ["'Libre Caslon Text'", "Georgia", "serif"],
+            "headline-md": ["'Libre Caslon Text'", "Georgia", "serif"],
+            "body": ["'Be Vietnam Pro'", "sans-serif"],
+            "body-lg": ["'Be Vietnam Pro'", "sans-serif"],
+            "body-md": ["'Be Vietnam Pro'", "sans-serif"],
+            "label-md": ["'Be Vietnam Pro'", "sans-serif"],
+            "label-sm": ["'Be Vietnam Pro'", "sans-serif"]
+          },
+          fontSize: {
+            "headline-xl": ["48px", { lineHeight: "56px", fontWeight: "700" }],
+            "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "700" }],
+            "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "700" }],
+            "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+            "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+            "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+            "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }]
+          }
+        }
+      }
+    };
+  </script>
+  
+  <style>
+    body {
+      background-color: #fff9e7;
+      color: #1e1c10;
+      font-family: 'Be Vietnam Pro', sans-serif;
     }
-    10% {
-      opacity: 0.55;
+    .ambient-shadow {
+      box-shadow: 0 4px 16px 0 rgba(204, 76, 57, 0.08);
     }
-    90% {
-      opacity: 0.55;
+    .ambient-shadow-lg {
+      box-shadow: 0 8px 24px 0 rgba(204, 76, 57, 0.12);
     }
-    100% {
-      transform: translateX(105vw);
-      opacity: 0;
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
-  }
-
-  @keyframes rotateDish {
-    0% {
-      transform: rotate(0deg);
+    .material-symbols-outlined.fill-1 {
+      font-variation-settings: 'FILL' 1;
     }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .nav-tabs {
-    display: flex;
-    justify-content: space-around;
-    background: white;
-    border-radius: 12px;
-    padding: 6px;
-    margin-bottom: 24px;
-    border: 1.5px solid var(--gold);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .nav-tabs a {
-    flex: 1;
-    text-align: center;
-    padding: 10px 4px;
-    text-decoration: none;
-    color: var(--dark);
-    font-weight: 700;
-    font-size: 11.5px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .nav-tabs a:hover {
-    background: rgba(214, 90, 49, 0.08);
-    color: var(--terracotta);
-  }
-  .nav-tabs a.active {
-    background: var(--terracotta);
-    color: var(--cream);
-  }
-
-  /* Chef Welcome Header Styling */
-  .chef-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #FFFDF9 0%, #FFF5EB 100%);
-    border: 2px solid var(--gold);
-    border-radius: 16px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-  }
-  .chef-logo-wrap {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid var(--gold);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    background: white;
-  }
-  .chef-header-logo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .chef-info {
-    flex: 1;
-    margin-left: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .chef-brand {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--terracotta);
-    margin: 0;
-    line-height: 1.2;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .chef-welcome {
-    font-size: 13px;
-    color: var(--dark);
-    opacity: 0.85;
-    margin-top: 2px;
-  }
-  .chef-email {
-    font-weight: 700;
-    color: var(--terracotta);
-  }
-  .chef-logout-wrap {
-    margin-left: 12px;
-    flex-shrink: 0;
-  }
-  .chef-logout-btn {
-    font-size: 11.5px;
-    color: var(--terracotta);
-    text-decoration: none;
-    font-weight: 700;
-    padding: 8px 12px;
-    border: 1.5px solid var(--terracotta);
-    border-radius: 10px;
-    transition: all 0.2s;
-    background: transparent;
-    white-space: nowrap;
-    display: inline-block;
-  }
-  .chef-logout-btn:hover {
-    background: var(--terracotta);
-    color: var(--cream);
-  }
-
-  /* Responsive Media Queries to prevent tab bar overflow */
-  @media (max-width: 680px) {
-    .nav-tabs {
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .nav-tabs a {
-      flex: 1 1 45%; /* Drop to 2 tabs per row! */
-      font-size: 11px;
-      padding: 8px;
-    }
-    .chef-header {
-      flex-direction: column;
-      text-align: center;
-      gap: 12px;
-      padding: 18px;
-    }
-    .chef-info {
-      margin-left: 0;
-    }
-    .chef-logout-wrap {
-      margin-left: 0;
-      width: 100%;
-    }
-    .chef-logout-btn {
-      display: block;
-      text-align: center;
-    }
-  }
-
+  </style>
   {% block extra_style %}{% endblock %}
-</style>
 </head>
-<body>
-  <div class="floating-food-container">
-    <div class="food-item-card row-1" style="animation-delay: 0s;">
-      <img class="food-item-img" src="{{ url_for('static', filename='images/biryani.jpg') }}">
-      <div class="food-item-label">
-        <span class="label-yellow">TASTY</span>
-        <span class="label-white">BIRYANI</span>
+<body class="font-body-md text-on-surface bg-background min-h-screen flex flex-col pb-24 md:pb-8 selection:bg-primary-container selection:text-on-primary-container">
+
+  <!-- Top App Bar -->
+  <header class="bg-surface-container-lowest/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/30 transition-all">
+    <div class="max-w-[1200px] mx-auto flex items-center justify-between px-container-padding-mobile md:px-container-padding-desktop h-16 w-full">
+      <div class="flex items-center space-x-3">
+        <a href="/" class="flex items-center space-x-2 group">
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-[24px] text-primary">restaurant</span>
+          </div>
+          <span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Chef Chat</span>
+        </a>
       </div>
+
+      {% if session.get('user_id') and user %}
+        <!-- User Info & Logout Button -->
+        <div class="flex items-center space-x-3">
+          <div class="hidden sm:flex flex-col text-right">
+            <span class="text-xs text-on-surface-variant">Logged in as</span>
+            <span class="text-xs font-semibold text-primary truncate max-w-[200px]">{{ user.email }}</span>
+          </div>
+          
+          <div class="relative group">
+            <a href="/logout" title="Log out" class="flex items-center space-x-1 bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[16px]">logout</span>
+              <span class="hidden md:inline">Logout</span>
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <div class="flex items-center space-x-2">
+          <a href="/login" class="text-xs font-semibold text-on-surface-variant hover:text-primary px-3 py-1.5 rounded-full transition-colors">Log in</a>
+          <a href="/signup" class="bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm hover:bg-primary-container transition-all">Sign up</a>
+        </div>
+      {% endif %}
     </div>
-    <div class="food-item-card row-2" style="animation-delay: 8s;">
-      <img class="food-item-img" src="{{ url_for('static', filename='images/karahi.jpg') }}">
-      <div class="food-item-label">
-        <span class="label-yellow">SPICY</span>
-        <span class="label-white">KARAHI</span>
-      </div>
-    </div>
-    <div class="food-item-card row-3" style="animation-delay: 4s;">
-      <img class="food-item-img" src="{{ url_for('static', filename='images/samosa.jpg') }}">
-      <div class="food-item-label">
-        <span class="label-yellow">CRISPY</span>
-        <span class="label-white">SAMOSA</span>
-      </div>
-    </div>
-    <div class="food-item-card row-4" style="animation-delay: 14s;">
-      <img class="food-item-img" src="{{ url_for('static', filename='images/biryani.jpg') }}">
-      <div class="food-item-label">
-        <span class="label-yellow">YUMMY</span>
-        <span class="label-white">BIRYANI</span>
-      </div>
-    </div>
-    <div class="food-item-card row-5" style="animation-delay: 18s;">
-      <img class="food-item-img" src="{{ url_for('static', filename='images/karahi.jpg') }}">
-      <div class="food-item-label">
-        <span class="label-yellow">HOT</span>
-        <span class="label-white">KARAHI</span>
-      </div>
-    </div>
-  </div>
-  <div class="card {% block card_class %}{% endblock %}">
+
     {% if session.get('user_id') and user %}
-      <div class="chef-header">
-        <div class="chef-logo-wrap">
-          <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Chef Chat Logo" class="chef-header-logo">
-        </div>
-        <div class="chef-info">
-          <h1 class="chef-brand">Chef Chat</h1>
-          <div class="chef-welcome">Welcome back, <span class="chef-email">{{ user.email }}</span>! 👨‍🍳</div>
-        </div>
-        <div class="chef-logout-wrap">
-          <a href="/logout" class="chef-logout-btn">Logout 🚪</a>
-        </div>
-      </div>
-      
-      <nav class="nav-tabs">
-        <a href="/" class="{% if request.path == '/' %}active{% endif %}">Today 🍳</a>
-        <a href="/quick_quiz" class="{% if request.path == '/quick_quiz' %}active{% endif %}">Mood Quiz ⚡</a>
-        <a href="/weekly" class="{% if request.path.startswith('/weekly') %}active{% endif %}">Weekly 📅</a>
-        <a href="/fridge" class="{% if request.path.startswith('/fridge') %}active{% endif %}">My Fridge ❄️</a>
-        <a href="/tips" class="{% if request.path == '/tips' %}active{% endif %}">Tips 💡</a>
-        <a href="/custom_dish" class="{% if request.path.startswith('/custom_dish') %}active{% endif %}">Add Dish 🍽️</a>
+      <!-- Desktop Navigation Cluster (Hidden on Mobile) -->
+      <nav class="hidden md:flex justify-center space-x-2 lg:space-x-4 px-container-padding-desktop pb-3 pt-1 border-t border-outline-variant/10 bg-surface-container-lowest/50">
+        <a href="/" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
+          <span>Today</span>
+        </a>
+        <a href="/quick_quiz" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/quick_quiz' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">explore</span>
+          <span>Mood Quiz</span>
+        </a>
+        <a href="/weekly" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/weekly') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+          <span>Weekly Plan</span>
+        </a>
+        <a href="/fridge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/fridge') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">kitchen</span>
+          <span>My Fridge</span>
+        </a>
+        <a href="/tips" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path == '/tips' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">lightbulb</span>
+          <span>Kitchen Tips</span>
+        </a>
+        <a href="/custom_dish" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {% if request.path.startswith('/custom_dish') %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container-high{% endif %}">
+          <span class="material-symbols-outlined text-[18px]">add_circle</span>
+          <span>Add Dish & Friends</span>
+        </a>
       </nav>
     {% endif %}
+  </header>
+
+  <!-- Global Flash Messages Notification Toast -->
+  <div class="max-w-[1200px] mx-auto w-full px-container-padding-mobile md:px-container-padding-desktop pt-4">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div style="background: #eef9ff; border: 1.5px solid #209cee; padding: 12px; border-radius: 8px; margin-bottom: 16px; color: #1c5b8c; font-size: 13px; text-align: center; font-weight: 500;">
+        <div class="space-y-2 mb-4">
           {% for message in messages %}
-            <div>{{ message }}</div>
+            <div class="bg-secondary-container/90 text-on-secondary-container border border-secondary/20 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between shadow-sm animate-fade-in">
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-[20px] text-secondary">check_circle</span>
+                <span>{{ message }}</span>
+              </div>
+            </div>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
-    {% block content %}{% endblock %}
   </div>
+
+  <!-- Main Content Canvas -->
+  <main class="flex-1 max-w-[1200px] mx-auto w-full px-container-padding-mobile md:px-container-padding-desktop">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if session.get('user_id') and user %}
+    <!-- Mobile Bottom Navigation Bar (Fixed on Mobile) -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 pb-safe bg-surface-container-lowest/95 backdrop-blur-md dark:bg-inverse-surface shadow-[0_-4px_16px_0_rgba(171,52,36,0.08)] rounded-t-2xl z-50 border-t border-outline-variant/30">
+      <a href="/" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path == '/' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path == '/' %}fill-1{% endif %}">restaurant_menu</span>
+        <span class="text-[10px] font-medium">Today</span>
+      </a>
+      <a href="/quick_quiz" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path == '/quick_quiz' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path == '/quick_quiz' %}fill-1{% endif %}">explore</span>
+        <span class="text-[10px] font-medium">Quiz</span>
+      </a>
+      <a href="/fridge" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/fridge') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/fridge') %}fill-1{% endif %}">kitchen</span>
+        <span class="text-[10px] font-medium">Fridge</span>
+      </a>
+      <a href="/weekly" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/weekly') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/weekly') %}fill-1{% endif %}">calendar_month</span>
+        <span class="text-[10px] font-medium">Weekly</span>
+      </a>
+      <a href="/custom_dish" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/custom_dish') %}fill-1{% endif %}">group</span>
+        <span class="text-[10px] font-medium">Network</span>
+      </a>
+    </nav>
+  {% endif %}
+
 </body>
 </html>

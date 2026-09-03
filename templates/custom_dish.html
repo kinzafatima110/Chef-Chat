@@ -1,302 +1,303 @@
 {% extends "base.html" %}
-{% block title %}Chef Chat — Add Custom Dish{% endblock %}
-{% block card_class %}wide{% endblock %}
-{% block extra_style %}
-  .weekly-card {
-    background: var(--cream);
-    border-radius: 20px;
-    padding: 24px;
-    border: 3px solid var(--gold);
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .weekly-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--dark);
-    text-align: center;
-    margin: 0 0 16px;
-  }
-
-  #dup-warning {
-    color: #d65a31;
-    font-size: 11px;
-    font-weight: bold;
-    margin-top: 4px;
-    min-height: 15px;
-  }
-{% endblock %}
+{% block title %}Chef Chat — Add Custom Dish & Kitchen Friends{% endblock %}
 
 {% block content %}
+<div class="space-y-stack-md py-2">
 
-
-  <!-- Personalized Kitchen Section -->
-  <div class="weekly-card" style="background: white;">
-    <h2 class="weekly-title" style="margin-bottom: 8px;">🍽️ My Personalized Kitchen</h2>
-    <p style="font-size: 12px; text-align: center; color: #555; margin-top: 0; margin-bottom: 16px;">
-      Add family recipes or custom dishes that are private to your account.
+  <!-- Header Banner -->
+  <div class="border-b border-outline-variant/20 pb-4">
+    <span class="bg-primary-container/10 text-primary text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+      🍽️ Custom Recipes & Community
+    </span>
+    <h1 class="font-headline text-2xl md:text-3xl font-bold text-on-surface mt-1.5">
+      My Personalized Kitchen & Friends
+    </h1>
+    <p class="text-xs md:text-sm text-on-surface-variant">
+      Add private household recipes, unblock core dishes, and exchange meal ideas with kitchen friends.
     </p>
+  </div>
 
-    <!-- Form to add custom dishes -->
-    <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-sizing: border-box;">
-      <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">➕ Add Private Custom Dish</legend>
-      <form method="post" action="/custom_dish/add">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Dish Name:</label>
-            <input type="text" name="name" id="dish-name-input" placeholder="e.g. Grandma's Curry" list="existing-dishes-list" required autocomplete="off" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box;">
-            <div id="dup-warning"></div>
-          </div>
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Dish Type:</label>
-            <select name="type" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
-              <option value="veg">Non-Meat 🥗</option>
-              <option value="nonveg">Meat 🍗</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Serve With:</label>
-            <select name="serve_with" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
-              <option value="both">Roti or Rice 🍛</option>
-              <option value="roti">Roti Only 🫓</option>
-              <option value="rice">Rice Only 🍚</option>
-              <option value="none">None 🍽️</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Course Level:</label>
-            <select name="course" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
-              <option value="main">Main Course 🍲</option>
-              <option value="side">Side Dish / Snack 🍟</option>
-              <option value="dessert">Dessert 🍨</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Meal Style:</label>
-            <select name="style" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
-              <option value="rich">Rich & Indulgent 🧈</option>
-              <option value="light" selected>Light & Healthy 🥗</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">Category Tag:</label>
-            <select name="category" style="width: 100%; padding: 8px; border-radius: 8px; border: 1.5px solid var(--gold); font-size:12px; box-sizing: border-box; background: white; color: var(--dark);">
-              <option value="curry">Curry 🍛</option>
-              <option value="sabzi">Sabzi 🥦</option>
-              <option value="karahi">Karahi 🍳</option>
-              <option value="rice-dish">Rice Dish 🌾</option>
-              <option value="bbq">Barbeque 🍢</option>
-              <option value="sweet">Sweet 🍬</option>
-              <option value="snack">Snack 🍿</option>
-              <option value="quick">Quick Meal ⏱️</option>
-            </select>
-          </div>
+  <!-- Form to add custom dishes -->
+  <div class="bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30">
+    <h2 class="font-headline text-base font-bold text-primary mb-4 flex items-center space-x-2">
+      <span class="material-symbols-outlined text-[20px]">post_add</span>
+      <span>Add Private Custom Dish</span>
+    </h2>
+
+    <form method="post" action="/custom_dish/add" class="m-0 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-on-surface mb-1">Dish Name</label>
+          <input type="text" name="name" id="dish-name-input" placeholder="e.g. Grandma's Chicken Korma" list="existing-dishes-list" required autocomplete="off" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
+          <div id="dup-warning" class="text-[11px] font-bold text-primary mt-1 min-h-[16px]"></div>
         </div>
-        <button type="submit" id="submit-dish-btn" class="btn" style="padding: 10px 14px; font-size: 13px; width: 100%; transition: all 0.2s;">Add Dish to Personalized Menu 🚀</button>
-      </form>
-    </fieldset>
 
-    <!-- Datalist for Autocomplete options -->
-    <datalist id="existing-dishes-list">
-      {% for name in existing_names %}
-        <option value="{{ name }}"></option>
-      {% endfor %}
-    </datalist>
-
-    <!-- List of custom dishes -->
-    {% if custom_dishes %}
-      <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-bottom: 0; box-sizing: border-box;">
-        <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">📋 Private Dish Inventory ({{ custom_dishes | length }})</legend>
-        <div style="max-height: 220px; overflow-y: auto; padding-right: 8px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-              <tr style="border-bottom: 1.5px solid var(--gold); text-align: left; font-weight: bold; color: #555;">
-                <th style="padding: 6px 0;">Name</th>
-                <th style="padding: 6px 0;">Type</th>
-                <th style="padding: 6px 0;">Course</th>
-                <th style="padding: 6px 0;">Serve With</th>
-                <th style="padding: 6px 0; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for cdish in custom_dishes %}
-                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
-                  <td style="padding: 6px 0; font-weight: 600;">{{ cdish.name }}</td>
-                  <td style="padding: 6px 0;">{{ 'Non-Meat' if cdish.type == 'veg' else 'Meat' }}</td>
-                  <td style="padding: 6px 0; text-transform: capitalize;">{{ cdish.course }}</td>
-                  <td style="padding: 6px 0; text-transform: capitalize;">{{ cdish.serve_with }}</td>
-                  <td style="padding: 6px 0; text-align: right;">
-                    <form method="post" action="/reject" style="margin: 0; display: inline;">
-                      <input type="hidden" name="dish" value="{{ cdish.name }}">
-                      <button type="submit" style="background: transparent; border: none; color: red; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline;">Remove ❌</button>
-                    </form>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Diet Type</label>
+          <select name="type" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="veg">Non-Meat 🥦</option>
+            <option value="nonveg" selected>Meat 🍗</option>
+          </select>
         </div>
-      </fieldset>
-    {% endif %}
 
-    <!-- List of blocked core recipes -->
-    {% if blocked_dishes %}
-      <fieldset style="border: 2px solid #e74c3c; border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box;">
-        <legend style="font-weight: bold; padding: 0 8px; color: #e74c3c;">🚫 Blocked Recipes ({{ blocked_dishes | length }})</legend>
-        <p style="font-size: 11px; color: #777; margin: 0 0 10px;">Recipes you've hidden from daily suggestions. Click unblock to restore them.</p>
-        <div style="max-height: 180px; overflow-y: auto; padding-right: 8px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-              <tr style="border-bottom: 1.5px solid #e74c3c; text-align: left; font-weight: bold; color: #555;">
-                <th style="padding: 6px 0;">Dish Name</th>
-                <th style="padding: 6px 0; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for bdish in blocked_dishes %}
-                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
-                  <td style="padding: 6px 0; font-weight: 600;">{{ bdish }}</td>
-                  <td style="padding: 6px 0; text-align: right;">
-                    <form method="post" action="/unblock" style="margin: 0; display: inline;">
-                      <input type="hidden" name="dish" value="{{ bdish }}">
-                      <button type="submit" style="background: transparent; border: none; color: green; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline; font-weight: bold;">Unblock & Restore ✅</button>
-                    </form>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Serve With</label>
+          <select name="serve_with" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="both">Roti or Rice 🍛</option>
+            <option value="roti">Roti Only 🫓</option>
+            <option value="rice">Rice Only 🍚</option>
+            <option value="none">None 🍽️</option>
+          </select>
         </div>
-      </fieldset>
-    {% endif %}
 
-    <!-- List of custom dishes shared by friends -->
-    {% if friend_suggestions %}
-      <fieldset style="border: 2px solid var(--gold); border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box; background: #fffdfb;">
-        <legend style="font-weight: bold; padding: 0 8px; color: var(--terracotta);">🤝 Suggested Recipes from Friends ({{ friend_suggestions | length }})</legend>
-        <p style="font-size: 11px; color: #777; margin: 0 0 10px;">Recipes added by your friends that you don't have. Copy them to your menu with one click!</p>
-        <div style="max-height: 250px; overflow-y: auto; padding-right: 8px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-              <tr style="border-bottom: 1.5px solid var(--gold); text-align: left; font-weight: bold; color: #555;">
-                <th style="padding: 6px 0;">Dish Name</th>
-                <th style="padding: 6px 0;">Diet</th>
-                <th style="padding: 6px 0;">Creator</th>
-                <th style="padding: 6px 0; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for suggestion in friend_suggestions %}
-                <tr style="border-bottom: 1px solid #f2f2f2; color: var(--dark);">
-                  <td style="padding: 8px 0; font-weight: 600;">{{ suggestion.name }}</td>
-                  <td style="padding: 8px 0;">
-                    <span style="background: rgba(214, 90, 49, 0.1); color: var(--terracotta); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">
-                      {{ 'Non-Meat' if suggestion.type == 'veg' else 'Meat' }}
-                    </span>
-                  </td>
-                  <td style="padding: 8px 0; color: #666; font-size: 11px;">{{ suggestion.creator_email }}</td>
-                  <td style="padding: 8px 0; text-align: right;">
-                    <form method="post" action="/custom_dish/add_friend_suggestion" style="margin: 0; display: inline;">
-                      <input type="hidden" name="name" value="{{ suggestion.name }}">
-                      <input type="hidden" name="type" value="{{ suggestion.type }}">
-                      <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
-                      <input type="hidden" name="category" value="{{ suggestion.category }}">
-                      <input type="hidden" name="style" value="{{ suggestion.style }}">
-                      <input type="hidden" name="course" value="{{ suggestion.course }}">
-                      <button type="submit" style="background: var(--terracotta); border: none; color: white; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: bold; transition: opacity 0.2s;">Add to Menu ➕</button>
-                    </form>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Course Level</label>
+          <select name="course" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="main" selected>Main Course 🍲</option>
+            <option value="side">Side Dish / Snack 🍟</option>
+            <option value="dessert">Dessert 🍨</option>
+          </select>
         </div>
-      </fieldset>
-    {% endif %}
 
-    <!-- Friends Network Manager -->
-    <fieldset style="border: 2px solid #ccc; border-radius: 12px; padding: 16px; margin-top: 20px; box-sizing: border-box; background: #fafafa;">
-      <legend style="font-weight: bold; padding: 0 8px; color: #555;">👥 Kitchen Friends Network</legend>
-      
-      <!-- Send Friend Request Form -->
-      <form method="post" action="/friends/request" style="display: flex; gap: 8px; margin-bottom: 16px; align-items: flex-end;">
-        <div style="flex: 1;">
-          <label for="friend_email" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #555;">Add Friend by Email</label>
-          <input type="email" id="friend_email" name="friend_email" required placeholder="friend@example.com" style="width: 100%; padding: 8px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 12px; box-sizing: border-box;">
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Meal Style</label>
+          <select name="style" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="rich">Rich & Gravy 🧈</option>
+            <option value="light" selected>Light & Healthy 🥗</option>
+          </select>
         </div>
-        <button type="submit" class="btn-primary" style="padding: 9px 16px; font-size: 12px; border-radius: 6px; font-weight: bold; background: #555; color: white; border: none; cursor: pointer; transition: all 0.2s;">Send Request 🤝</button>
-      </form>
 
-      <!-- Incoming Friend Requests -->
-      {% if friend_requests %}
-        <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 10px; margin-bottom: 14px; font-size: 12px;">
-          <strong style="color: #856404; display: block; margin-bottom: 6px;">📥 Pending Friend Invites:</strong>
-          <ul style="list-style: none; padding: 0; margin: 0;">
-            {% for req in friend_requests %}
-              <li style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.05);">
-                <span>{{ req.email }}</span>
-                <div style="display: flex; gap: 6px;">
-                  <form method="post" action="/friends/accept" style="margin: 0;">
-                    <input type="hidden" name="requester_id" value="{{ req.id }}">
-                    <button type="submit" style="background: #28a745; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">Accept ✅</button>
-                  </form>
-                  <form method="post" action="/friends/reject" style="margin: 0;">
-                    <input type="hidden" name="requester_id" value="{{ req.id }}">
-                    <button type="submit" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">Decline ❌</button>
-                  </form>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Category Tag</label>
+          <select name="category" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="curry">Curry 🍛</option>
+            <option value="sabzi">Sabzi 🥦</option>
+            <option value="karahi">Karahi 🍳</option>
+            <option value="rice-dish">Rice Dish 🌾</option>
+            <option value="bbq">Barbeque 🍢</option>
+            <option value="sweet">Sweet 🍬</option>
+            <option value="snack">Snack 🍿</option>
+            <option value="quick">Quick Meal ⏱️</option>
+          </select>
+        </div>
+
+      </div>
+
+      <button type="submit" id="submit-dish-btn" class="w-full sm:w-auto bg-primary hover:bg-primary-container text-white text-xs font-bold py-2.5 px-6 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1.5">
+        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+        <span>Add Dish to Menu</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Autocomplete datalist -->
+  <datalist id="existing-dishes-list">
+    {% for name in existing_names %}
+      <option value="{{ name }}"></option>
+    {% endfor %}
+  </datalist>
+
+  <!-- 2-Column: Custom Inventory & Blocked Recipes -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+    
+    <!-- Private Dish Inventory -->
+    <div class="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow border border-outline-variant/30 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3 border-b border-outline-variant/20 pb-2">
+          <h3 class="font-headline text-sm font-bold text-on-surface flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+            <span>Private Custom Recipes</span>
+          </h3>
+          <span class="text-[10px] font-bold bg-surface-container text-on-surface px-2 py-0.5 rounded-full">{{ custom_dishes | length }}</span>
+        </div>
+
+        {% if custom_dishes %}
+          <div class="max-h-[220px] overflow-y-auto pr-1 space-y-2">
+            {% for cdish in custom_dishes %}
+              <div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between border border-outline-variant/20">
+                <div class="min-w-0">
+                  <h4 class="text-xs font-bold text-on-surface truncate">{{ cdish.name }}</h4>
+                  <span class="text-[10px] text-on-surface-variant capitalize">{{ 'Non-Meat' if cdish.type == 'veg' else 'Meat' }} • {{ cdish.style }}</span>
                 </div>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-
-      <!-- Accepted Friends list -->
-      <div style="font-size: 12px;">
-        <strong style="color: #444; display: block; margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">👥 Your Kitchen Connections:</strong>
-        {% if friends %}
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            {% for friend in friends %}
-              <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                <span style="font-weight: 600; color: var(--dark);">{{ friend.email }}</span>
-                <form method="post" action="/friends/reject" style="margin: 0; display: inline;">
-                  <input type="hidden" name="requester_id" value="{{ friend.id }}">
-                  <button type="submit" style="background: transparent; border: none; color: #aaa; cursor: pointer; padding: 0; font-size: 10px;" title="Remove connection">✖</button>
+                <form method="post" action="/reject" class="m-0">
+                  <input type="hidden" name="dish" value="{{ cdish.name }}">
+                  <button type="submit" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold px-2 py-1 rounded transition-colors">
+                    Remove
+                  </button>
                 </form>
               </div>
             {% endfor %}
           </div>
         {% else %}
-          <p style="font-style: italic; color: #888; margin: 4px 0 0;">You haven't linked with any kitchen friends yet. Add them above by email!</p>
+          <div class="text-center py-8 text-on-surface-variant">
+            <p class="text-xs italic">No custom recipes added yet.</p>
+          </div>
         {% endif %}
       </div>
+    </div>
 
-    </fieldset>
+    <!-- Blocked Core Recipes -->
+    <div class="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow border border-outline-variant/30 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3 border-b border-outline-variant/20 pb-2">
+          <h3 class="font-headline text-sm font-bold text-rose-800 flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-rose-600 text-[18px]">block</span>
+            <span>Blocked Recipes</span>
+          </h3>
+          <span class="text-[10px] font-bold bg-rose-50 text-rose-800 px-2 py-0.5 rounded-full">{{ blocked_dishes | length }}</span>
+        </div>
+
+        {% if blocked_dishes %}
+          <div class="max-h-[220px] overflow-y-auto pr-1 space-y-2">
+            {% for bdish in blocked_dishes %}
+              <div class="bg-rose-50/50 rounded-xl p-2.5 flex items-center justify-between border border-rose-100">
+                <span class="text-xs font-semibold text-rose-900 truncate">{{ bdish }}</span>
+                <form method="post" action="/unblock" class="m-0">
+                  <input type="hidden" name="dish" value="{{ bdish }}">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-md transition-colors shadow-sm">
+                    Unblock ✅
+                  </button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8 text-on-surface-variant">
+            <p class="text-xs italic">No recipes blocked. All standard dishes are active in your rotation!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    const existing = {{ existing_names | tojson }};
-    const inputField = document.getElementById('dish-name-input');
-    const warningDiv = document.getElementById('dup-warning');
-    const submitBtn = document.getElementById('submit-dish-btn');
+  <!-- Suggested Recipes from Friends -->
+  {% if friend_suggestions %}
+    <div class="bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30 space-y-3">
+      <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+        <h2 class="font-headline text-base font-bold text-primary flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[20px]">recommend</span>
+          <span>Suggested Recipes from Friends ({{ friend_suggestions | length }})</span>
+        </h2>
+        <span class="text-xs text-on-surface-variant">Copy recipes to your private menu with 1-click!</span>
+      </div>
 
-    inputField.addEventListener('input', function(e) {
-      const val = e.target.value.trim().toLowerCase();
-      
-      // Check if value matches any existing dishes in inventory (case-insensitive)
-      const isDuplicate = existing.map(x => x.toLowerCase()).includes(val);
-      
-      if (isDuplicate) {
-        warningDiv.textContent = "⚠️ This dish is already in your kitchen inventory!";
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-        submitBtn.style.cursor = 'not-allowed';
-      } else {
-        warningDiv.textContent = "";
-        submitBtn.disabled = false;
-        submitBtn.style.opacity = '1';
-        submitBtn.style.cursor = 'pointer';
-      }
-    });
-  </script>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for suggestion in friend_suggestions %}
+          <div class="bg-surface-container-low rounded-xl p-3 border border-outline-variant/20 flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-1 mb-1">
+                <h4 class="font-headline text-xs font-bold text-on-surface leading-tight">{{ suggestion.name }}</h4>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase {% if suggestion.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
+                  {{ 'Non-Meat' if suggestion.type == 'veg' else 'Meat' }}
+                </span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant block mb-2">by {{ suggestion.creator_email }}</span>
+            </div>
+
+            <form method="post" action="/custom_dish/add_friend_suggestion" class="m-0 pt-2 border-t border-outline-variant/20">
+              <input type="hidden" name="name" value="{{ suggestion.name }}">
+              <input type="hidden" name="type" value="{{ suggestion.type }}">
+              <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
+              <input type="hidden" name="category" value="{{ suggestion.category }}">
+              <input type="hidden" name="style" value="{{ suggestion.style }}">
+              <input type="hidden" name="course" value="{{ suggestion.course }}">
+              <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white py-1.5 px-3 rounded-lg text-xs font-bold transition-all shadow-sm">
+                Add to My Menu ➕
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Kitchen Friends Network Manager -->
+  <div class="bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30 space-y-4">
+    <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+      <h2 class="font-headline text-base font-bold text-on-surface flex items-center space-x-2">
+        <span class="material-symbols-outlined text-secondary text-[20px]">diversity_3</span>
+        <span>Kitchen Friends Network</span>
+      </h2>
+      <span class="text-xs text-on-surface-variant">Connect with family & friends</span>
+    </div>
+
+    <!-- Send Friend Request Form -->
+    <form method="post" action="/friends/request" class="flex flex-col sm:flex-row gap-2 max-w-md m-0">
+      <input type="email" id="friend_email" name="friend_email" required placeholder="Enter friend's account email" class="flex-1 text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
+      <button type="submit" class="bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all shrink-0">
+        Send Invite 🤝
+      </button>
+    </form>
+
+    <!-- Incoming Friend Requests -->
+    {% if friend_requests %}
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <span class="text-xs font-bold text-amber-900 block mb-2">📥 Pending Friend Invites:</span>
+        <div class="space-y-2">
+          {% for req in friend_requests %}
+            <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-200/60">
+              <span class="text-xs font-semibold text-on-surface">{{ req.email }}</span>
+              <div class="flex items-center space-x-1.5">
+                <form method="post" action="/friends/accept" class="m-0">
+                  <input type="hidden" name="requester_id" value="{{ req.id }}">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors">Accept ✅</button>
+                </form>
+                <form method="post" action="/friends/reject" class="m-0">
+                  <input type="hidden" name="requester_id" value="{{ req.id }}">
+                  <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors">Decline ❌</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Connected Friends List -->
+    <div>
+      <span class="text-xs font-bold text-on-surface-variant block mb-2">Connected Friends:</span>
+      {% if friends %}
+        <div class="flex flex-wrap gap-2">
+          {% for friend in friends %}
+            <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-1.5 inline-flex items-center space-x-2 text-xs">
+              <span class="font-bold text-on-surface">{{ friend.email }}</span>
+              <form method="post" action="/friends/reject" class="m-0 inline">
+                <input type="hidden" name="requester_id" value="{{ friend.id }}">
+                <button type="submit" class="text-outline-variant hover:text-rose-600 font-bold text-xs" title="Remove connection">✖</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-xs italic text-on-surface-variant">No kitchen friends linked yet. Invite family members above to start sharing custom recipes!</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const existing = {{ existing_names | tojson }};
+  const inputField = document.getElementById('dish-name-input');
+  const warningDiv = document.getElementById('dup-warning');
+  const submitBtn = document.getElementById('submit-dish-btn');
+
+  inputField.addEventListener('input', function(e) {
+    const val = e.target.value.trim().toLowerCase();
+    const isDuplicate = existing.map(x => x.toLowerCase()).includes(val);
+    
+    if (isDuplicate) {
+      warningDiv.textContent = "⚠️ This dish is already in your kitchen inventory!";
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      warningDiv.textContent = "";
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  });
+</script>
 {% endblock %}

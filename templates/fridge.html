@@ -1,162 +1,223 @@
 {% extends "base.html" %}
-{% block title %}My Fridge & Matcher{% endblock %}
-{% block card_class %}wide{% endblock %}
+{% block title %}Chef Chat — Fridge & Pantry Inventory{% endblock %}
+
 {% block content %}
+<div class="space-y-stack-md py-2">
+
   <!-- Macro helper function to render inventory lists -->
   {%- macro render_inventory_list(items) -%}
-    <div style="max-height: 250px; overflow-y: auto; padding-right: 4px;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-        <tbody>
-          {% for item in items %}
-            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.1s;">
-              <td style="padding: 10px 0; font-weight: bold; color: var(--dark); text-transform: capitalize;">{{ item.item_name }}</td>
-              
-              <!-- Update Quantity Form -->
-              <td style="padding: 10px 0; text-align: right;">
-                <form method="post" action="/fridge/update" style="margin: 0; display: inline-flex; align-items: center; gap: 4px;">
-                  <input type="hidden" name="item_id" value="{{ item.id }}">
-                  <input type="text" name="quantity" value="{{ item.quantity }}" placeholder="qty" style="width: 70px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; text-align: center;">
-                  <button type="submit" style="background: #efefef; border: 1px solid #ccc; border-radius: 4px; padding: 3px 6px; cursor: pointer; font-size: 10px; font-weight: bold; color: #444;">💾</button>
-                </form>
-              </td>
-              
-              <!-- Delete Form -->
-              <td style="padding: 10px 0; text-align: right; width: 30px;">
-                <form method="post" action="/fridge/delete" style="margin: 0; display: inline;">
-                  <input type="hidden" name="item_id" value="{{ item.id }}">
-                  <button type="submit" style="background: transparent; border: none; color: #dc3545; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
-                </form>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="max-h-[260px] overflow-y-auto pr-1 space-y-2">
+      {% for item in items %}
+        <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-2.5 flex items-center justify-between gap-2 shadow-sm hover:border-primary/40 transition-all">
+          <div class="min-w-0 flex-1">
+            <span class="text-xs font-bold text-on-surface capitalize block truncate">{{ item.item_name }}</span>
+            <span class="text-[10px] text-on-surface-variant">{{ item.quantity or 'No qty set' }}</span>
+          </div>
+
+          <!-- Update Quantity & Delete Form -->
+          <div class="flex items-center space-x-1.5 shrink-0">
+            <form method="post" action="/fridge/update" class="flex items-center space-x-1 m-0">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <input type="text" name="quantity" value="{{ item.quantity }}" placeholder="qty" class="w-16 text-[11px] p-1 rounded-md border border-outline-variant/60 text-center bg-surface-container-low focus:ring-1 focus:ring-primary focus:bg-white">
+              <button type="submit" title="Save Quantity" class="p-1 text-secondary hover:text-primary rounded-md transition-colors">
+                <span class="material-symbols-outlined text-[16px]">save</span>
+              </button>
+            </form>
+
+            <form method="post" action="/fridge/delete" class="m-0">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button type="submit" title="Delete Item" class="p-1 text-outline-variant hover:text-rose-600 rounded-md transition-colors">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   {%- endmacro -%}
 
-  <h1 style="margin-top: 8px;">❄️ Fridge & Pantry Inventory</h1>
-  <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
-    Track what is in your fridge, freezer, and pantry (food rashan) to automatically match and suggest dinner ideas!
-  </p>
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/20 pb-4">
+    <div>
+      <span class="bg-secondary-container text-on-secondary-container text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+        ❄️ Pantry & Rashan Hub
+      </span>
+      <h1 class="font-headline text-2xl md:text-3xl font-bold text-on-surface mt-1.5">
+        Fridge & Pantry Tracker
+      </h1>
+      <p class="text-xs md:text-sm text-on-surface-variant">
+        Keep track of groceries to automatically discover what recipes you can cook right now.
+      </p>
+    </div>
+  </div>
 
   <!-- Add Item Form Section -->
-  <fieldset style="border: 2px solid var(--gold); border-radius: 16px; padding: 20px; background: #fffcf9; margin-bottom: 24px; box-sizing: border-box;">
-    <legend style="font-weight: 800; padding: 0 10px; color: var(--terracotta); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;">➕ Log Item / Food Rashan</legend>
-    <form method="post" action="/fridge/add" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin: 0;">
-      <div style="flex: 1; min-width: 200px;">
-        <label for="item_name" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Ingredient Name</label>
-        <input type="text" id="item_name" name="item_name" required placeholder="e.g. Chicken, Spinach, Rice, Potato" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+  <div class="bg-surface-container-lowest rounded-2xl p-5 md:p-6 ambient-shadow border border-outline-variant/30">
+    <h3 class="font-headline text-sm font-bold text-primary uppercase tracking-wider mb-4 flex items-center space-x-1.5">
+      <span class="material-symbols-outlined text-[20px]">add_box</span>
+      <span>Log Food Item / Rashan</span>
+    </h3>
+
+    <form method="post" action="/fridge/add" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end m-0">
+      <div class="sm:col-span-2 md:col-span-5">
+        <label for="item_name" class="block text-xs font-semibold text-on-surface mb-1">Ingredient / Item Name</label>
+        <input type="text" id="item_name" name="item_name" required placeholder="e.g. Chicken, Potatoes, Paneer, Daal" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
       </div>
-      
-      <div style="width: 150px; min-width: 120px;">
-        <label for="location" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Storage Location</label>
-        <select id="location" name="location" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; background: white; box-sizing: border-box;">
+
+      <div class="md:col-span-3">
+        <label for="location" class="block text-xs font-semibold text-on-surface mb-1">Storage Location</label>
+        <select id="location" name="location" required class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
           <option value="freezer">Freezer ❄️</option>
-          <option value="fridge">Fridge 🥦</option>
-          <option value="pantry">Pantry/Rashan 🌾</option>
+          <option value="fridge" selected>Fridge 🥦</option>
+          <option value="pantry">Pantry / Rashan 🌾</option>
         </select>
       </div>
-      
-      <div style="width: 150px; min-width: 120px;">
-        <label for="quantity" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--dark);">Quantity / Weight</label>
-        <input type="text" id="quantity" name="quantity" placeholder="e.g. 2 kg, 3 packs" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+
+      <div class="md:col-span-2">
+        <label for="quantity" class="block text-xs font-semibold text-on-surface mb-1">Quantity / Weight</label>
+        <input type="text" id="quantity" name="quantity" placeholder="e.g. 1 kg, 3 pcs" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
       </div>
-      
-      <div style="min-width: 100px;">
-        <button type="submit" class="btn-primary" style="width: 100%; padding: 11px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; border: none; background: var(--terracotta); color: white; cursor: pointer; transition: all 0.2s;">Log Item 🍳</button>
+
+      <div class="md:col-span-2">
+        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1">
+          <span class="material-symbols-outlined text-[16px]">add</span>
+          <span>Add Item</span>
+        </button>
       </div>
     </form>
-  </fieldset>
+  </div>
 
-  <!-- Inventory Grid Section -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <!-- 3-Column Inventory Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-stack-md">
     
     <!-- Freezer Inventory -->
-    <div style="border: 1.5px solid #bce2fa; border-radius: 16px; padding: 16px; background: #f2f9fe;">
-      <h3 style="margin-top: 0; color: #0275d8; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #bce2fa; padding-bottom: 8px;">❄️ Freezer Items</h3>
-      {% if freezer_items %}
-        {{ render_inventory_list(freezer_items) }}
-      {% else %}
-        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No freezer items logged.</p>
-      {% endif %}
+    <div class="bg-surface-container-low rounded-2xl p-5 border border-sky-200 shadow-sm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3 border-b border-sky-200/80 pb-2">
+          <h3 class="font-headline text-sm font-bold text-sky-800 flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-sky-600 text-[18px]">ac_unit</span>
+            <span>Freezer Items</span>
+          </h3>
+          <span class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">{{ freezer_items | length }}</span>
+        </div>
+        {% if freezer_items %}
+          {{ render_inventory_list(freezer_items) }}
+        {% else %}
+          <div class="text-center py-8 text-on-surface-variant">
+            <p class="text-xs italic">No freezer items logged.</p>
+          </div>
+        {% endif %}
+      </div>
     </div>
 
     <!-- Fridge Inventory -->
-    <div style="border: 1.5px solid #d4edda; border-radius: 16px; padding: 16px; background: #f8fff9;">
-      <h3 style="margin-top: 0; color: #28a745; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #d4edda; padding-bottom: 8px;">🥦 Fridge Items</h3>
-      {% if fridge_items %}
-        {{ render_inventory_list(fridge_items) }}
-      {% else %}
-        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No fridge items logged.</p>
-      {% endif %}
+    <div class="bg-surface-container-low rounded-2xl p-5 border border-emerald-200 shadow-sm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3 border-b border-emerald-200/80 pb-2">
+          <h3 class="font-headline text-sm font-bold text-emerald-800 flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-emerald-600 text-[18px]">eco</span>
+            <span>Fridge Produce</span>
+          </h3>
+          <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{{ fridge_items | length }}</span>
+        </div>
+        {% if fridge_items %}
+          {{ render_inventory_list(fridge_items) }}
+        {% else %}
+          <div class="text-center py-8 text-on-surface-variant">
+            <p class="text-xs italic">No fridge items logged.</p>
+          </div>
+        {% endif %}
+      </div>
     </div>
 
     <!-- Pantry / Rashan Inventory -->
-    <div style="border: 1.5px solid #ffeeba; border-radius: 16px; padding: 16px; background: #fffdf6;">
-      <h3 style="margin-top: 0; color: #856404; display: flex; align-items: center; gap: 6px; font-size: 15px; border-bottom: 1.5px solid #ffeeba; padding-bottom: 8px;">🌾 Pantry & Rashan</h3>
-      {% if pantry_items %}
-        {{ render_inventory_list(pantry_items) }}
-      {% else %}
-        <p style="font-size: 12px; color: #777; font-style: italic; text-align: center; margin: 20px 0;">No pantry items logged.</p>
-      {% endif %}
+    <div class="bg-surface-container-low rounded-2xl p-5 border border-amber-200 shadow-sm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3 border-b border-amber-200/80 pb-2">
+          <h3 class="font-headline text-sm font-bold text-amber-800 flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-amber-600 text-[18px]">grain</span>
+            <span>Pantry & Rashan</span>
+          </h3>
+          <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{{ pantry_items | length }}</span>
+        </div>
+        {% if pantry_items %}
+          {{ render_inventory_list(pantry_items) }}
+        {% else %}
+          <div class="text-center py-8 text-on-surface-variant">
+            <p class="text-xs italic">No pantry items logged.</p>
+          </div>
+        {% endif %}
+      </div>
     </div>
 
   </div>
 
-  <!-- Auto Match Suggestions -->
-  <fieldset style="border: 2px solid var(--gold); border-radius: 16px; padding: 20px; background: white; box-sizing: border-box;">
-    <legend style="font-weight: 800; padding: 0 10px; color: var(--terracotta); text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px;">🍳 What can I cook right now?</legend>
-    
+  <!-- Auto Match Suggestions ("What can I cook right now?") -->
+  <div class="bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30 space-y-4">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+      </div>
+      <div>
+        <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface">What Can I Cook Right Now?</h2>
+        <p class="text-xs text-on-surface-variant">Recipes automatically matched with ingredients currently in your kitchen inventory:</p>
+      </div>
+    </div>
+
     {% if matches %}
-      <p style="font-size: 12px; color: #555; margin-top: 0; margin-bottom: 16px;">
-        The system matched these recipes from your inventory with the ingredients in your fridge/freezer:
-      </p>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-md pt-2">
         {% for match in matches %}
-          <div style="border: 1.5px solid #eee; border-radius: 14px; padding: 14px; background: #fffdfa; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: all 0.2s;">
+          <div class="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30 flex flex-col justify-between hover:border-primary/50 transition-all">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                <span style="font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.3;">{{ match.dish.name }}</span>
-                <span style="font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; background: {% if match.dish.type == 'veg' %}rgba(40,167,69,0.1); color: #28a745;{% else %}rgba(214,90,49,0.1); color: var(--terracotta);{% endif %}">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h4 class="font-headline text-base font-bold text-on-surface leading-tight">{{ match.dish.name }}</h4>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase {% if match.dish.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
                   {{ 'Non-Meat' if match.dish.type == 'veg' else 'Meat' }}
                 </span>
               </div>
-              
-              <div style="font-size: 11px; color: #777; margin-bottom: 10px; text-transform: capitalize;">
-                Style: <strong>{{ match.dish.style }}</strong> | Course: <strong>{{ match.dish.course }}</strong>
+
+              <div class="text-[11px] text-on-surface-variant mb-3">
+                Style: <span class="font-semibold capitalize">{{ match.dish.style }}</span> • Course: <span class="font-semibold capitalize">{{ match.dish.course }}</span>
               </div>
 
               <!-- Matching Ingredients Tag -->
-              <div style="margin-bottom: 12px;">
-                <div style="font-size: 10px; text-transform: uppercase; font-weight: 800; color: #888; margin-bottom: 4px;">Matched Ingredients:</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              <div class="mb-4">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80 block mb-1.5">Matched from fridge:</span>
+                <div class="flex flex-wrap gap-1.5">
                   {% for ing in match.matching_ingredients %}
-                    <span style="background: #e2f5e7; color: #1e7e34; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                      ✓ {{ ing }}
+                    <span class="bg-secondary-container text-on-secondary-container text-[11px] font-semibold px-2 py-0.5 rounded-md flex items-center space-x-1">
+                      <span class="material-symbols-outlined text-[12px]">check</span>
+                      <span>{{ ing }}</span>
                     </span>
                   {% endfor %}
                 </div>
               </div>
             </div>
 
-            <div style="border-top: 1px solid #f5f5f5; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-              <a href="https://www.youtube.com/results?search_query={{ match.dish.name | replace(' ', '+') }}+food+fusion+recipe" target="_blank" style="font-size: 11.5px; font-weight: bold; color: var(--terracotta); text-decoration: none; border-bottom: 1px solid var(--terracotta);">Watch Recipe 📺</a>
-              <span style="font-size: 10px; color: #aaa; font-style: italic;">
-                Matches: {{ 'Food Fusion' if match.matched_from == 'scraped' else 'Synonym Map' }}
-              </span>
+            <!-- Cook Action -->
+            <div class="pt-3 border-t border-outline-variant/20 flex items-center justify-between gap-2">
+              <form method="post" action="/log" class="m-0 flex-1">
+                <input type="hidden" name="dish" value="{{ match.dish.name }}">
+                <input type="hidden" name="category" value="{{ match.dish.type }}">
+                <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white py-2 px-3 rounded-lg text-xs font-bold transition-all shadow-sm">
+                  Let's cook this 🍳
+                </button>
+              </form>
+              <a href="https://www.youtube.com/results?search_query={{ match.dish.name | replace(' ', '+') }}+recipe" target="_blank" class="p-2 text-primary hover:bg-surface-container rounded-lg transition-colors" title="Watch Recipe">
+                <span class="material-symbols-outlined text-[18px]">play_circle</span>
+              </a>
             </div>
           </div>
         {% endfor %}
       </div>
     {% else %}
-      <div style="text-align: center; padding: 30px; color: #666;">
-        <span style="font-size: 32px;">🍳</span>
-        <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">No recipes matched yet!</p>
-        <p style="font-size: 12px; color: #999; margin: 0;">Add key items like <strong>Chicken, Beef, Spinach, Rice, or Potatoes</strong> to your inventory to automatically load suggestions.</p>
+      <div class="bg-surface-container-low rounded-xl p-8 text-center text-on-surface-variant">
+        <span class="material-symbols-outlined text-[36px] text-outline-variant mb-2">kitchen</span>
+        <h4 class="font-headline text-sm font-bold text-on-surface mb-1">No exact recipe matches yet</h4>
+        <p class="text-xs">Add more core items (like chicken, potatoes, daal, spinach, or paneer) to unlock auto-matched recipes!</p>
       </div>
     {% endif %}
-  </fieldset>
+  </div>
 
-
-
+</div>
 {% endblock %}

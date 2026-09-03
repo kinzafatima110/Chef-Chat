@@ -1,220 +1,159 @@
 {% extends "base.html" %}
-{% block title %}Chef Chat — Weekly Planner{% endblock %}
-{% block card_class %}wide{% endblock %}
-{% block extra_style %}
-  .weekly-card {
-    background: var(--cream);
-    border-radius: 20px;
-    padding: 24px;
-    border: 3px solid var(--gold);
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .weekly-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--dark);
-    text-align: center;
-    margin: 0 0 16px;
-  }
-  .weekly-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
-  }
-  .weekly-day-box {
-    background: white;
-    border: 2px solid var(--gold);
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 155px;
-    transition: all 0.2s ease;
-  }
-  .weekly-day-box:hover {
-    border-color: var(--terracotta);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  }
-  .day-name {
-    font-weight: bold;
-    font-size: 13px;
-    color: var(--terracotta);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
-  .day-dish {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--dark);
-    line-height: 1.3;
-    margin-bottom: 4px;
-  }
-  .day-side {
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 8px;
-  }
-  .weekly-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: auto;
-  }
-  .weekly-reroll-btn {
-    background: transparent;
-    border: 1px solid var(--terracotta);
-    color: var(--terracotta);
-    font-size: 10px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    margin-top: auto;
-  }
-  .weekly-reroll-btn:hover {
-    background: var(--terracotta);
-    color: var(--cream);
-  }
-  .weekly-recipe {
-    font-size: 11px;
-    color: var(--terracotta);
-    text-decoration: none;
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: inline-block;
-  }
-  .weekly-recipe:hover {
-    text-decoration: underline;
-  }
-  .weekly-setup-form {
-    background: white;
-    border: 2px solid var(--gold);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .weekly-setup-form label {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .weekly-setup-form select {
-    width: 100%;
-    padding: 8px;
-    border: 1.5px solid var(--gold);
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 12px;
-    background: white;
-    color: var(--dark);
-  }
-
-{% endblock %}
+{% block title %}Chef Chat — 7-Day Weekly Meal Planner{% endblock %}
 
 {% block content %}
+<div class="space-y-stack-md py-2">
 
+  <!-- Header Banner -->
+  <div class="border-b border-outline-variant/20 pb-4">
+    <span class="bg-primary-container/10 text-primary text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+      📅 Meal Scheduling
+    </span>
+    <h1 class="font-headline text-2xl md:text-3xl font-bold text-on-surface mt-1.5">
+      7-Day Weekly Meal Planner
+    </h1>
+    <p class="text-xs md:text-sm text-on-surface-variant">
+      Automated rotating meal schedule balanced between meat and non-meat days.
+    </p>
+  </div>
 
-  <div class="weekly-card">
-    <h2 class="weekly-title">📅 Weekly Meal Planner</h2>
-    
-    {% if not weekly_plan %}
-      <p class="subtitle" style="margin-bottom: 12px; font-size:12px; text-align: center; color: #555;">
-        Configure your diet pattern below to generate your personalized 7-day calendar.
-      </p>
-      
-      <form method="post" action="/weekly/generate" class="weekly-setup-form">
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 140px;">
-            <label for="start_type">Start Week With:</label>
-            <select name="start_type" id="start_type">
+  {% if not weekly_plan %}
+    <!-- Generator Form (Empty State) -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 max-w-xl mx-auto text-center">
+      <div class="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-3">
+        <span class="material-symbols-outlined text-[28px]">calendar_month</span>
+      </div>
+      <h2 class="font-headline text-xl font-bold text-on-surface mb-1">Generate Your Weekly Schedule</h2>
+      <p class="text-xs text-on-surface-variant mb-6">Choose your preference pattern to populate a fresh 7-day meal matrix.</p>
+
+      <form method="post" action="/weekly/generate" class="space-y-4 text-left m-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="start_type" class="block text-xs font-semibold text-on-surface mb-1">Start Week With</label>
+            <select name="start_type" id="start_type" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
               <option value="veg">Non-Meat 🥗</option>
               <option value="nonveg" selected>Meat 🍗</option>
             </select>
           </div>
-          <div style="flex: 1; min-width: 140px;">
-            <label for="pattern">Weekly Diet Pattern:</label>
-            <select name="pattern" id="pattern">
+          <div>
+            <label for="pattern" class="block text-xs font-semibold text-on-surface mb-1">Diet Pattern</label>
+            <select name="pattern" id="pattern" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
               <option value="alternate">Alternate Meat/Non-Meat</option>
               <option value="all_veg">All Non-Meat 🥦</option>
               <option value="all_gosht">All Meat 🥩</option>
               <option value="2nv_1v">2 Meat, 1 Non-Meat Day 🍗🍗🥗</option>
               <option value="1nv_2v">1 Meat, 2 Non-Meat Days 🍗🥗🥗</option>
-              <option value="both">Both (Meat & Non-Meat) All Days 🍛🥗</option>
+              <option value="both">Both (Meat & Veg) Every Day 🍛🥗</option>
             </select>
           </div>
         </div>
-        <button type="submit" class="btn" style="padding: 10px 14px; font-size: 14px; margin-top: 8px; width: 100%;">Generate Weekly Plan 🚀</button>
+
+        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white text-xs font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+          <span>Generate 7-Day Plan</span>
+        </button>
       </form>
-    {% else %}
-      <div class="weekly-grid">
-        {% for day in weekly_plan %}
-          <div class="weekly-day-box">
-            <div>
-              <div class="day-name">{{ day.day_name }}</div>
-              <div class="day-dish">
-                {% if " & " in day.dish %}
-                  {% set items = day.dish.split(" & ") %}
-                  <div style="color: green; font-size: 12px;">🥗 Non-Meat: {{ items[0] }}</div>
-                  <div style="margin-top: 4px; color: #a04000; font-size: 12px;">🥩 Meat: {{ items[1] }}</div>
-                {% else %}
-                  {{ day.dish }}
-                {% endif %}
-              </div>
-              <div class="day-side">Serve with: {{ day.side_pairing }}</div>
+    </div>
+
+  {% else %}
+    <!-- 7-Day Matrix Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+      {% for day in weekly_plan %}
+        <div class="bg-surface-container-lowest rounded-2xl p-4 ambient-shadow border border-outline-variant/30 flex flex-col justify-between hover:border-primary/40 transition-all">
+          <div>
+            <!-- Day Name Badge -->
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-xs text-primary uppercase tracking-wider">{{ day.day_name[:3] }}</span>
+              <span class="text-[10px] text-on-surface-variant">{{ day.day_name }}</span>
             </div>
-            
-            <div class="weekly-actions">
+
+            <!-- Dish Title -->
+            <div class="my-2">
               {% if " & " in day.dish %}
                 {% set items = day.dish.split(" & ") %}
-                <a href="https://www.youtube.com/results?search_query={{ items[0].strip() | replace(' ', '+') }}+recipe" target="_blank" class="weekly-recipe">Non-Meat Recipe 📖</a>
-                <a href="https://www.youtube.com/results?search_query={{ items[1].strip() | replace(' ', '+') }}+recipe" target="_blank" class="weekly-recipe">Meat Recipe 📖</a>
+                <div class="space-y-1">
+                  <div class="text-xs font-bold text-emerald-800 bg-emerald-50 p-1.5 rounded-lg border border-emerald-100">
+                    🥗 {{ items[0] }}
+                  </div>
+                  <div class="text-xs font-bold text-primary bg-primary-fixed/30 p-1.5 rounded-lg border border-primary-fixed">
+                    🥩 {{ items[1] }}
+                  </div>
+                </div>
               {% else %}
-                <a href="https://www.youtube.com/results?search_query={{ day.dish | replace(' ', '+') }}+recipe" target="_blank" class="weekly-recipe">View Recipe 📖</a>
+                <h3 class="font-headline text-sm font-bold text-on-surface leading-snug">
+                  {{ day.dish }}
+                </h3>
               {% endif %}
-              
-              <form method="post" action="/weekly/reroll" style="margin: 0; width: 100%;">
-                <input type="hidden" name="day_index" value="{{ day.day_index }}">
-                <button type="submit" class="weekly-reroll-btn">Reroll 🎲</button>
-              </form>
             </div>
+
+            <span class="text-[10px] text-on-surface-variant block mb-3">
+              Serve with: <span class="font-medium capitalize">{{ day.side_pairing }}</span>
+            </span>
           </div>
-        {% endfor %}
-      </div>
 
-      <p style="text-align: center; margin-top: 18px; font-size: 12px; margin-bottom: 0;">
-        <a href="#" onclick="document.getElementById('pref_form_wrapper').style.display='block'; return false;" style="color: var(--terracotta); text-decoration: none; font-weight: bold;">⚙️ Re-configure Weekly Plan Preferences</a>
-      </p>
+          <div class="space-y-2 pt-3 border-t border-outline-variant/20">
+            {% if " & " in day.dish %}
+              {% set items = day.dish.split(" & ") %}
+              <div class="flex justify-between text-[10px] text-primary font-bold">
+                <a href="https://www.youtube.com/results?search_query={{ items[0].strip() | replace(' ', '+') }}+recipe" target="_blank" class="hover:underline">Veg Video</a>
+                <a href="https://www.youtube.com/results?search_query={{ items[1].strip() | replace(' ', '+') }}+recipe" target="_blank" class="hover:underline">Meat Video</a>
+              </div>
+            {% else %}
+              <a href="https://www.youtube.com/results?search_query={{ day.dish | replace(' ', '+') }}+recipe" target="_blank" class="text-[10px] font-bold text-primary hover:underline flex items-center space-x-1">
+                <span class="material-symbols-outlined text-[14px]">play_circle</span>
+                <span>Watch Recipe</span>
+              </a>
+            {% endif %}
 
-      <div id="pref_form_wrapper" style="display: none; margin-top: 14px;">
-        <form method="post" action="/weekly/generate" class="weekly-setup-form">
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 140px;">
-              <label for="start_type_re">Start Week With:</label>
-              <select name="start_type" id="start_type_re">
+            <form method="post" action="/weekly/reroll" class="m-0">
+              <input type="hidden" name="day_index" value="{{ day.day_index }}">
+              <button type="submit" class="w-full bg-surface-container hover:bg-surface-container-high text-on-surface text-[10px] font-bold py-1.5 rounded-lg border border-outline-variant/30 transition-all flex items-center justify-center space-x-1">
+                <span class="material-symbols-outlined text-[12px]">casino</span>
+                <span>Reroll Day</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Reconfigure Preferences Button & Collapsible Form -->
+    <div class="text-center pt-4">
+      <button onclick="document.getElementById('pref_form_wrapper').classList.toggle('hidden');" class="inline-flex items-center space-x-1.5 text-xs font-bold text-primary hover:text-primary-container bg-surface-container px-4 py-2 rounded-full transition-all">
+        <span class="material-symbols-outlined text-[16px]">settings</span>
+        <span>Re-configure Weekly Diet Pattern</span>
+      </button>
+
+      <div id="pref_form_wrapper" class="hidden mt-4 bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30 max-w-lg mx-auto text-left">
+        <form method="post" action="/weekly/generate" class="space-y-3 m-0">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="start_type_re" class="block text-xs font-semibold text-on-surface mb-1">Start Week With</label>
+              <select name="start_type" id="start_type_re" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white">
                 <option value="veg">Non-Meat 🥗</option>
                 <option value="nonveg" selected>Meat 🍗</option>
               </select>
             </div>
-            <div style="flex: 1; min-width: 140px;">
-              <label for="pattern_re">Weekly Diet Pattern:</label>
-              <select name="pattern" id="pattern_re">
+            <div>
+              <label for="pattern_re" class="block text-xs font-semibold text-on-surface mb-1">Diet Pattern</label>
+              <select name="pattern" id="pattern_re" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white">
                 <option value="alternate">Alternate Meat/Non-Meat</option>
                 <option value="all_veg">All Non-Meat 🥦</option>
                 <option value="all_gosht">All Meat 🥩</option>
                 <option value="2nv_1v">2 Meat, 1 Non-Meat Day 🍗🍗🥗</option>
                 <option value="1nv_2v">1 Meat, 2 Non-Meat Days 🍗🥗🥗</option>
-                <option value="both">Both (Meat & Non-Meat) All Days 🍛🥗</option>
+                <option value="both">Both (Meat & Veg) Every Day 🍛🥗</option>
               </select>
             </div>
           </div>
-          <button type="submit" class="btn" style="padding: 10px 14px; font-size: 14px; margin-top: 8px; width: 100%;">Re-generate Weekly Plan 🚀</button>
+          <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-sm">
+            Regenerate 7-Day Plan 🚀
+          </button>
         </form>
       </div>
-    {% endif %}
-  </div>
+    </div>
+
+  {% endif %}
+
+</div>
 {% endblock %}
