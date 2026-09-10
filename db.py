@@ -127,6 +127,16 @@ CREATE TABLE IF NOT EXISTS tip_comments (
     FOREIGN KEY (tip_id) REFERENCES tips(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS comment_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(comment_id, user_id),
+    FOREIGN KEY (comment_id) REFERENCES tip_comments(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 """
 
 
@@ -624,6 +634,26 @@ def toggle_tip_like(tip_id, user_id):
     return liked, like_count
 
 
+def toggle_comment_like(comment_id, user_id):
+    """
+    Toggles upvote/like on a tip comment for a user. Returns (liked: bool, total_likes: int).
+    """
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    row = conn.execute("SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?", (comment_id, user_id)).fetchone()
+    if row:
+        conn.execute("DELETE FROM comment_likes WHERE id = ?", (row["id"],))
+        liked = False
+    else:
+        conn.execute("INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?)", (comment_id, user_id, now))
+        liked = True
+    conn.commit()
+    count_row = conn.execute("SELECT COUNT(*) AS cnt FROM comment_likes WHERE comment_id = ?", (comment_id,)).fetchone()
+    like_count = count_row["cnt"] if count_row else 0
+    conn.close()
+    return liked, like_count
+
+
 def add_tip_comment(tip_id, user_id, comment):
     """
     Adds a comment to a tip.
@@ -643,9 +673,18 @@ def add_tip_comment(tip_id, user_id, comment):
 
 def delete_tip(tip_id, user_id):
     """
-    Deletes a tip owned by user_id along with its likes and comments.
+    Deletes a tip owned by user_id along with its likes, comments, and comment upvotes.
     """
     conn = get_conn()
+    tip = conn.execute("SELECT id FROM tips WHERE id = ? AND user_id = ?", (tip_id, user_id)).fetchone()
+    if not tip:
+        conn.close()
+        return False
+
+    conn.execute(
+        "DELETE FROM comment_likes WHERE comment_id IN (SELECT id FROM tip_comments WHERE tip_id = ?)",
+        (tip_id,)
+    )
     conn.execute("DELETE FROM tip_likes WHERE tip_id = ?", (tip_id,))
     conn.execute("DELETE FROM tip_comments WHERE tip_id = ?", (tip_id,))
     conn.execute("DELETE FROM tips WHERE id = ? AND user_id = ?", (tip_id, user_id))
@@ -656,7 +695,7 @@ def delete_tip(tip_id, user_id):
 
 def get_tips(current_user_id=None, sort_by="top"):
     """
-    Retrieves public tips and user's private tips with likes, comments, and author info.
+    Retrieves public tips and user's private tips with likes, comments, author info, and comment upvotes.
     """
     conn = get_conn()
     query = """
@@ -677,7 +716,7 @@ def get_tips(current_user_id=None, sort_by="top"):
     tips = [dict(r) for r in rows]
 
     for tip in tips:
-        # Check if current user liked
+        # Check if current user liked tip
         if current_user_id:
             liked_row = conn.execute(
                 "SELECT id FROM tip_likes WHERE tip_id = ? AND user_id = ?",
@@ -687,16 +726,31 @@ def get_tips(current_user_id=None, sort_by="top"):
         else:
             tip["has_liked"] = False
 
-        # Fetch comments
+        # Fetch comments with comment likes count & user liked status
         comment_rows = conn.execute(
-            """SELECT tc.id, tc.comment, tc.created_at, u.email AS commenter_email
+            """SELECT tc.id, tc.tip_id, tc.user_id, tc.comment, tc.created_at, u.email AS commenter_email,
+                      (SELECT COUNT(*) FROM comment_likes cl WHERE cl.comment_id = tc.id) AS like_count
                FROM tip_comments tc
                JOIN users u ON tc.user_id = u.id
                WHERE tc.tip_id = ?
                ORDER BY tc.created_at ASC""",
             (tip["id"],)
         ).fetchall()
-        tip["comments"] = [dict(c) for c in comment_rows]
+
+        comments = []
+        for c in comment_rows:
+            c_dict = dict(c)
+            if current_user_id:
+                cliked_row = conn.execute(
+                    "SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?",
+                    (c_dict["id"], current_user_id)
+                ).fetchone()
+                c_dict["has_liked"] = bool(cliked_row)
+            else:
+                c_dict["has_liked"] = False
+            comments.append(c_dict)
+
+        tip["comments"] = comments
 
     conn.close()
     return tips
@@ -709,3 +763,4 @@ def get_tip_of_the_week(current_user_id=None):
     tips = get_tips(current_user_id=current_user_id, sort_by="top")
     public_tips = [t for t in tips if t.get("is_public")]
     return public_tips[0] if public_tips else None
+

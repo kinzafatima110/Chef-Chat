@@ -624,6 +624,15 @@ def comment_tip_route(tip_id):
     return redirect(request.referrer or url_for("tips_view"))
 
 
+@app.route("/comments/<int:comment_id>/like", methods=["POST"])
+@login_required
+def like_comment_route(comment_id):
+    user = current_user()
+    from db import toggle_comment_like
+    toggle_comment_like(comment_id, user["id"])
+    return redirect(request.referrer or url_for("tips_view"))
+
+
 @app.route("/tips/<int:tip_id>/delete", methods=["POST"])
 @login_required
 def delete_tip_route(tip_id):

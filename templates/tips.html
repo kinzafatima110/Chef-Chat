@@ -196,7 +196,7 @@
     {% if community_tips %}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
         {% for tip in community_tips %}
-          <div class="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow border border-outline-variant/30 flex flex-col justify-between hover:border-primary/40 transition-all">
+          <div id="tip-{{ tip.id }}" class="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow border border-outline-variant/30 flex flex-col justify-between hover:border-primary/40 transition-all">
             <div>
               <div class="flex items-start justify-between gap-2 mb-2">
                 <span class="bg-primary-container/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
@@ -225,7 +225,7 @@
 
                 <div class="flex items-center space-x-2">
                   <!-- Like Button -->
-                  <form method="post" action="/tips/{{ tip.id }}/like" class="m-0">
+                  <form method="post" action="/tips/{{ tip.id }}/like#tip-{{ tip.id }}" class="m-0">
                     <button type="submit" class="flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all {% if tip.has_liked %}bg-rose-50 text-rose-600 border border-rose-200{% else %}bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-primary border border-outline-variant/30{% endif %}">
                       <span class="material-symbols-outlined text-[15px] {% if tip.has_liked %}fill-1 text-rose-600{% endif %}">favorite</span>
                       <span>{{ tip.like_count }}</span>
@@ -252,14 +252,24 @@
               <!-- Collapsible Comments Drawer -->
               <div id="comments-{{ tip.id }}" class="hidden mt-3 pt-3 border-t border-outline-variant/10 space-y-2.5">
                 {% if tip.comments %}
-                  <div class="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs">
+                  <div class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
                     {% for c in tip.comments %}
-                      <div class="bg-surface-container-low p-2 rounded-xl text-xs">
-                        <div class="flex items-center justify-between text-[10px] text-on-surface-variant mb-0.5">
-                          <strong class="text-on-surface">{{ c.commenter_email.split('@')[0] }}</strong>
+                      <div class="bg-surface-container-low p-2.5 rounded-xl text-xs space-y-1.5 border border-outline-variant/20">
+                        <div class="flex items-center justify-between text-[10px] text-on-surface-variant">
+                          <strong class="text-on-surface font-semibold">{{ c.commenter_email.split('@')[0] }}</strong>
                           <span>{{ c.created_at[:10] }}</span>
                         </div>
-                        <p class="text-on-surface">{{ c.comment }}</p>
+                        <p class="text-on-surface leading-relaxed">{{ c.comment }}</p>
+                        
+                        <!-- Comment Upvote / Thumbs Up -->
+                        <div class="flex items-center justify-end pt-0.5 border-t border-outline-variant/10">
+                          <form method="post" action="/comments/{{ c.id }}/like#comments-{{ tip.id }}" class="m-0">
+                            <button type="submit" class="flex items-center space-x-1 text-[11px] font-semibold px-2 py-0.5 rounded-full transition-all {% if c.has_liked %}bg-primary/10 text-primary font-bold{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container{% endif %}" title="Thumbs up / Upvote">
+                              <span class="material-symbols-outlined text-[13px] {% if c.has_liked %}fill-1 text-primary{% endif %}">thumb_up</span>
+                              <span>{{ c.like_count }}</span>
+                            </button>
+                          </form>
+                        </div>
                       </div>
                     {% endfor %}
                   </div>
@@ -268,7 +278,7 @@
                 {% endif %}
 
                 <!-- Add Comment Form -->
-                <form method="post" action="/tips/{{ tip.id }}/comment" class="flex gap-2 m-0 pt-1">
+                <form method="post" action="/tips/{{ tip.id }}/comment#comments-{{ tip.id }}" class="flex gap-2 m-0 pt-1">
                   <input type="text" name="comment" required placeholder="Write a comment..." 
                          class="flex-1 text-xs p-2 rounded-xl border border-outline-variant/50 bg-surface-container-low focus:ring-1 focus:ring-primary focus:border-primary">
                   <button type="submit" class="bg-secondary hover:bg-secondary/90 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm">
@@ -439,5 +449,20 @@
       el.classList.toggle('hidden');
     }
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash) {
+      const targetId = window.location.hash.substring(1);
+      const el = document.getElementById(targetId);
+      if (el) {
+        if (el.id.startsWith('comments-')) {
+          el.classList.remove('hidden');
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (el.id.startsWith('tip-')) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+  });
 </script>
 {% endblock %}
