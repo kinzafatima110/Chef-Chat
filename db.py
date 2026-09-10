@@ -96,6 +96,37 @@ CREATE TABLE IF NOT EXISTS friendships (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (friend_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS tips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    category TEXT NOT NULL,
+    is_public INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS tip_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tip_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(tip_id, user_id),
+    FOREIGN KEY (tip_id) REFERENCES tips(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS tip_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tip_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tip_id) REFERENCES tips(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 """
 
 
@@ -151,6 +182,27 @@ def init_db():
                 (pwd_hash, sec_q, sec_a.lower(), existing_row[0])
             )
             conn.commit()
+
+    # Seed starter community kitchen tips if none exist
+    try:
+        tips_count = conn.execute("SELECT COUNT(*) FROM tips").fetchone()[0]
+        if tips_count == 0:
+            admin_id_row = conn.execute("SELECT id FROM users ORDER BY id ASC LIMIT 1").fetchone()
+            admin_id = admin_id_row[0] if admin_id_row else 1
+            now = datetime.utcnow().isoformat()
+            starter_tips = [
+                ("Melt-in-Mouth Meat Tenderizing Hack", "When cooking tough beef cuts (like Nihari or Pasanday), marinate with 1 tbsp raw papaya paste with skin or 2 tbsp plain yogurt for 45 mins. It softens collagen without breaking the meat fibers!", "Meat & Cooking", 1),
+                ("Restore Over-Salted Salan or Daal", "If you accidentally added too much salt to a curry or daal, peel a whole raw potato and drop it into the boiling pot for 10 minutes. The starch absorbs excess sodium like a sponge without changing the flavor!", "Kitchen Hacks", 1),
+                ("The Golden 1:2 Water Ratio for Fluffy Rice", "Always soak Basmati rice for exactly 25 minutes before boiling. Drain completely, then use 1 part rice to 1.75 parts boiling water, seal tightly (Dum) on low heat for 12 minutes without opening the lid.", "Rice & Grains", 1)
+            ]
+            for t_title, t_content, t_cat, t_pub in starter_tips:
+                conn.execute(
+                    "INSERT INTO tips (user_id, title, content, category, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (admin_id, t_title, t_content, t_cat, t_pub, now)
+                )
+            conn.commit()
+    except Exception:
+        pass
 
     conn.close()
 
@@ -530,3 +582,130 @@ def get_friend_dish_suggestions(user_id):
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+# ==========================================
+# Kitchen Tips, Likes & Comments System
+# ==========================================
+
+def create_tip(user_id, title, content, category, is_public=1):
+    """
+    Creates a new kitchen tip/hack.
+    """
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    cursor = conn.execute(
+        "INSERT INTO tips (user_id, title, content, category, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (user_id, title.strip(), content.strip(), category.strip(), 1 if is_public else 0, now)
+    )
+    conn.commit()
+    tip_id = cursor.lastrowid
+    conn.close()
+    return tip_id
+
+
+def toggle_tip_like(tip_id, user_id):
+    """
+    Toggles like on a tip for a user. Returns (liked: bool, total_likes: int).
+    """
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    row = conn.execute("SELECT id FROM tip_likes WHERE tip_id = ? AND user_id = ?", (tip_id, user_id)).fetchone()
+    if row:
+        conn.execute("DELETE FROM tip_likes WHERE id = ?", (row["id"],))
+        liked = False
+    else:
+        conn.execute("INSERT INTO tip_likes (tip_id, user_id, created_at) VALUES (?, ?, ?)", (tip_id, user_id, now))
+        liked = True
+    conn.commit()
+    count_row = conn.execute("SELECT COUNT(*) AS cnt FROM tip_likes WHERE tip_id = ?", (tip_id,)).fetchone()
+    like_count = count_row["cnt"] if count_row else 0
+    conn.close()
+    return liked, like_count
+
+
+def add_tip_comment(tip_id, user_id, comment):
+    """
+    Adds a comment to a tip.
+    """
+    if not comment or not comment.strip():
+        return False
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT INTO tip_comments (tip_id, user_id, comment, created_at) VALUES (?, ?, ?, ?)",
+        (tip_id, user_id, comment.strip(), now)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def delete_tip(tip_id, user_id):
+    """
+    Deletes a tip owned by user_id along with its likes and comments.
+    """
+    conn = get_conn()
+    conn.execute("DELETE FROM tip_likes WHERE tip_id = ?", (tip_id,))
+    conn.execute("DELETE FROM tip_comments WHERE tip_id = ?", (tip_id,))
+    conn.execute("DELETE FROM tips WHERE id = ? AND user_id = ?", (tip_id, user_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_tips(current_user_id=None, sort_by="top"):
+    """
+    Retrieves public tips and user's private tips with likes, comments, and author info.
+    """
+    conn = get_conn()
+    query = """
+        SELECT t.id, t.user_id, t.title, t.content, t.category, t.is_public, t.created_at,
+               u.email AS author_email,
+               (SELECT COUNT(*) FROM tip_likes tl WHERE tl.tip_id = t.id) AS like_count,
+               (SELECT COUNT(*) FROM tip_comments tc WHERE tc.tip_id = t.id) AS comment_count
+        FROM tips t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.is_public = 1 OR t.user_id = ?
+    """
+    if sort_by == "recent":
+        query += " ORDER BY t.created_at DESC"
+    else:
+        query += " ORDER BY like_count DESC, t.created_at DESC"
+
+    rows = conn.execute(query, (current_user_id or 0,)).fetchall()
+    tips = [dict(r) for r in rows]
+
+    for tip in tips:
+        # Check if current user liked
+        if current_user_id:
+            liked_row = conn.execute(
+                "SELECT id FROM tip_likes WHERE tip_id = ? AND user_id = ?",
+                (tip["id"], current_user_id)
+            ).fetchone()
+            tip["has_liked"] = bool(liked_row)
+        else:
+            tip["has_liked"] = False
+
+        # Fetch comments
+        comment_rows = conn.execute(
+            """SELECT tc.id, tc.comment, tc.created_at, u.email AS commenter_email
+               FROM tip_comments tc
+               JOIN users u ON tc.user_id = u.id
+               WHERE tc.tip_id = ?
+               ORDER BY tc.created_at ASC""",
+            (tip["id"],)
+        ).fetchall()
+        tip["comments"] = [dict(c) for c in comment_rows]
+
+    conn.close()
+    return tips
+
+
+def get_tip_of_the_week(current_user_id=None):
+    """
+    Returns the #1 highest-voted public tip (Tip of the Week).
+    """
+    tips = get_tips(current_user_id=current_user_id, sort_by="top")
+    public_tips = [t for t in tips if t.get("is_public")]
+    return public_tips[0] if public_tips else None

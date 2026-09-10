@@ -566,8 +566,72 @@ def tips_view():
     user = current_user()
     if not user["onboarded"]:
         return redirect(url_for("quiz_form"))
-        
-    return render_template("tips.html", email=user["email"])
+
+    from db import get_tips, get_tip_of_the_week
+    sort_by = request.args.get("sort", "top")
+    if sort_by not in ("top", "recent"):
+        sort_by = "top"
+
+    community_tips = get_tips(user["id"], sort_by=sort_by)
+    tip_of_the_week = get_tip_of_the_week(user["id"])
+
+    return render_template(
+        "tips.html",
+        email=user["email"],
+        community_tips=community_tips,
+        tip_of_the_week=tip_of_the_week,
+        current_sort=sort_by
+    )
+
+
+@app.route("/tips/add", methods=["POST"])
+@login_required
+def add_tip_route():
+    user = current_user()
+    title = request.form.get("title", "").strip()
+    content = request.form.get("content", "").strip()
+    category = request.form.get("category", "Kitchen Hacks").strip()
+    is_public = 1 if request.form.get("is_public") == "1" else 0
+
+    if not title or not content:
+        flash("Please provide both a title and description for your tip.")
+    else:
+        from db import create_tip
+        create_tip(user["id"], title, content, category, is_public=is_public)
+        flash("Your kitchen tip has been shared with the community! 💡")
+
+    return redirect(url_for("tips_view"))
+
+
+@app.route("/tips/<int:tip_id>/like", methods=["POST"])
+@login_required
+def like_tip_route(tip_id):
+    user = current_user()
+    from db import toggle_tip_like
+    liked, total = toggle_tip_like(tip_id, user["id"])
+    return redirect(request.referrer or url_for("tips_view"))
+
+
+@app.route("/tips/<int:tip_id>/comment", methods=["POST"])
+@login_required
+def comment_tip_route(tip_id):
+    user = current_user()
+    comment = request.form.get("comment", "").strip()
+    if comment:
+        from db import add_tip_comment
+        add_tip_comment(tip_id, user["id"], comment)
+        flash("Comment added to tip! 💬")
+    return redirect(request.referrer or url_for("tips_view"))
+
+
+@app.route("/tips/<int:tip_id>/delete", methods=["POST"])
+@login_required
+def delete_tip_route(tip_id):
+    user = current_user()
+    from db import delete_tip
+    delete_tip(tip_id, user["id"])
+    flash("Tip deleted.")
+    return redirect(url_for("tips_view"))
 
 
 @app.route("/friends/request", methods=["POST"])
