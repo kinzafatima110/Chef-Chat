@@ -285,18 +285,27 @@ def reroll_today():
     return redirect(url_for("dashboard"))
 
 
+@app.route("/recipes", methods=["GET"])
 @app.route("/custom_dish", methods=["GET"])
 @login_required
-def custom_dish_view():
+def recipes_view():
     user = current_user()
     if not user["onboarded"]:
         return redirect(url_for("quiz_form"))
-    from db import get_custom_dishes, get_blocked_dishes, get_friends, get_pending_friend_requests, get_friend_dish_suggestions
-    custom_dishes = get_custom_dishes(user["id"])
+    from db import (
+        get_custom_dishes, get_blocked_dishes, get_friends,
+        get_pending_friend_requests, get_friend_dish_suggestions,
+        get_public_recipes, get_recipe_of_the_week
+    )
+    my_recipes = get_custom_dishes(user["id"])
     blocked_dishes_list = get_blocked_dishes(user["id"])
     inventory = suggestions.get_personalized_inventory(user["id"])
     existing_names = [d["name"] for d in inventory]
     
+    # Load public recipes & recipe of the week
+    public_recipes = get_public_recipes()
+    recipe_of_the_week = get_recipe_of_the_week()
+
     # Load social network metrics
     friends = get_friends(user["id"])
     friend_requests = get_pending_friend_requests(user["id"])
@@ -307,8 +316,11 @@ def custom_dish_view():
     friend_suggestions = [d for d in raw_suggestions if d["name"].lower() not in core_names]
     
     return render_template(
-        "custom_dish.html",
-        custom_dishes=custom_dishes,
+        "recipes.html",
+        my_recipes=my_recipes,
+        custom_dishes=my_recipes,
+        public_recipes=public_recipes,
+        recipe_of_the_week=recipe_of_the_week,
         blocked_dishes=blocked_dishes_list,
         existing_names=existing_names,
         friends=friends,
@@ -326,30 +338,68 @@ def unblock():
     if dish:
         from db import unblock_dish
         unblock_dish(user["id"], dish)
-    return redirect(request.referrer or url_for("custom_dish_view"))
+    return redirect(request.referrer or url_for("recipes_view"))
 
 
+@app.route("/recipes/add", methods=["POST"])
 @app.route("/custom_dish/add", methods=["POST"])
 @login_required
 def add_custom():
     user = current_user()
-    name = request.form.get("name")
-    type_ = request.form.get("type")
-    serve_with = request.form.get("serve_with", "both")
-    category = request.form.get("category", "curry")
-    style = request.form.get("style", "rich")
-    course = request.form.get("course", "main")
-    
+    name = request.form.get("name", "").strip()
+    type_ = request.form.get("type", "nonveg").strip()
+    serve_with = request.form.get("serve_with", "both").strip()
+    category = request.form.get("category", "curry").strip()
+    style = request.form.get("style", "rich").strip()
+    course = request.form.get("course", "main").strip()
+    cuisine = request.form.get("cuisine", "desi").strip()
+    is_public = 1 if request.form.get("is_public") == "1" else 0
+    image_url = request.form.get("image_url", "").strip()
+
+    # Handle image file upload if provided
+    final_image = image_url
+    if "image_file" in request.files:
+        file = request.files["image_file"]
+        if file and file.filename:
+            from werkzeug.utils import secure_filename
+            import os, time
+            upload_dir = os.path.join(app.root_path, "static", "uploads", "dishes")
+            os.makedirs(upload_dir, exist_ok=True)
+            sec_name = secure_filename(file.filename)
+            unique_fname = f"dish_{user['id']}_{int(time.time())}_{sec_name}"
+            file.save(os.path.join(upload_dir, unique_fname))
+            final_image = f"uploads/dishes/{unique_fname}"
+
     from db import add_custom_dish
-    success = add_custom_dish(user["id"], name, type_, serve_with, category, style, course)
+    public_status = "approved" if is_public else "private"
+    success = add_custom_dish(
+        user["id"], name, type_, serve_with, category, style, course,
+        image=final_image, cuisine=cuisine, is_public=is_public, public_status=public_status
+    )
     
     from flask import flash
     if not success:
-        flash(f"Failed to add '{name}'. It might already exist in your custom inventory!")
+        flash(f"Failed to add '{name}'. It might already exist in your custom recipes!")
     else:
-        flash(f"Successfully added '{name}' to your kitchen menu!")
+        if is_public:
+            flash(f"Successfully added '{name}' and submitted to Public Community Recipes! 🌟🍽️")
+        else:
+            flash(f"Successfully added '{name}' to your private recipes! 📖")
         
-    return redirect(url_for("custom_dish_view"))
+    return redirect(url_for("recipes_view"))
+
+
+@app.route("/recipes/delete", methods=["POST"])
+@app.route("/custom_dish/delete", methods=["POST"])
+@login_required
+def delete_custom():
+    user = current_user()
+    dish = request.form.get("dish", "").strip()
+    if dish:
+        from db import delete_custom_dish
+        delete_custom_dish(user["id"], dish)
+        flash(f"Removed '{dish}' from your custom recipes.")
+    return redirect(request.referrer or url_for("recipes_view"))
 
 
 @app.route("/quick_quiz", methods=["GET", "POST"])
@@ -357,16 +407,19 @@ def add_custom():
 def quick_quiz():
     user = current_user()
     if request.method == "GET":
-        return render_template("quick_quiz.html", suggestions=None, preferences=None)
+        craving = request.args.get("craving")
+        return render_template("quick_quiz.html", suggestions=None, preferences={"craving": craving} if craving else None)
 
-    protein = request.form.get("protein")
-    serve_with = request.form.get("serve_with")
-    style = request.form.get("style")
+    cuisine = request.form.get("cuisine", "any")
+    protein = request.form.get("protein", "any")
+    serve_with = request.form.get("serve_with", "any")
+    style = request.form.get("style", "any")
     meal_slot = request.form.get("meal_slot", "any")
     courses = request.form.getlist("course")
     include_sides = True if request.form.get("include_sides") == "yes" else False
 
     preferences = {
+        "cuisine": cuisine,
         "protein": protein,
         "serve_with": serve_with,
         "style": style,
@@ -383,6 +436,7 @@ def quick_quiz():
         courses=courses,
         meal_slot=meal_slot,
         include_sides=include_sides,
+        cuisine=cuisine,
         limit=5
     )
     return render_template("quick_quiz.html", suggestions=results, preferences=preferences)
@@ -654,7 +708,7 @@ def send_friend_request_route():
         flash(msg)
     else:
         flash("Please enter a valid email address.")
-    return redirect(url_for("custom_dish_view"))
+    return redirect(url_for("recipes_view"))
 
 
 @app.route("/friends/accept", methods=["POST"])
@@ -666,7 +720,7 @@ def accept_friend_request_route():
         from db import accept_friend_request
         accept_friend_request(user["id"], int(requester_id))
         flash("Friend request accepted! 🤝 You can now see each other's custom recipes!")
-    return redirect(url_for("custom_dish_view"))
+    return redirect(url_for("recipes_view"))
 
 
 @app.route("/friends/reject", methods=["POST"])
@@ -678,28 +732,34 @@ def reject_friend_request_route():
         from db import reject_friend_request
         reject_friend_request(user["id"], int(requester_id))
         flash("Friend request declined/cancelled.")
-    return redirect(url_for("custom_dish_view"))
+    return redirect(url_for("recipes_view"))
 
 
+@app.route("/recipes/clone_public", methods=["POST"])
 @app.route("/custom_dish/add_friend_suggestion", methods=["POST"])
 @login_required
 def add_friend_suggestion_route():
     user = current_user()
     name = request.form.get("name")
     type_ = request.form.get("type")
-    serve_with = request.form.get("serve_with")
-    category = request.form.get("category")
-    style = request.form.get("style")
-    course = request.form.get("course")
+    serve_with = request.form.get("serve_with", "both")
+    category = request.form.get("category", "curry")
+    style = request.form.get("style", "rich")
+    course = request.form.get("course", "main")
+    cuisine = request.form.get("cuisine", "desi")
+    image = request.form.get("image", "")
     
-    if name and type_ and serve_with and category and style and course:
+    if name and type_:
         from db import add_custom_dish
-        success = add_custom_dish(user["id"], name, type_, serve_with, category, style, course)
+        success = add_custom_dish(
+            user["id"], name, type_, serve_with, category, style, course,
+            image=image, cuisine=cuisine, is_public=0, public_status="private"
+        )
         if success:
-            flash(f"Added \"{name}\" to your private menu inventory! ➕")
+            flash(f"Added \"{name}\" to your private recipes menu! ➕")
         else:
-            flash("Failed to add dish. It might already be in your menu.")
-    return redirect(url_for("custom_dish_view"))
+            flash(f"\"{name}\" is already in your recipes menu.")
+    return redirect(url_for("recipes_view"))
 
 
 if __name__ == "__main__":

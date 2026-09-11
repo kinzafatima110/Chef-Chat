@@ -49,9 +49,97 @@
   <!-- Quiz Form -->
   <form method="post" action="/quick_quiz" class="space-y-stack-lg m-0">
 
+    <!-- 0. Cuisine Type Selector -->
+    <div>
+      <div class="text-center mb-stack-sm">
+        <span class="text-primary text-[10px] font-bold uppercase tracking-wider block mb-1">Step 1 • Cuisine Choice</span>
+        <h2 class="font-headline text-lg md:text-xl font-bold text-on-background">What cuisine type are you craving today?</h2>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
+        
+        <!-- Desi -->
+        <label class="quiz-card bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_12px_0_rgba(204,76,57,0.05)] border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none">
+          <input type="radio" name="cuisine" value="desi" class="hidden" {% if not preferences or not preferences.cuisine or preferences.cuisine == 'desi' %}checked{% endif %}>
+          <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant flex items-center justify-center">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ url_for('static', filename='images/biryani.jpg') }}" alt="Desi">
+            <div class="check-icon absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 opacity-0 transform scale-50 transition-all duration-300 shadow-sm z-10">
+              <span class="material-symbols-outlined text-[14px] block">check</span>
+            </div>
+          </div>
+          <div class="p-2.5 bg-surface-container-lowest text-center">
+            <span class="font-bold text-xs text-on-surface block">Desi 🍛</span>
+            <span class="text-[10px] text-on-surface-variant">Karahi, Biryani & Daal</span>
+          </div>
+        </label>
+
+        <!-- Chinese -->
+        <label class="quiz-card bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_12px_0_rgba(204,76,57,0.05)] border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none">
+          <input type="radio" name="cuisine" value="chinese" class="hidden" {% if preferences and preferences.cuisine == 'chinese' %}checked{% endif %}>
+          <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant flex items-center justify-center">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ url_for('static', filename='images/karahi.jpg') }}" alt="Chinese">
+            <div class="check-icon absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 opacity-0 transform scale-50 transition-all duration-300 shadow-sm z-10">
+              <span class="material-symbols-outlined text-[14px] block">check</span>
+            </div>
+          </div>
+          <div class="p-2.5 bg-surface-container-lowest text-center">
+            <span class="font-bold text-xs text-on-surface block">Chinese 🥢</span>
+            <span class="text-[10px] text-on-surface-variant">Manchurian & Chow Mein</span>
+          </div>
+        </label>
+
+        <!-- Continental -->
+        <label class="quiz-card bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_12px_0_rgba(204,76,57,0.05)] border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none">
+          <input type="radio" name="cuisine" value="continental" class="hidden" {% if preferences and preferences.cuisine == 'continental' %}checked{% endif %}>
+          <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant flex items-center justify-center">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ url_for('static', filename='images/Keema Matar Aloo.jpg') }}" alt="Continental">
+            <div class="check-icon absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 opacity-0 transform scale-50 transition-all duration-300 shadow-sm z-10">
+              <span class="material-symbols-outlined text-[14px] block">check</span>
+            </div>
+          </div>
+          <div class="p-2.5 bg-surface-container-lowest text-center">
+            <span class="font-bold text-xs text-on-surface block">Continental 🥩</span>
+            <span class="text-[10px] text-on-surface-variant">Steaks, Pasta & Burgers</span>
+          </div>
+        </label>
+
+        <!-- Diet / Healthy -->
+        <label class="quiz-card bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_12px_0_rgba(204,76,57,0.05)] border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none">
+          <input type="radio" name="cuisine" value="diet" class="hidden" {% if preferences and preferences.cuisine == 'diet' %}checked{% endif %}>
+          <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant flex items-center justify-center">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ url_for('static', filename='images/Handi.png') }}" alt="Diet">
+            <div class="check-icon absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 opacity-0 transform scale-50 transition-all duration-300 shadow-sm z-10">
+              <span class="material-symbols-outlined text-[14px] block">check</span>
+            </div>
+          </div>
+          <div class="p-2.5 bg-surface-container-lowest text-center">
+            <span class="font-bold text-xs text-on-surface block">Diet & Light 🥗</span>
+            <span class="text-[10px] text-on-surface-variant">High-Protein & Clean</span>
+          </div>
+        </label>
+
+        <!-- All Cuisines -->
+        <label class="quiz-card bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_12px_0_rgba(204,76,57,0.05)] border border-outline-variant/30 flex flex-col relative group cursor-pointer text-left select-none">
+          <input type="radio" name="cuisine" value="any" class="hidden" {% if preferences and preferences.cuisine == 'any' %}checked{% endif %}>
+          <div class="w-full aspect-[4/3] relative overflow-hidden bg-surface-variant flex items-center justify-center">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ url_for('static', filename='images/samosa.jpg') }}" alt="Any">
+            <div class="check-icon absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 opacity-0 transform scale-50 transition-all duration-300 shadow-sm z-10">
+              <span class="material-symbols-outlined text-[14px] block">check</span>
+            </div>
+          </div>
+          <div class="p-2.5 bg-surface-container-lowest text-center">
+            <span class="font-bold text-xs text-on-surface block">All Cuisines 🌟</span>
+            <span class="text-[10px] text-on-surface-variant">Surprise Me</span>
+          </div>
+        </label>
+
+      </div>
+    </div>
+
     <!-- 1. Protein or Type -->
     <div>
       <div class="text-center mb-stack-sm">
+        <span class="text-primary text-[10px] font-bold uppercase tracking-wider block mb-1">Step 2 • Protein</span>
         <h2 class="font-headline text-lg md:text-xl font-bold text-on-background">What protein or type do you want today?</h2>
       </div>
 

@@ -29,32 +29,6 @@
     </div>
   </section>
 
-  <!-- Quick Category Pills -->
-  <section class="overflow-x-auto hide-scrollbar py-1">
-    <div class="flex space-x-2 min-w-max">
-      <a href="/quick_quiz" class="flex items-center space-x-1.5 bg-secondary-container text-on-secondary-container px-3.5 py-1.5 rounded-full text-xs font-semibold hover:bg-secondary-fixed-dim transition-all shadow-sm">
-        <span class="material-symbols-outlined text-[16px]">timer</span>
-        <span>Quick Meals</span>
-      </a>
-      <a href="/quick_quiz" class="flex items-center space-x-1.5 bg-surface-container-high text-on-surface px-3.5 py-1.5 rounded-full text-xs font-semibold hover:bg-surface-container-highest transition-all">
-        <span class="material-symbols-outlined text-[16px]">local_dining</span>
-        <span>Comfort Food</span>
-      </a>
-      <a href="/quick_quiz" class="flex items-center space-x-1.5 bg-surface-container-high text-on-surface px-3.5 py-1.5 rounded-full text-xs font-semibold hover:bg-surface-container-highest transition-all">
-        <span class="material-symbols-outlined text-[16px]">local_fire_department</span>
-        <span>Spicy & Bold</span>
-      </a>
-      <a href="/fridge" class="flex items-center space-x-1.5 bg-surface-container-high text-on-surface px-3.5 py-1.5 rounded-full text-xs font-semibold hover:bg-surface-container-highest transition-all">
-        <span class="material-symbols-outlined text-[16px]">kitchen</span>
-        <span>What's in My Fridge</span>
-      </a>
-      <a href="/weekly" class="flex items-center space-x-1.5 bg-surface-container-high text-on-surface px-3.5 py-1.5 rounded-full text-xs font-semibold hover:bg-surface-container-highest transition-all">
-        <span class="material-symbols-outlined text-[16px]">calendar_month</span>
-        <span>Weekly Plan</span>
-      </a>
-    </div>
-  </section>
-
   <!-- Main Grid: Recommendation Column + Sidebar Feed -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-stack-md">
 
@@ -65,7 +39,7 @@
         <div class="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs flex items-start space-x-2">
           <span class="material-symbols-outlined text-amber-600 text-[18px] shrink-0 mt-0.5">warning</span>
           <div>
-            <strong>Limited Menu Pool:</strong> You have <strong>{{ pool_size }} active {{ 'Non-Meat' if category == 'veg' else 'Meat' }}</strong> dishes. Go to <a href="/custom_dish" class="underline font-bold text-primary">Add Dish</a> to unblock or add recipes!
+            <strong>Limited Menu Pool:</strong> You have <strong>{{ pool_size }} active {{ 'Non-Meat' if category == 'veg' else 'Meat' }}</strong> dishes. Go to <a href="/recipes" class="underline font-bold text-primary">Recipes</a> to unblock or add recipes!
           </div>
         </div>
       {% endif %}

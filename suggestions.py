@@ -130,11 +130,23 @@ def block_last_suggestion(user):
     return f"Got it, I won't suggest {dish} again."
 
 
-def suggest_by_quiz(user_id, protein, serve_with, style, courses=None, meal_slot="any", include_sides=False, limit=5):
-    # Establish strict base pool matching only strict constraints: Protein and Course Type
+def suggest_by_quiz(user_id, protein="any", serve_with="any", style="any", courses=None, meal_slot="any", include_sides=False, limit=5, cuisine="any"):
+    # Establish strict base pool matching only strict constraints: Protein, Cuisine, and Course Type
     inventory = get_personalized_inventory(user_id)
     pool = inventory
     
+    # 0. Cuisine Filter
+    cuisine = (cuisine or "any").lower().strip()
+    if cuisine == "diet":
+        cuisine_pool = [d for d in pool if d.get("cuisine") == "diet" or d.get("style") == "light"]
+        if cuisine_pool:
+            pool = cuisine_pool
+    elif cuisine in ("desi", "chinese", "continental"):
+        cuisine_pool = [d for d in pool if (d.get("cuisine") or "desi").lower() == cuisine]
+        if cuisine_pool:
+            pool = cuisine_pool
+
+    # 1. Protein Filter
     protein = (protein or "").lower().strip()
     if protein == "veg":
         pool = [d for d in pool if d["type"] == "veg"]
@@ -146,6 +158,8 @@ def suggest_by_quiz(user_id, protein, serve_with, style, courses=None, meal_slot
         pool = [d for d in pool if "mutton" in d["name"].lower() or "gosht" in d["name"].lower()]
     elif protein == "fish":
         pool = [d for d in pool if "fish" in d["name"].lower() or "shrimp" in d["name"].lower()]
+    elif protein == "any":
+        pass
     else:
         # Default: if a meat eater ran out of specific protein choices, keep all non-veg
         pool = [d for d in pool if d["type"] == "nonveg"]

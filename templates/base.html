@@ -219,10 +219,10 @@
           {% endif %}
         </a>
 
-        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/custom_dish">
-          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path.startswith('/custom_dish') %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">add_circle</span>
-          <span class="text-xs tracking-tight">Add Dish</span>
-          {% if request.path.startswith('/custom_dish') %}
+        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/recipes">
+          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">menu_book</span>
+          <span class="text-xs tracking-tight">Recipes</span>
+          {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}
             <span class="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full"></span>
           {% endif %}
         </a>
@@ -273,9 +273,9 @@
         <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/weekly') %}fill-1{% endif %}">calendar_month</span>
         <span class="text-[10px] font-medium">Weekly</span>
       </a>
-      <a href="/custom_dish" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/custom_dish') %}fill-1{% endif %}">group</span>
-        <span class="text-[10px] font-medium">Network</span>
+      <a href="/recipes" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}fill-1{% endif %}">menu_book</span>
+        <span class="text-[10px] font-medium">Recipes</span>
       </a>
     </nav>
   {% endif %}

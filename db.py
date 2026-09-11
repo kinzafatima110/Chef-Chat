@@ -65,6 +65,10 @@ CREATE TABLE IF NOT EXISTS custom_dishes (
     category TEXT NOT NULL,
     style TEXT NOT NULL,
     course TEXT NOT NULL,
+    image TEXT,
+    cuisine TEXT DEFAULT 'desi',
+    is_public INTEGER NOT NULL DEFAULT 0,
+    public_status TEXT DEFAULT 'private',
     created_at TEXT NOT NULL,
     UNIQUE(user_id, name),
     FOREIGN KEY (user_id) REFERENCES users(id)
@@ -163,6 +167,22 @@ def init_db():
         conn.commit()
     if "security_answer" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN security_answer TEXT")
+        conn.commit()
+
+    # Migration: check and add custom_dishes columns if missing
+    cursor = conn.execute("PRAGMA table_info(custom_dishes)")
+    cd_columns = [row[1] for row in cursor.fetchall()]
+    if "image" not in cd_columns:
+        conn.execute("ALTER TABLE custom_dishes ADD COLUMN image TEXT")
+        conn.commit()
+    if "cuisine" not in cd_columns:
+        conn.execute("ALTER TABLE custom_dishes ADD COLUMN cuisine TEXT DEFAULT 'desi'")
+        conn.commit()
+    if "is_public" not in cd_columns:
+        conn.execute("ALTER TABLE custom_dishes ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
+    if "public_status" not in cd_columns:
+        conn.execute("ALTER TABLE custom_dishes ADD COLUMN public_status TEXT DEFAULT 'private'")
         conn.commit()
 
     # Automatically seed master user accounts so deployments never lock you out
@@ -368,16 +388,22 @@ def update_weekly_day(user_id, day_index, new_dish, new_side=None):
     conn.close()
 
 
-def add_custom_dish(user_id, name, type_, serve_with, category, style, course):
+def add_custom_dish(user_id, name, type_, serve_with, category, style, course, image=None, cuisine="desi", is_public=0, public_status="private"):
     """
-    Adds a custom user dish to their personalized inventory.
+    Adds a custom user dish to their personalized inventory with optional image, cuisine, and public status.
     """
     conn = get_conn()
     now = datetime.utcnow().isoformat()
     try:
         conn.execute(
-            "INSERT INTO custom_dishes (user_id, name, type, serve_with, category, style, course, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (user_id, name.strip(), type_.strip(), serve_with.strip(), category.strip(), style.strip(), course.strip(), now)
+            """INSERT INTO custom_dishes (
+                user_id, name, type, serve_with, category, style, course, image, cuisine, is_public, public_status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id, name.strip(), type_.strip(), serve_with.strip(), category.strip(),
+                style.strip(), course.strip(), (image or "").strip(), (cuisine or "desi").strip().lower(),
+                1 if is_public else 0, public_status.strip() if is_public else "private", now
+            )
         )
         conn.commit()
         success = True
@@ -393,11 +419,62 @@ def get_custom_dishes(user_id):
     """
     conn = get_conn()
     rows = conn.execute(
-        "SELECT name, type, serve_with, category, style, course FROM custom_dishes WHERE user_id = ? ORDER BY name ASC",
+        "SELECT id, user_id, name, type, serve_with, category, style, course, image, cuisine, is_public, public_status, created_at FROM custom_dishes WHERE user_id = ? ORDER BY name ASC",
         (user_id,)
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+def delete_custom_dish(user_id, dish_name):
+    """
+    Removes a custom dish from user's inventory.
+    """
+    conn = get_conn()
+    conn.execute("DELETE FROM custom_dishes WHERE user_id = ? AND name = ?", (user_id, dish_name.strip()))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_public_recipes():
+    """
+    Retrieves all community dishes requested/marked as public.
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        """
+        SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+               cd.image, cd.cuisine, cd.is_public, cd.public_status, cd.created_at,
+               u.email AS creator_email
+        FROM custom_dishes cd
+        JOIN users u ON cd.user_id = u.id
+        WHERE cd.is_public = 1
+        ORDER BY cd.created_at DESC
+        """
+    ).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_recipe_of_the_week():
+    """
+    Returns the featured Recipe of the Week.
+    """
+    public = get_public_recipes()
+    if public:
+        return public[0]
+    return {
+        "name": "Chicken Manchurian with Fried Rice",
+        "type": "nonveg",
+        "serve_with": "rice",
+        "category": "chinese",
+        "style": "light",
+        "course": "main",
+        "cuisine": "chinese",
+        "creator_email": "masterchef@chefchat.com",
+        "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Punjabi_Chicken_Karahi.JPG/960px-Punjabi_Chicken_Karahi.JPG"
+    }
 
 
 def add_fridge_item(user_id, item_name, location, quantity):
@@ -577,7 +654,7 @@ def get_friend_dish_suggestions(user_id):
     conn = get_conn()
     rows = conn.execute(
         """
-        SELECT cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course, u.email AS creator_email
+        SELECT cd.id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course, cd.image, cd.cuisine, u.email AS creator_email
         FROM custom_dishes cd
         JOIN users u ON cd.user_id = u.id
         WHERE cd.user_id IN (
