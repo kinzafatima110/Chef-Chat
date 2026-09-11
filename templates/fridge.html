@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Chef Chat — Fridge & Pantry Inventory{% endblock %}
+{% block title %}Chef Chat — Fridge, Pantry & What to Buy{% endblock %}
 
 {% block content %}
 <div class="space-y-stack-md py-2">
@@ -36,131 +36,399 @@
     </div>
   {%- endmacro -%}
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/20 pb-4">
+  <!-- Header Banner with Navigation Jump Links -->
+  <div class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <span class="bg-secondary-container text-on-secondary-container text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-        ❄️ Pantry & Rashan Hub
-      </span>
-      <h1 class="font-headline text-2xl md:text-3xl font-bold text-on-surface mt-1.5">
-        Fridge & Pantry Tracker
+      <div class="inline-flex items-center space-x-2 bg-secondary/10 text-secondary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+        <span class="material-symbols-outlined text-[16px]">kitchen</span>
+        <span>Kitchen Inventory & Grocery Hub</span>
+      </div>
+      <h1 class="font-headline text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface">
+        Fridge, Pantry & What to Buy
       </h1>
-      <p class="text-xs md:text-sm text-on-surface-variant">
-        Keep track of groceries to automatically discover what recipes you can cook right now.
+      <p class="text-xs md:text-sm text-on-surface-variant mt-1 max-w-2xl">
+        Manage your current kitchen supplies, build your smart grocery list, and discover instant recipe matches.
       </p>
     </div>
+
+    <!-- Quick Jump Tabs -->
+    <div class="flex flex-wrap gap-2 shrink-0">
+      <a href="#what-to-buy" class="inline-flex items-center space-x-1.5 bg-primary hover:bg-primary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all hover:scale-[1.02]">
+        <span class="material-symbols-outlined text-[16px]">shopping_cart</span>
+        <span>What to Buy ({{ shopping_list | length }})</span>
+      </a>
+      <a href="#fridge-inventory" class="inline-flex items-center space-x-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
+        <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+        <span>Supplies ({{ (fridge_items | length) + (freezer_items | length) + (pantry_items | length) }})</span>
+      </a>
+      <a href="#recipe-matches" class="inline-flex items-center space-x-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
+        <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+        <span>Can Cook Now ({{ matches | length }})</span>
+      </a>
+    </div>
   </div>
 
-  <!-- Add Item Form Section -->
-  <div class="bg-surface-container-lowest rounded-2xl p-5 md:p-6 ambient-shadow border border-outline-variant/30">
-    <h3 class="font-headline text-sm font-bold text-primary uppercase tracking-wider mb-4 flex items-center space-x-1.5">
-      <span class="material-symbols-outlined text-[20px]">add_box</span>
-      <span>Log Food Item / Rashan</span>
-    </h3>
-
-    <form method="post" action="/fridge/add" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end m-0">
-      <div class="sm:col-span-2 md:col-span-5">
-        <label for="item_name" class="block text-xs font-semibold text-on-surface mb-1">Ingredient / Item Name</label>
-        <input type="text" id="item_name" name="item_name" required placeholder="e.g. Chicken, Potatoes, Paneer, Daal" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
-      </div>
-
-      <div class="md:col-span-3">
-        <label for="location" class="block text-xs font-semibold text-on-surface mb-1">Storage Location</label>
-        <select id="location" name="location" required class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-white focus:ring-1 focus:ring-primary focus:border-primary">
-          <option value="freezer">Freezer ❄️</option>
-          <option value="fridge" selected>Fridge 🥦</option>
-          <option value="pantry">Pantry / Rashan 🌾</option>
-        </select>
-      </div>
-
-      <div class="md:col-span-2">
-        <label for="quantity" class="block text-xs font-semibold text-on-surface mb-1">Quantity / Weight</label>
-        <input type="text" id="quantity" name="quantity" placeholder="e.g. 1 kg, 3 pcs" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
-      </div>
-
-      <div class="md:col-span-2">
-        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1">
-          <span class="material-symbols-outlined text-[16px]">add</span>
-          <span>Add Item</span>
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- 3-Column Inventory Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-stack-md">
+  <!-- 🛒 SECTION 1: WHAT TO BUY (GROCERY SHOPPING LIST & SMART RESTOCK) -->
+  <div id="what-to-buy" class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border-2 border-primary/30 space-y-6">
     
-    <!-- Freezer Inventory -->
-    <div class="bg-surface-container-low rounded-2xl p-5 border border-sky-200 shadow-sm flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between mb-3 border-b border-sky-200/80 pb-2">
-          <h3 class="font-headline text-sm font-bold text-sky-800 flex items-center space-x-1.5">
-            <span class="material-symbols-outlined text-sky-600 text-[18px]">ac_unit</span>
-            <span>Freezer Items</span>
-          </h3>
-          <span class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">{{ freezer_items | length }}</span>
+    <!-- Top Header & Controls -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/20 pb-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[24px]">shopping_basket</span>
         </div>
-        {% if freezer_items %}
-          {{ render_inventory_list(freezer_items) }}
-        {% else %}
-          <div class="text-center py-8 text-on-surface-variant">
-            <p class="text-xs italic">No freezer items logged.</p>
-          </div>
+        <div>
+          <h2 class="font-headline text-xl md:text-2xl font-bold text-on-surface">
+            What to Buy (Smart Grocery List)
+          </h2>
+          <p class="text-xs text-on-surface-variant mt-0.5">
+            Check off groceries as you shop, or move them directly into your Fridge & Pantry with 1-click!
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-2">
+        {% set bought_count = shopping_list | selectattr('is_bought', 'equalto', 1) | list | length %}
+        {% if bought_count > 0 %}
+          <form method="post" action="/fridge/shopping/clear_bought" class="m-0">
+            <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-2 px-3.5 rounded-xl border border-rose-200 transition-all flex items-center space-x-1">
+              <span class="material-symbols-outlined text-[15px]">remove_done</span>
+              <span>Clear Purchased ({{ bought_count }})</span>
+            </button>
+          </form>
         {% endif %}
       </div>
     </div>
 
-    <!-- Fridge Inventory -->
-    <div class="bg-surface-container-low rounded-2xl p-5 border border-emerald-200 shadow-sm flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between mb-3 border-b border-emerald-200/80 pb-2">
-          <h3 class="font-headline text-sm font-bold text-emerald-800 flex items-center space-x-1.5">
-            <span class="material-symbols-outlined text-emerald-600 text-[18px]">eco</span>
-            <span>Fridge Produce</span>
-          </h3>
-          <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{{ fridge_items | length }}</span>
-        </div>
-        {% if fridge_items %}
-          {{ render_inventory_list(fridge_items) }}
-        {% else %}
-          <div class="text-center py-8 text-on-surface-variant">
-            <p class="text-xs italic">No fridge items logged.</p>
+    <!-- Smart Recommendations: "What to Buy for This Week's Meals & Staples" -->
+    {% if recommended_to_buy %}
+      <div class="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl p-4 md:p-5 border border-amber-300/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="material-symbols-outlined text-amber-700 text-[20px]">recommend</span>
+            <h3 class="font-headline text-sm md:text-base font-bold text-amber-950">
+              Recommended Groceries for This Week
+            </h3>
           </div>
-        {% endif %}
+          <span class="text-[11px] text-amber-800/80 hidden sm:inline">Based on your Weekly Plan & kitchen staples</span>
+        </div>
+
+        <div class="flex flex-wrap gap-2 pt-1">
+          {% for rec in recommended_to_buy %}
+            <form method="post" action="/fridge/shopping/add" class="m-0 inline-flex">
+              <input type="hidden" name="item_name" value="{{ rec.item_name }}">
+              <input type="hidden" name="category" value="{{ rec.category }}">
+              <input type="hidden" name="quantity" value="1 pack">
+              <button 
+                type="submit" 
+                class="group inline-flex items-center space-x-1.5 bg-white hover:bg-amber-100/80 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all hover:scale-[1.02]"
+                title="{{ rec.reason }}"
+              >
+                <span class="material-symbols-outlined text-[15px] text-amber-600 group-hover:rotate-90 transition-transform">add_circle</span>
+                <span>{{ rec.item_name }}</span>
+                <span class="text-[10px] text-amber-700 font-normal opacity-80 hidden md:inline">({{ rec.reason }})</span>
+              </button>
+            </form>
+          {% endfor %}
+        </div>
       </div>
+    {% endif %}
+
+    <!-- Add Item to Buy Form -->
+    <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30">
+      <h3 class="font-headline text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+        <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+        <span>Add Grocery Item to Buy</span>
+      </h3>
+
+      <form method="post" action="/fridge/shopping/add" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end m-0">
+        <div class="sm:col-span-2 md:col-span-5">
+          <label class="block text-xs font-semibold text-on-surface mb-1">Item Name <span class="text-primary">*</span></label>
+          <input 
+            type="text" 
+            name="item_name" 
+            required 
+            placeholder="e.g. Fresh Tomatoes, Chicken Boneless, Basmati Rice, Yogurt" 
+            list="grocery-common-list" 
+            class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold text-on-surface mb-1">Category</label>
+          <select name="category" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="produce" selected>Produce & Veggies 🥦</option>
+            <option value="meat">Meat & Poultry 🍗</option>
+            <option value="dairy">Dairy & Eggs 🥛</option>
+            <option value="pantry">Pantry & Grains 🌾</option>
+            <option value="spices">Spices & Sauces 🌶️</option>
+            <option value="general">General Groceries 🛒</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-on-surface mb-1">Quantity / Weight</label>
+          <input 
+            type="text" 
+            name="quantity" 
+            placeholder="e.g. 1 kg, 2 packs" 
+            class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary"
+          >
+        </div>
+
+        <div class="md:col-span-2">
+          <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1.5">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Add to List</span>
+          </button>
+        </div>
+      </form>
     </div>
 
-    <!-- Pantry / Rashan Inventory -->
-    <div class="bg-surface-container-low rounded-2xl p-5 border border-amber-200 shadow-sm flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between mb-3 border-b border-amber-200/80 pb-2">
-          <h3 class="font-headline text-sm font-bold text-amber-800 flex items-center space-x-1.5">
-            <span class="material-symbols-outlined text-amber-600 text-[18px]">grain</span>
-            <span>Pantry & Rashan</span>
-          </h3>
-          <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{{ pantry_items | length }}</span>
+    <!-- Active Shopping List Items -->
+    <div class="space-y-3">
+      <!-- Filter Pills for Shopping List -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button type="button" onclick="filterShoppingList('all')" class="shopping-filter-btn active bg-primary text-white font-bold px-3 py-1 rounded-full transition-all text-xs" data-filter="all">All ({{ shopping_list | length }})</button>
+          <button type="button" onclick="filterShoppingList('produce')" class="shopping-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3 py-1 rounded-full transition-all text-xs" data-filter="produce">Produce 🥦</button>
+          <button type="button" onclick="filterShoppingList('meat')" class="shopping-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3 py-1 rounded-full transition-all text-xs" data-filter="meat">Meat 🍗</button>
+          <button type="button" onclick="filterShoppingList('dairy')" class="shopping-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3 py-1 rounded-full transition-all text-xs" data-filter="dairy">Dairy 🥛</button>
+          <button type="button" onclick="filterShoppingList('pantry')" class="shopping-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3 py-1 rounded-full transition-all text-xs" data-filter="pantry">Pantry 🌾</button>
+          <button type="button" onclick="filterShoppingList('spices')" class="shopping-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3 py-1 rounded-full transition-all text-xs" data-filter="spices">Spices 🌶️</button>
         </div>
-        {% if pantry_items %}
-          {{ render_inventory_list(pantry_items) }}
-        {% else %}
-          <div class="text-center py-8 text-on-surface-variant">
-            <p class="text-xs italic">No pantry items logged.</p>
-          </div>
-        {% endif %}
+
+        <span class="text-xs text-on-surface-variant">
+          {{ shopping_list | selectattr('is_bought', 'equalto', 0) | list | length }} to buy
+        </span>
       </div>
+
+      {% if shopping_list %}
+        <div id="shopping-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1">
+          {% for item in shopping_list %}
+            <div class="shopping-item-card rounded-2xl p-3 border transition-all flex flex-col justify-between {% if item.is_bought %}bg-surface-container-low/60 border-outline-variant/20 opacity-75{% else %}bg-surface-container-lowest border-outline-variant/40 shadow-sm hover:border-primary/40{% endif %}" data-category="{{ item.category | lower }}">
+              <div>
+                <!-- Top Row: Checkbox, Name, Category -->
+                <div class="flex items-start justify-between gap-2 mb-1.5">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <form method="post" action="/fridge/shopping/toggle" class="m-0">
+                      <input type="hidden" name="item_id" value="{{ item.id }}">
+                      <button type="submit" class="w-5 h-5 rounded-md border flex items-center justify-center transition-colors {% if item.is_bought %}bg-emerald-600 border-emerald-600 text-white{% else %}border-outline-variant/80 hover:border-primary bg-white text-transparent{% endif %}" title="Toggle Bought">
+                        <span class="material-symbols-outlined text-[14px]">check</span>
+                      </button>
+                    </form>
+                    <span class="text-xs font-bold capitalize truncate {% if item.is_bought %}line-through text-on-surface-variant{% else %}text-on-surface{% endif %}">
+                      {{ item.item_name }}
+                    </span>
+                  </div>
+
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 {% if item.category == 'meat' %}bg-amber-100 text-amber-900{% elif item.category == 'dairy' %}bg-sky-100 text-sky-900{% elif item.category == 'pantry' %}bg-amber-50 text-amber-800{% else %}bg-emerald-100 text-emerald-900{% endif %}">
+                    {{ item.category }}
+                  </span>
+                </div>
+
+                <div class="text-[11px] text-on-surface-variant pl-7">
+                  Quantity: <span class="font-semibold">{{ item.quantity or '1 unit' }}</span>
+                </div>
+              </div>
+
+              <!-- Action Bar: Move to Fridge/Pantry or Delete -->
+              <div class="pt-2 mt-2 border-t border-outline-variant/15 flex items-center justify-between gap-1 text-[11px]">
+                <!-- Quick Move to Storage dropdown/buttons -->
+                <div class="flex items-center space-x-1">
+                  <span class="text-[10px] text-on-surface-variant font-medium hidden sm:inline">Store:</span>
+                  <form method="post" action="/fridge/shopping/move_to_fridge" class="m-0 inline">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <input type="hidden" name="location" value="fridge">
+                    <button type="submit" class="bg-surface-container hover:bg-emerald-600 hover:text-white text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded transition-all" title="Move to Fridge">
+                      Fridge 🥦
+                    </button>
+                  </form>
+                  <form method="post" action="/fridge/shopping/move_to_fridge" class="m-0 inline">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <input type="hidden" name="location" value="freezer">
+                    <button type="submit" class="bg-surface-container hover:bg-sky-600 hover:text-white text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded transition-all" title="Move to Freezer">
+                      Freezer ❄️
+                    </button>
+                  </form>
+                  <form method="post" action="/fridge/shopping/move_to_fridge" class="m-0 inline">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <input type="hidden" name="location" value="pantry">
+                    <button type="submit" class="bg-surface-container hover:bg-amber-600 hover:text-white text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded transition-all" title="Move to Pantry">
+                      Pantry 🌾
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Delete -->
+                <form method="post" action="/fridge/shopping/delete" class="m-0">
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <button type="submit" class="text-outline-variant hover:text-rose-600 p-1 rounded transition-colors" title="Delete from list">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-8 text-on-surface-variant bg-surface-container-low rounded-2xl">
+          <span class="material-symbols-outlined text-4xl mb-1 text-primary/50">shopping_basket</span>
+          <h4 class="font-headline text-sm font-bold text-on-surface">Your Grocery List is Empty</h4>
+          <p class="text-xs text-on-surface-variant max-w-sm mx-auto mt-0.5">
+            Add items above or click recommendations from your Weekly Plan to build your shopping list!
+          </p>
+        </div>
+      {% endif %}
     </div>
 
   </div>
 
-  <!-- Auto Match Suggestions ("What can I cook right now?") -->
-  <div class="bg-surface-container-lowest rounded-2xl p-6 ambient-shadow border border-outline-variant/30 space-y-4">
-    <div class="flex items-center space-x-2">
+  <!-- Common Grocery Suggestions Datalist -->
+  <datalist id="grocery-common-list">
+    <option value="Fresh Tomatoes"></option>
+    <option value="Onions"></option>
+    <option value="Potatoes (Aloo)"></option>
+    <option value="Ginger Garlic Paste"></option>
+    <option value="Green Chilies"></option>
+    <option value="Fresh Coriander"></option>
+    <option value="Chicken Boneless"></option>
+    <option value="Chicken Bone-in"></option>
+    <option value="Beef Mince (Keema)"></option>
+    <option value="Mutton Curry Cuts"></option>
+    <option value="Fish Fillets"></option>
+    <option value="Plain Yogurt (Dahi)"></option>
+    <option value="Eggs"></option>
+    <option value="Milk"></option>
+    <option value="Basmati Rice"></option>
+    <option value="Daal Moong"></option>
+    <option value="Daal Masoor"></option>
+    <option value="Daal Chana"></option>
+    <option value="Cooking Oil"></option>
+    <option value="Desi Ghee"></option>
+    <option value="Soy Sauce"></option>
+    <option value="Chili Garlic Sauce"></option>
+  </datalist>
+
+  <!-- ❄️ SECTION 2: FRIDGE & PANTRY SUPPLIES TRACKER -->
+  <div id="fridge-inventory" class="space-y-stack-md pt-2">
+    
+    <!-- Add Item to Inventory Form -->
+    <div class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 space-y-4">
+      <div class="flex items-center space-x-2 border-b border-outline-variant/20 pb-3">
+        <span class="material-symbols-outlined text-primary text-[22px]">add_box</span>
+        <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface">
+          Log In-Stock Food Item / Rashan
+        </h2>
+      </div>
+
+      <form method="post" action="/fridge/add" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end m-0">
+        <div class="sm:col-span-2 md:col-span-5">
+          <label for="item_name" class="block text-xs font-semibold text-on-surface mb-1">Ingredient / Item Name</label>
+          <input type="text" id="item_name" name="item_name" required placeholder="e.g. Chicken, Potatoes, Paneer, Daal" list="grocery-common-list" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+        </div>
+
+        <div class="md:col-span-3">
+          <label for="location" class="block text-xs font-semibold text-on-surface mb-1">Storage Location</label>
+          <select id="location" name="location" required class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary font-medium">
+            <option value="fridge" selected>Fridge 🥦 (Fresh Produce)</option>
+            <option value="freezer">Freezer ❄️ (Meats & Frozen)</option>
+            <option value="pantry">Pantry / Rashan 🌾 (Dry Grains)</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label for="quantity" class="block text-xs font-semibold text-on-surface mb-1">Quantity / Weight</label>
+          <input type="text" id="quantity" name="quantity" placeholder="e.g. 1 kg, 3 pcs" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+        </div>
+
+        <div class="md:col-span-2">
+          <button type="submit" class="w-full bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Add to Stock</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3-Column Inventory Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-stack-md">
+      
+      <!-- Freezer Inventory -->
+      <div class="bg-surface-container-low rounded-2xl p-5 border border-sky-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-sky-200/80 pb-2">
+            <h3 class="font-headline text-sm font-bold text-sky-800 flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-sky-600 text-[18px]">ac_unit</span>
+              <span>Freezer Items</span>
+            </h3>
+            <span class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">{{ freezer_items | length }}</span>
+          </div>
+          {% if freezer_items %}
+            {{ render_inventory_list(freezer_items) }}
+          {% else %}
+            <div class="text-center py-8 text-on-surface-variant">
+              <p class="text-xs italic">No freezer items logged.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Fridge Inventory -->
+      <div class="bg-surface-container-low rounded-2xl p-5 border border-emerald-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-emerald-200/80 pb-2">
+            <h3 class="font-headline text-sm font-bold text-emerald-800 flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-emerald-600 text-[18px]">eco</span>
+              <span>Fridge Produce</span>
+            </h3>
+            <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{{ fridge_items | length }}</span>
+          </div>
+          {% if fridge_items %}
+            {{ render_inventory_list(fridge_items) }}
+          {% else %}
+            <div class="text-center py-8 text-on-surface-variant">
+              <p class="text-xs italic">No fridge items logged.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Pantry / Rashan Inventory -->
+      <div class="bg-surface-container-low rounded-2xl p-5 border border-amber-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-amber-200/80 pb-2">
+            <h3 class="font-headline text-sm font-bold text-amber-800 flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-amber-600 text-[18px]">grain</span>
+              <span>Pantry & Rashan</span>
+            </h3>
+            <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{{ pantry_items | length }}</span>
+          </div>
+          {% if pantry_items %}
+            {{ render_inventory_list(pantry_items) }}
+          {% else %}
+            <div class="text-center py-8 text-on-surface-variant">
+              <p class="text-xs italic">No pantry items logged.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ✨ SECTION 3: AUTO MATCH RECIPES ("What Can I Cook Right Now?") -->
+  <div id="recipe-matches" class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 space-y-4">
+    <div class="flex items-center space-x-2 border-b border-outline-variant/20 pb-3">
       <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
         <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
       </div>
       <div>
         <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface">What Can I Cook Right Now?</h2>
-        <p class="text-xs text-on-surface-variant">Recipes automatically matched with ingredients currently in your kitchen inventory:</p>
+        <p class="text-xs text-on-surface-variant">Recipes automatically matched with ingredients currently in your kitchen supplies:</p>
       </div>
     </div>
 
@@ -220,4 +488,28 @@
   </div>
 
 </div>
+
+<script>
+  function filterShoppingList(category) {
+    document.querySelectorAll('.shopping-filter-btn').forEach(btn => {
+      if (btn.dataset.filter === category) {
+        btn.classList.add('active', 'bg-primary', 'text-white');
+        btn.classList.remove('bg-surface-container', 'text-on-surface');
+      } else {
+        btn.classList.remove('active', 'bg-primary', 'text-white');
+        btn.classList.add('bg-surface-container', 'text-on-surface');
+      }
+    });
+
+    const cards = document.querySelectorAll('.shopping-item-card');
+    cards.forEach(card => {
+      const cat = card.dataset.category || '';
+      if (category === 'all' || cat === category) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  }
+</script>
 {% endblock %}

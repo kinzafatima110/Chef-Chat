@@ -562,8 +562,12 @@ def fridge_view():
     if not user["onboarded"]:
         return redirect(url_for("quiz_form"))
         
-    from db import get_fridge_inventory
+    from db import (
+        get_fridge_inventory, get_shopping_list, get_smart_grocery_recommendations
+    )
     inventory = get_fridge_inventory(user["id"])
+    shopping_list = get_shopping_list(user["id"])
+    recommended_to_buy = get_smart_grocery_recommendations(user["id"])
     
     # Extract list of available item names for recipe matching
     available_items = [item["item_name"] for item in inventory]
@@ -582,6 +586,8 @@ def fridge_view():
         fridge_items=fridge_items,
         freezer_items=freezer_items,
         pantry_items=pantry_items,
+        shopping_list=shopping_list,
+        recommended_to_buy=recommended_to_buy,
         matches=matches,
         email=user["email"]
     )
@@ -627,6 +633,69 @@ def fridge_delete():
         delete_fridge_item(user["id"], int(item_id))
         
     return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/shopping/add", methods=["POST"])
+@login_required
+def shopping_add():
+    user = current_user()
+    item_name = request.form.get("item_name", "").strip()
+    category = request.form.get("category", "produce").strip()
+    quantity = request.form.get("quantity", "").strip()
+    
+    if item_name:
+        from db import add_shopping_item
+        add_shopping_item(user["id"], item_name, category=category, quantity=quantity)
+        flash(f"Added '{item_name}' to What to Buy grocery list! 🛒")
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/shopping/toggle", methods=["POST"])
+@login_required
+def shopping_toggle():
+    user = current_user()
+    item_id = request.form.get("item_id")
+    if item_id:
+        from db import toggle_shopping_item
+        toggle_shopping_item(user["id"], int(item_id))
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/shopping/delete", methods=["POST"])
+@login_required
+def shopping_delete():
+    user = current_user()
+    item_id = request.form.get("item_id")
+    if item_id:
+        from db import delete_shopping_item
+        delete_shopping_item(user["id"], int(item_id))
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/shopping/clear_bought", methods=["POST"])
+@login_required
+def shopping_clear_bought():
+    user = current_user()
+    from db import clear_bought_shopping_items
+    clear_bought_shopping_items(user["id"])
+    flash("Cleared all purchased items from shopping list. ✨")
+    return redirect(url_for("fridge_view"))
+
+
+@app.route("/fridge/shopping/move_to_fridge", methods=["POST"])
+@login_required
+def shopping_move_to_fridge():
+    user = current_user()
+    item_id = request.form.get("item_id")
+    location = request.form.get("location", "fridge").strip()
+    if item_id:
+        from db import move_shopping_to_fridge
+        success, name = move_shopping_to_fridge(user["id"], int(item_id), location=location)
+        if success:
+            loc_label = {"fridge": "Fridge 🥦", "freezer": "Freezer ❄️", "pantry": "Pantry 🌾"}.get(location, location)
+            flash(f"Moved '{name}' to your {loc_label}!")
+    return redirect(url_for("fridge_view"))
+
 
 
 @app.route("/tips", methods=["GET"])

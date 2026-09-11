@@ -141,6 +141,17 @@ CREATE TABLE IF NOT EXISTS comment_likes (
     FOREIGN KEY (comment_id) REFERENCES tip_comments(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS shopping_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_name TEXT NOT NULL,
+    category TEXT DEFAULT 'produce', -- 'produce', 'meat', 'dairy', 'pantry', 'spices', 'general'
+    quantity TEXT,
+    is_bought INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 """
 
 
@@ -840,4 +851,198 @@ def get_tip_of_the_week(current_user_id=None):
     tips = get_tips(current_user_id=current_user_id, sort_by="top")
     public_tips = [t for t in tips if t.get("is_public")]
     return public_tips[0] if public_tips else None
+
+
+def add_shopping_item(user_id, item_name, category="produce", quantity=""):
+    """
+    Adds an item to the user's shopping list. If item already exists and not bought, update quantity.
+    """
+    import datetime
+    conn = get_conn()
+    item_clean = item_name.strip()
+    if not item_clean:
+        conn.close()
+        return False
+        
+    now = datetime.datetime.now().isoformat()
+    existing = conn.execute(
+        "SELECT id, quantity FROM shopping_list WHERE user_id = ? AND LOWER(item_name) = LOWER(?) AND is_bought = 0",
+        (user_id, item_clean)
+    ).fetchone()
+    
+    if existing:
+        new_qty = quantity.strip() if quantity else existing["quantity"]
+        conn.execute(
+            "UPDATE shopping_list SET quantity = ?, category = ? WHERE id = ?",
+            (new_qty, category.strip().lower(), existing["id"])
+        )
+    else:
+        conn.execute(
+            "INSERT INTO shopping_list (user_id, item_name, category, quantity, is_bought, created_at) VALUES (?, ?, ?, ?, 0, ?)",
+            (user_id, item_clean, category.strip().lower(), quantity.strip(), now)
+        )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_shopping_list(user_id):
+    """
+    Returns all shopping items for a user, ordered by is_bought ASC, id DESC.
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT id, item_name, category, quantity, is_bought, created_at FROM shopping_list WHERE user_id = ? ORDER BY is_bought ASC, id DESC",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def toggle_shopping_item(user_id, item_id):
+    """
+    Toggles is_bought status of a shopping list item.
+    """
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT is_bought FROM shopping_list WHERE user_id = ? AND id = ?",
+        (user_id, int(item_id))
+    ).fetchone()
+    if row:
+        new_status = 0 if row["is_bought"] == 1 else 1
+        conn.execute(
+            "UPDATE shopping_list SET is_bought = ? WHERE user_id = ? AND id = ?",
+            (new_status, user_id, int(item_id))
+        )
+        conn.commit()
+    conn.close()
+    return True
+
+
+def delete_shopping_item(user_id, item_id):
+    """
+    Deletes a shopping list item.
+    """
+    conn = get_conn()
+    conn.execute(
+        "DELETE FROM shopping_list WHERE user_id = ? AND id = ?",
+        (user_id, int(item_id))
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def clear_bought_shopping_items(user_id):
+    """
+    Clears all bought items from user's shopping list.
+    """
+    conn = get_conn()
+    conn.execute(
+        "DELETE FROM shopping_list WHERE user_id = ? AND is_bought = 1",
+        (user_id,)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def move_shopping_to_fridge(user_id, item_id, location="fridge"):
+    """
+    Moves a shopping item directly into fridge_inventory and removes it from the shopping list.
+    """
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT item_name, quantity FROM shopping_list WHERE user_id = ? AND id = ?",
+        (user_id, int(item_id))
+    ).fetchone()
+    
+    if row:
+        item_name = row["item_name"]
+        quantity = row["quantity"] or "1 pack"
+        conn.execute("DELETE FROM shopping_list WHERE user_id = ? AND id = ?", (user_id, int(item_id)))
+        conn.commit()
+        conn.close()
+        add_fridge_item(user_id, item_name, location, quantity)
+        return True, item_name
+    conn.close()
+    return False, ""
+
+
+def get_smart_grocery_recommendations(user_id):
+    """
+    Analyzes upcoming weekly plan meals and current fridge inventory to suggest what to buy.
+    """
+    conn = get_conn()
+    inventory = conn.execute("SELECT LOWER(item_name) as name FROM fridge_inventory WHERE user_id = ?", (user_id,)).fetchall()
+    fridge_names = {r["name"] for r in inventory}
+    
+    shopping = conn.execute("SELECT LOWER(item_name) as name FROM shopping_list WHERE user_id = ? AND is_bought = 0", (user_id,)).fetchall()
+    shopping_names = {r["name"] for r in shopping}
+    
+    weekly = conn.execute("SELECT day_index, dish, day_name FROM weekly_plans WHERE user_id = ? ORDER BY day_index ASC", (user_id,)).fetchall()
+    
+    recommendations = []
+    seen_recs = set()
+    
+    for plan in weekly:
+        dish_name = plan["dish"]
+        day_name = plan["day_name"] if "day_name" in plan.keys() else f"Day {plan['day_index']+1}"
+        
+        # Get ingredients for this dish
+        ing_row = conn.execute("SELECT ingredients FROM dish_ingredients WHERE LOWER(dish_name) = LOWER(?)", (dish_name,)).fetchone()
+        if ing_row and ing_row["ingredients"]:
+            raw_ings = [i.strip() for i in ing_row["ingredients"].split(",") if i.strip()]
+            for ing in raw_ings:
+                ing_lower = ing.lower()
+                # Skip if already in fridge, on shopping list, or in seen recommendations
+                if not any(f in ing_lower or ing_lower in f for f in fridge_names) and ing_lower not in shopping_names and ing_lower not in seen_recs:
+                    seen_recs.add(ing_lower)
+                    
+                    cat = "produce"
+                    if any(m in ing_lower for m in ["chicken", "beef", "mutton", "meat", "fish", "prawn", "keema", "gosht"]):
+                        cat = "meat"
+                    elif any(d in ing_lower for d in ["milk", "yogurt", "cheese", "cream", "butter", "dahi", "paneer"]):
+                        cat = "dairy"
+                    elif any(p in ing_lower for p in ["rice", "daal", "lentil", "flour", "atta", "oil", "ghee", "pasta", "noodles"]):
+                        cat = "pantry"
+                    elif any(s in ing_lower for s in ["chili", "masala", "garam", "turmeric", "cumin", "coriander", "salt", "pepper", "sauce"]):
+                        cat = "spices"
+                        
+                    recommendations.append({
+                        "item_name": ing.title(),
+                        "category": cat,
+                        "reason": f"Needed for {day_name}'s {dish_name}"
+                    })
+                    if len(recommendations) >= 8:
+                        break
+        if len(recommendations) >= 8:
+            break
+            
+    # If recommendations are few, add common kitchen essentials not currently in fridge/shopping list
+    if len(recommendations) < 5:
+        staples = [
+            ("Fresh Tomatoes", "produce", "Essential Kitchen Staple"),
+            ("Onions", "produce", "Base for Gravies & Curries"),
+            ("Ginger Garlic Paste", "produce", "Aromatic Core Staple"),
+            ("Green Chilies & Fresh Coriander", "produce", "Fresh Garnish Staple"),
+            ("Plain Yogurt (Dahi)", "dairy", "Cooking & Raita Staple"),
+            ("Cooking Oil / Desi Ghee", "pantry", "Essential Cooking Medium"),
+            ("Basmati Rice", "pantry", "Daily Grains Staple"),
+            ("Eggs", "dairy", "Quick Breakfast & Cooking Staple")
+        ]
+        for name, cat, reason in staples:
+            name_lower = name.lower()
+            if not any(f in name_lower or name_lower in f for f in fridge_names) and name_lower not in shopping_names and name_lower not in seen_recs:
+                seen_recs.add(name_lower)
+                recommendations.append({
+                    "item_name": name,
+                    "category": cat,
+                    "reason": reason
+                })
+                if len(recommendations) >= 8:
+                    break
+                    
+    conn.close()
+    return recommendations
 
