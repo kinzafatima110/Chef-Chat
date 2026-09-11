@@ -73,6 +73,16 @@ def suggest_dish(user, as_dict=False):
     blocked = {b.lower() for b in blocked_dishes(user["id"])}
     pool = [d for d in pool if d["name"].lower() not in blocked]
 
+    # Preferred Cuisine filter (from onboarding preference)
+    preferred_cuisine = (user.get("preferred_cuisine") or "all").lower().strip()
+    if preferred_cuisine != "all":
+        if preferred_cuisine == "diet":
+            cuisine_pool = [d for d in pool if d.get("cuisine") == "diet" or d.get("style") == "light"]
+        else:
+            cuisine_pool = [d for d in pool if (d.get("cuisine") or "desi").lower() == preferred_cuisine]
+        if cuisine_pool:
+            pool = cuisine_pool
+
     if not pool:
         if as_dict:
             return {
@@ -255,6 +265,22 @@ def generate_weekly_plan(user_id, start_type, pattern):
     veg_pool = [d for d in inventory if d["type"] == "veg" and d["course"] == "main" and d["name"].lower() not in blocked]
     nonveg_pool = [d for d in inventory if d["type"] == "nonveg" and d["course"] == "main" and d["name"].lower() not in blocked]
     
+    # Filter by user's preferred cuisine
+    user = db.get_user_by_id(user_id) if hasattr(db, 'get_user_by_id') else None
+    if user:
+        preferred_cuisine = (user.get("preferred_cuisine") or "all").lower().strip()
+        if preferred_cuisine != "all":
+            if preferred_cuisine == "diet":
+                v_cpool = [d for d in veg_pool if d.get("cuisine") == "diet" or d.get("style") == "light"]
+                nv_cpool = [d for d in nonveg_pool if d.get("cuisine") == "diet" or d.get("style") == "light"]
+            else:
+                v_cpool = [d for d in veg_pool if (d.get("cuisine") or "desi").lower() == preferred_cuisine]
+                nv_cpool = [d for d in nonveg_pool if (d.get("cuisine") or "desi").lower() == preferred_cuisine]
+            if v_cpool:
+                veg_pool = v_cpool
+            if nv_cpool:
+                nonveg_pool = nv_cpool
+
     # Shuffle pools
     random.shuffle(veg_pool)
     random.shuffle(nonveg_pool)

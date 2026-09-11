@@ -178,6 +178,7 @@ def quiz_form():
 def quiz_submit():
     user = current_user()
     wa_id = request.form.get("wa_id", "").strip().replace(" ", "").replace("+", "").replace("-", "")
+    preferred_cuisine = request.form.get("preferred_cuisine", "all").strip().lower()
     update_user(
         user["id"],
         cooks_daily=1 if request.form.get("cooks_daily") == "yes" else 0,
@@ -185,6 +186,7 @@ def quiz_submit():
         diet_type=request.form.get("diet_type"),
         diet_rule=request.form.get("diet_rule", "").strip() or None,
         household_size=int(request.form.get("household_size") or 0),
+        preferred_cuisine=preferred_cuisine,
         health_conscious=1 if request.form.get("health_conscious") == "healthy" else 0,
         track_history=1 if request.form.get("track_history") == "yes" else 0,
         wa_id=wa_id or None,
@@ -212,6 +214,14 @@ def dashboard():
     from db import blocked_dishes
     blocked = {b.lower() for b in blocked_dishes(user["id"])}
     pool = [d for d in pool if d["name"].lower() not in blocked]
+    preferred_cuisine = (user.get("preferred_cuisine") or "all").lower().strip()
+    if preferred_cuisine != "all":
+        if preferred_cuisine == "diet":
+            cuisine_pool = [d for d in pool if d.get("cuisine") == "diet" or d.get("style") == "light"]
+        else:
+            cuisine_pool = [d for d in pool if (d.get("cuisine") or "desi").lower() == preferred_cuisine]
+        if cuisine_pool:
+            pool = cuisine_pool
     if user.get("health_conscious"):
         pool = [d for d in pool if d["style"] == "light"] or pool
     pool_size = len(pool)

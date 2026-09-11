@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     track_history INTEGER,
     last_suggested TEXT,
     wa_id TEXT,
+    preferred_cuisine TEXT DEFAULT 'all',
     suggestion_seed_offset INTEGER DEFAULT 0,
     security_question TEXT,
     security_answer TEXT,
@@ -178,6 +179,9 @@ def init_db():
         conn.commit()
     if "security_answer" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN security_answer TEXT")
+        conn.commit()
+    if "preferred_cuisine" not in columns:
+        conn.execute("ALTER TABLE users ADD COLUMN preferred_cuisine TEXT DEFAULT 'all'")
         conn.commit()
 
     # Migration: check and add custom_dishes columns if missing

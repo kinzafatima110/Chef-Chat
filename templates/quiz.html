@@ -82,6 +82,50 @@
         </div>
       </div>
 
+      <!-- Preferred Dish / Cuisine Suggestion Type -->
+      <div>
+        <label class="block text-xs font-bold text-on-surface mb-1">What type of dish suggestions would you prefer?</label>
+        <span class="text-[11px] text-on-surface-variant block mb-2.5">We'll tailor your daily recommendations and weekly plans to your preferred style:</span>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          <div>
+            <input type="radio" id="pc_all" name="preferred_cuisine" value="all" required class="hidden" checked>
+            <label for="pc_all" class="setup-pill block text-center py-2.5 px-2.5 rounded-xl border border-outline-variant/60 text-xs font-semibold text-on-surface bg-surface-container-low">
+              <span class="block text-sm mb-0.5">🌟</span>
+              <span>All Variety</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" id="pc_desi" name="preferred_cuisine" value="desi" class="hidden">
+            <label for="pc_desi" class="setup-pill block text-center py-2.5 px-2.5 rounded-xl border border-outline-variant/60 text-xs font-semibold text-on-surface bg-surface-container-low">
+              <span class="block text-sm mb-0.5">🍛</span>
+              <span>Desi Meals</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" id="pc_chinese" name="preferred_cuisine" value="chinese" class="hidden">
+            <label for="pc_chinese" class="setup-pill block text-center py-2.5 px-2.5 rounded-xl border border-outline-variant/60 text-xs font-semibold text-on-surface bg-surface-container-low">
+              <span class="block text-sm mb-0.5">🥢</span>
+              <span>Chinese</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" id="pc_continental" name="preferred_cuisine" value="continental" class="hidden">
+            <label for="pc_continental" class="setup-pill block text-center py-2.5 px-2.5 rounded-xl border border-outline-variant/60 text-xs font-semibold text-on-surface bg-surface-container-low">
+              <span class="block text-sm mb-0.5">🥩</span>
+              <span>Continental</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" id="pc_diet" name="preferred_cuisine" value="diet" class="hidden">
+            <label for="pc_diet" class="setup-pill block text-center py-2.5 px-2.5 rounded-xl border border-outline-variant/60 text-xs font-semibold text-on-surface bg-surface-container-low">
+              <span class="block text-sm mb-0.5">🥗</span>
+              <span>Diet & Light</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+
       <!-- Household Size & WhatsApp Number -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
