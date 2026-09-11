@@ -225,6 +225,20 @@ def dashboard():
             break
             
     current_day_name = datetime.date.today().strftime("%A")
+
+    from db import get_tip_of_the_week
+    tip_of_the_week = get_tip_of_the_week(user["id"])
+    if not tip_of_the_week:
+        tip_of_the_week = {
+            "id": None,
+            "title": "Crispier Golden Fried Onions (Birista)",
+            "content": "Slice onions uniformly thin and fry in hot oil on medium heat with a pinch of salt until amber. Drain on paper towels immediately for restaurant-grade crunch and aroma!",
+            "category": "Kitchen Hacks",
+            "author_email": "editorial@chefchat.com",
+            "like_count": 12,
+            "comment_count": 3,
+            "has_liked": False
+        }
     
     return render_template(
         "dashboard.html",
@@ -235,6 +249,7 @@ def dashboard():
         category=category,
         current_day_name=current_day_name,
         today_logged_meal=today_logged_meal,
+        tip_of_the_week=tip_of_the_week,
         email=user["email"]
     )
 

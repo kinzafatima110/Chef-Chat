@@ -169,7 +169,62 @@
         </a>
       </div>
 
+      <!-- 🏆 Tip of the Week Editorial Callout (Inspired by The Kitchn Genius Tips) -->
+      {% if tip_of_the_week %}
+        <div class="relative overflow-hidden bg-gradient-to-br from-[#fffbeb] via-[#fff8ed] to-[#fef3c7] rounded-2xl p-5 md:p-6 border-2 border-amber-300/80 ambient-shadow">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center space-x-2">
+              <span class="bg-amber-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider flex items-center space-x-1 shadow-sm">
+                <span class="material-symbols-outlined text-[14px]">military_tech</span>
+                <span>Tip of the Week</span>
+              </span>
+              <span class="bg-amber-200/80 text-amber-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                {{ tip_of_the_week.category or 'Kitchen Wisdom' }}
+              </span>
+            </div>
+            
+            <a href="/tips" class="text-amber-800 hover:text-amber-950 text-xs font-bold flex items-center space-x-1 transition-colors">
+              <span>Explore All Tips</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+
+          <h3 class="font-headline text-lg md:text-xl font-bold text-amber-950 mb-1.5 leading-snug">
+            {{ tip_of_the_week.title }}
+          </h3>
+
+          <p class="text-xs md:text-sm text-amber-900 leading-relaxed font-medium mb-4">
+            {{ tip_of_the_week.content }}
+          </p>
+
+          <!-- Footer Actions & Attribution -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-amber-200/70">
+            <div class="flex items-center space-x-1.5 text-[11px] text-amber-800">
+              <span class="material-symbols-outlined text-[14px]">person</span>
+              <span>Shared by <strong>{{ (tip_of_the_week.author_email or 'Community Chef').split('@')[0] }}</strong></span>
+            </div>
+
+            <div class="flex items-center space-x-2.5">
+              {% if tip_of_the_week.id %}
+                <form method="post" action="/tips/{{ tip_of_the_week.id }}/like" class="m-0">
+                  <button type="submit" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 {% if tip_of_the_week.has_liked %}bg-rose-500 text-white shadow-sm{% else %}bg-white hover:bg-amber-100/80 text-amber-950 border border-amber-300{% endif %}">
+                    <span class="material-symbols-outlined text-[15px] {% if tip_of_the_week.has_liked %}fill-1 text-white{% else %}text-rose-500{% endif %}">thumb_up</span>
+                    <span>{{ tip_of_the_week.like_count }} Upvote{{ 's' if tip_of_the_week.like_count != 1 else '' }}</span>
+                  </button>
+                </form>
+              {% endif %}
+
+              <a href="/tips" class="bg-white/80 hover:bg-white text-amber-900 border border-amber-300/80 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1 transition-all">
+                <span class="material-symbols-outlined text-[14px]">chat</span>
+                <span>{{ tip_of_the_week.comment_count }} Comment{{ 's' if tip_of_the_week.comment_count != 1 else '' }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
     </div>
+
 
     <!-- Right Sidebar: Chef's Picks Feed & Manual Logger (Col 4) -->
     <div class="lg:col-span-4 space-y-stack-md">
