@@ -433,7 +433,7 @@
       </p>
     </div>
 
-    <form method="post" action="/recipes/add" enctype="multipart/form-data" class="m-0 space-y-6">
+    <form method="post" action="/recipes/add" enctype="multipart/form-data" class="m-0 space-y-6" onsubmit="return compileRecipeForm()">
       
       <!-- Row 1: Dish Name & Cuisine -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -554,47 +554,77 @@
         </select>
       </div>
 
-      <!-- 📝 Row 5: SEPARATE INGREDIENTS WRITING & STEP-BY-STEP INSTRUCTIONS (The Kitchn Layout) -->
+      <!-- 📝 Row 5: DYNAMIC BULLETED INGREDIENTS & PRE-NUMBERED STEP-BY-STEP BUILDER -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
         
-        <!-- Ingredients Writer Column -->
-        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-2">
-          <div class="flex items-center justify-between">
+        <!-- Ingredients Writer Column with Bullets -->
+        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-3">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-2">
             <label class="block text-xs font-bold text-on-surface flex items-center space-x-1.5">
               <span class="material-symbols-outlined text-primary text-[18px]">checklist</span>
-              <span>1. Ingredients List (Write 1 item per line)</span>
+              <span>1. Ingredients List (Bulleted) <span class="text-primary">*</span></span>
             </label>
-            <span class="text-[10px] text-on-surface-variant">Include quantities</span>
+            <span class="text-[10px] text-on-surface-variant font-medium">Includes measurements</span>
           </div>
           
-          <textarea 
-            name="ingredients" 
-            rows="8" 
-            required
-            placeholder="e.g.&#10;500g Boneless Chicken, cut into cubes&#10;2 tbsp Cooking Oil or Desi Ghee&#10;1 large Onion, finely sliced&#10;1 tbsp Ginger Garlic Paste&#10;1 cup Plain Yogurt (Dahi), whisked&#10;2 Tomatoes, pureed&#10;1 tsp Red Chili Powder&#10;1 tsp Roasted Cumin Powder&#10;1/2 tsp Garam Masala&#10;Fresh Coriander & Green Chilies for garnish" 
-            class="w-full text-xs p-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono leading-relaxed"
-          ></textarea>
-          <span class="text-[11px] text-on-surface-variant block">Tip: Ingredients can be exported directly into your What to Buy grocery list with 1-click!</span>
+          <!-- Dynamic Ingredient Rows Container -->
+          <div id="ingredient-rows-container" class="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+            <!-- Dynamic rows will be injected and pre-populated via JS -->
+          </div>
+
+          <!-- Hidden input that bundles all bulleted ingredients for the backend -->
+          <input type="hidden" name="ingredients" id="compiled-ingredients-input" value="">
+
+          <div class="flex items-center justify-between pt-1">
+            <button 
+              type="button" 
+              onclick="addIngredientRow('')" 
+              class="inline-flex items-center space-x-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold py-2 px-3.5 rounded-xl transition-all shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[16px]">add_circle</span>
+              <span>+ Add Ingredient •</span>
+            </button>
+            <span class="text-[10px] text-on-surface-variant hidden sm:inline">Press Enter to add next row</span>
+          </div>
+
+          <span class="text-[10px] text-on-surface-variant/90 block pt-1 border-t border-outline-variant/10">
+            Tip: Ingredients are exported with 1-click directly into your What to Buy grocery list!
+          </span>
         </div>
 
-        <!-- Step-by-Step Instructions Writer Column -->
-        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-2">
-          <div class="flex items-center justify-between">
+        <!-- Step-by-Step Instructions Writer Column with Pre-written Step 1, Step 2... -->
+        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-3">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-2">
             <label class="block text-xs font-bold text-on-surface flex items-center space-x-1.5">
               <span class="material-symbols-outlined text-primary text-[18px]">format_list_numbered</span>
-              <span>2. Step-by-Step Instructions</span>
+              <span>2. Step-by-Step Cooking Method <span class="text-primary">*</span></span>
             </label>
-            <span class="text-[10px] text-on-surface-variant">Step by step method</span>
+            <span class="text-[10px] text-on-surface-variant font-medium">Steps pre-numbered</span>
           </div>
           
-          <textarea 
-            name="instructions" 
-            rows="8" 
-            required
-            placeholder="e.g.&#10;Step 1: Heat cooking oil in a clay handi or deep wok over medium heat.&#10;Step 2: Add sliced onions and fry for 5-6 minutes until soft and golden amber.&#10;Step 3: Add ginger garlic paste and sauté for 1 minute until fragrant.&#10;Step 4: Add chicken cubes and sear on high heat until the color turns white.&#10;Step 5: Stir in tomato puree, whisked yogurt, and all powdered spices. Mix well.&#10;Step 6: Cover and simmer on low heat (dum) for 15 minutes until chicken is tender and oil separates.&#10;Step 7: Finish with kasuri methi, garam masala, and fresh coriander. Serve hot!" 
-            class="w-full text-xs p-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono leading-relaxed"
-          ></textarea>
-          <span class="text-[11px] text-on-surface-variant block">Tip: Write clear, numbered steps for home cooks to follow along.</span>
+          <!-- Dynamic Step Rows Container -->
+          <div id="step-rows-container" class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+            <!-- Dynamic step rows with pre-written Step 1, Step 2 badges -->
+          </div>
+
+          <!-- Hidden input that bundles all steps for the backend -->
+          <input type="hidden" name="instructions" id="compiled-instructions-input" value="">
+
+          <div class="flex items-center justify-between pt-1">
+            <button 
+              type="button" 
+              onclick="addStepRow('')" 
+              class="inline-flex items-center space-x-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold py-2 px-3.5 rounded-xl transition-all shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[16px]">add_circle</span>
+              <span id="add-step-btn-label">+ Add Step ➕</span>
+            </button>
+            <span class="text-[10px] text-on-surface-variant hidden sm:inline">Press Enter to add next step</span>
+          </div>
+
+          <span class="text-[10px] text-on-surface-variant/90 block pt-1 border-t border-outline-variant/10">
+            Tip: Just write your action; "Step 1", "Step 2" are automatically numbered for you!
+          </span>
         </div>
 
       </div>
@@ -688,129 +718,29 @@
     {% endfor %}
   </datalist>
 
-  <!-- 🤝 SECTION 5: SUGGESTIONS FROM FRIENDS & KITCHEN FRIENDS NETWORK -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-stack-md">
-    
-    <!-- Suggested Recipes from Friends (7 cols) -->
-    <div class="lg:col-span-7 bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 space-y-4">
-      <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
-        <h2 class="font-headline text-base md:text-lg font-bold text-primary flex items-center space-x-2">
-          <span class="material-symbols-outlined text-[22px]">recommend</span>
-          <span>Recipes from Friends ({{ friend_suggestions | length }})</span>
-        </h2>
-        <span class="text-xs text-on-surface-variant">1-click import to your cookbook</span>
+  <!-- 🤝 EXPLORE CHEF FRIENDS NETWORK BANNER -->
+  <div class="bg-gradient-to-r from-secondary/10 via-surface-container to-secondary/10 rounded-3xl p-6 md:p-8 border border-secondary/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-12 h-12 rounded-2xl bg-secondary text-white flex items-center justify-center shrink-0 shadow-sm">
+        <span class="material-symbols-outlined text-[28px]">diversity_3</span>
       </div>
-
-      {% if friend_suggestions %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-1">
-          {% for suggestion in friend_suggestions %}
-            <div class="bg-surface-container-low rounded-xl p-3 border border-outline-variant/20 flex flex-col justify-between">
-              <div>
-                <div class="flex items-start justify-between gap-1 mb-1">
-                  <h4 class="font-headline text-xs font-bold text-on-surface leading-tight cursor-pointer hover:text-primary" onclick="openRecipeModal('{{ suggestion.name }}')">{{ suggestion.name }}</h4>
-                  <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase {% if suggestion.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
-                    {{ 'Veg' if suggestion.type == 'veg' else 'Meat' }}
-                  </span>
-                </div>
-                <span class="text-[10px] text-on-surface-variant block mb-2">by {{ suggestion.creator_email }}</span>
-              </div>
-
-              <div class="flex items-center space-x-1.5 pt-2 border-t border-outline-variant/20">
-                <button type="button" onclick="openRecipeModal('{{ suggestion.name }}')" class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold py-1.5 px-2 rounded-lg transition-colors">
-                  View 📖
-                </button>
-                <form method="post" action="/custom_dish/add_friend_suggestion" class="m-0 flex-1">
-                  <input type="hidden" name="name" value="{{ suggestion.name }}">
-                  <input type="hidden" name="type" value="{{ suggestion.type }}">
-                  <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
-                  <input type="hidden" name="category" value="{{ suggestion.category }}">
-                  <input type="hidden" name="style" value="{{ suggestion.style }}">
-                  <input type="hidden" name="course" value="{{ suggestion.course }}">
-                  <input type="hidden" name="cuisine" value="{{ suggestion.cuisine or 'desi' }}">
-                  <input type="hidden" name="image" value="{{ suggestion.image or '' }}">
-                  <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all shadow-sm">
-                    Add ➕
-                  </button>
-                </form>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="text-center py-8 text-on-surface-variant">
-          <p class="text-xs italic">No recipes from connected friends yet. Connect with friends below to exchange secret family recipes!</p>
-        </div>
-      {% endif %}
-    </div>
-
-    <!-- Kitchen Friends Network Manager (5 cols) -->
-    <div class="lg:col-span-5 bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 space-y-4 flex flex-col justify-between">
       <div>
-        <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3 mb-3">
-          <h2 class="font-headline text-base md:text-lg font-bold text-on-surface flex items-center space-x-2">
-            <span class="material-symbols-outlined text-secondary text-[22px]">diversity_3</span>
-            <span>Kitchen Friends</span>
-          </h2>
-          <span class="text-xs font-bold bg-secondary/10 text-secondary px-2.5 py-0.5 rounded-full">{{ friends | length }} friends</span>
-        </div>
-
-        <!-- Send Friend Request Form -->
-        <form method="post" action="/friends/request" class="space-y-2 mb-4">
-          <label class="block text-xs font-semibold text-on-surface">Invite Friend by Email</label>
-          <div class="flex gap-2">
-            <input type="email" id="friend_email" name="friend_email" required placeholder="friend@example.com" class="flex-1 text-xs p-2.5 rounded-xl border border-outline-variant/60 focus:ring-1 focus:ring-primary focus:border-primary">
-            <button type="submit" class="bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition-all shrink-0">
-              Invite 🤝
-            </button>
-          </div>
-        </form>
-
-        <!-- Incoming Friend Requests -->
-        {% if friend_requests %}
-          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
-            <span class="text-xs font-bold text-amber-900 block mb-2">📥 Pending Invites:</span>
-            <div class="space-y-2">
-              {% for req in friend_requests %}
-                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-200/60">
-                  <span class="text-xs font-semibold text-on-surface truncate max-w-[130px]">{{ req.email }}</span>
-                  <div class="flex items-center space-x-1">
-                    <form method="post" action="/friends/accept" class="m-0">
-                      <input type="hidden" name="requester_id" value="{{ req.id }}">
-                      <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition-colors">Accept</button>
-                    </form>
-                    <form method="post" action="/friends/reject" class="m-0">
-                      <input type="hidden" name="requester_id" value="{{ req.id }}">
-                      <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold px-2 py-1 rounded transition-colors">Decline</button>
-                    </form>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-
-        <!-- Connected Friends List -->
-        <div>
-          <span class="text-xs font-bold text-on-surface-variant block mb-2">Connected Friends:</span>
-          {% if friends %}
-            <div class="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto">
-              {% for friend in friends %}
-                <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl px-2.5 py-1 inline-flex items-center space-x-1.5 text-xs">
-                  <span class="font-bold text-on-surface">{{ friend.email }}</span>
-                  <form method="post" action="/friends/reject" class="m-0 inline">
-                    <input type="hidden" name="requester_id" value="{{ friend.id }}">
-                    <button type="submit" class="text-outline-variant hover:text-rose-600 font-bold text-xs" title="Remove connection">✖</button>
-                  </form>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="text-xs italic text-on-surface-variant">No kitchen friends linked yet.</p>
-          {% endif %}
-        </div>
+        <h3 class="font-headline text-lg md:text-xl font-bold text-on-surface">
+          Connect with Foodies & Chef Friends
+        </h3>
+        <p class="text-xs text-on-surface-variant mt-0.5">
+          Follow your favorite home chefs, see what your kitchen circle is cooking, and exchange family secret recipes in the dedicated Chefs Network.
+        </p>
       </div>
     </div>
 
+    <a 
+      href="/friends" 
+      class="bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-3 px-6 rounded-xl shadow-sm transition-all inline-flex items-center space-x-2 shrink-0 hover:scale-[1.02]"
+    >
+      <span>Open Chef Friends & Followers</span>
+      <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+    </a>
   </div>
 
 </div>
@@ -1125,6 +1055,185 @@
       backdrop.classList.add('hidden');
     }, 150);
   }
+
+  // Dynamic Ingredient Rows Builder (Bulleted with •)
+  function addIngredientRow(initialVal = '') {
+    const container = document.getElementById('ingredient-rows-container');
+    if (!container) return;
+    
+    const row = document.createElement('div');
+    row.className = 'ingredient-input-row flex items-center space-x-2 bg-surface-container-lowest p-1.5 px-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 transition-all shadow-2xs';
+    row.innerHTML = `
+      <span class="text-primary font-black text-lg select-none leading-none pl-1">•</span>
+      <input 
+        type="text" 
+        class="ingredient-item-input flex-1 text-xs bg-transparent border-none p-1 focus:ring-0 text-on-surface font-medium placeholder:text-on-surface-variant/50" 
+        placeholder="e.g. 500g Chicken, 2 tbsp Ginger Garlic Paste, 1 tsp Cumin" 
+        value="${initialVal.replace(/"/g, '&quot;')}"
+        onkeydown="handleIngredientKey(event, this)"
+      >
+      <button 
+        type="button" 
+        onclick="removeIngredientRow(this)" 
+        class="text-on-surface-variant hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors" 
+        title="Remove ingredient"
+      >
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    `;
+    container.appendChild(row);
+    const input = row.querySelector('.ingredient-item-input');
+    if (input && !initialVal) {
+      input.focus();
+    }
+  }
+
+  function handleIngredientKey(event, inputElem) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addIngredientRow('');
+    }
+  }
+
+  function removeIngredientRow(btn) {
+    const row = btn.closest('.ingredient-input-row');
+    const container = document.getElementById('ingredient-rows-container');
+    if (row && container) {
+      if (container.children.length > 1) {
+        row.remove();
+      } else {
+        const input = row.querySelector('.ingredient-item-input');
+        if (input) input.value = '';
+      }
+    }
+  }
+
+  // Dynamic Step Rows Builder (Pre-written Step 1, Step 2, Step 3...)
+  function addStepRow(initialVal = '') {
+    const container = document.getElementById('step-rows-container');
+    if (!container) return;
+
+    const stepIndex = container.children.length + 1;
+    const row = document.createElement('div');
+    row.className = 'step-input-row flex items-start space-x-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 transition-all shadow-2xs';
+    row.innerHTML = `
+      <div class="step-badge shrink-0 bg-primary text-white text-[11px] font-bold px-2.5 py-1 rounded-lg flex items-center justify-center mt-0.5 shadow-sm select-none">
+        Step <span class="step-num ml-1">${stepIndex}</span>
+      </div>
+      <textarea 
+        rows="2"
+        class="step-item-input flex-1 text-xs bg-transparent border-none p-1 focus:ring-0 text-on-surface font-medium resize-none placeholder:text-on-surface-variant/50" 
+        placeholder="Write what to do in this step (e.g. Sauté aromatics in hot oil until golden brown...)"
+        onkeydown="handleStepKey(event, this)"
+      >${initialVal}</textarea>
+      <button 
+        type="button" 
+        onclick="removeStepRow(this)" 
+        class="text-on-surface-variant hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors shrink-0 mt-0.5" 
+        title="Remove step"
+      >
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    `;
+    container.appendChild(row);
+    renumberSteps();
+    const textarea = row.querySelector('.step-item-input');
+    if (textarea && !initialVal) {
+      textarea.focus();
+    }
+  }
+
+  function handleStepKey(event, textareaElem) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      addStepRow('');
+    }
+  }
+
+  function removeStepRow(btn) {
+    const row = btn.closest('.step-input-row');
+    const container = document.getElementById('step-rows-container');
+    if (row && container) {
+      if (container.children.length > 1) {
+        row.remove();
+        renumberSteps();
+      } else {
+        const textarea = row.querySelector('.step-item-input');
+        if (textarea) textarea.value = '';
+      }
+    }
+  }
+
+  function renumberSteps() {
+    const rows = document.querySelectorAll('.step-input-row');
+    rows.forEach((r, idx) => {
+      const numSpan = r.querySelector('.step-num');
+      if (numSpan) numSpan.textContent = idx + 1;
+    });
+    const label = document.getElementById('add-step-btn-label');
+    if (label) {
+      label.textContent = `+ Add Step ${rows.length + 1} ➕`;
+    }
+  }
+
+  // Compile Dynamic Rows to Backend Strings before Form Submit
+  function compileRecipeForm() {
+    // 1. Gather ingredients
+    const ingInputs = document.querySelectorAll('.ingredient-item-input');
+    const ingList = [];
+    ingInputs.forEach(input => {
+      const val = input.value.trim();
+      if (val) {
+        const clean = val.replace(/^[•\-\*\d\.\)\s]+/, '').trim();
+        if (clean) ingList.push(`• ${clean}`);
+      }
+    });
+
+    if (ingList.length === 0) {
+      alert("Please add at least one ingredient for your recipe!");
+      return false;
+    }
+    document.getElementById('compiled-ingredients-input').value = ingList.join('\n');
+
+    // 2. Gather steps
+    const stepInputs = document.querySelectorAll('.step-item-input');
+    const stepList = [];
+    let stepNumber = 1;
+    stepInputs.forEach(input => {
+      const val = input.value.trim();
+      if (val) {
+        const clean = val.replace(/^(step\s*\d*[\:\.\-]?\s*)/i, '').trim();
+        if (clean) {
+          stepList.push(`Step ${stepNumber}: ${clean}`);
+          stepNumber++;
+        }
+      }
+    });
+
+    if (stepList.length === 0) {
+      alert("Please add at least one cooking step method for your recipe!");
+      return false;
+    }
+    document.getElementById('compiled-instructions-input').value = stepList.join('\n');
+
+    return true;
+  }
+
+  // Pre-populate starter rows on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const ingContainer = document.getElementById('ingredient-rows-container');
+    if (ingContainer && ingContainer.children.length === 0) {
+      addIngredientRow('');
+      addIngredientRow('');
+      addIngredientRow('');
+    }
+    const stepContainer = document.getElementById('step-rows-container');
+    if (stepContainer && stepContainer.children.length === 0) {
+      addStepRow('');
+      addStepRow('');
+      addStepRow('');
+    }
+  });
 
   // Close modal when clicking backdrop
   document.getElementById('recipe-modal-backdrop')?.addEventListener('click', function(e) {

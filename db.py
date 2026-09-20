@@ -902,6 +902,417 @@ def get_friend_dish_suggestions(user_id):
 
 
 # ==========================================
+# Instagram-Style Chef Network & Following System
+# ==========================================
+
+CHEF_TITLES = [
+    "Master Chef & Biryani Specialist 🍛",
+    "Executive Home Chef & Karahi Maestro 🍳",
+    "Gourmet Bistro Artisan 🥩",
+    "Asian Wok & Stir-Fry Virtuoso 🥢",
+    "Healthy Meal Prep & Diet Specialist 🥗",
+    "Traditional Desi Dum Specialist 🫓",
+    "Culinary Creator & Spice Explorer 🌶️"
+]
+
+
+def format_chef_name(email):
+    """
+    Generates a stylized chef display name from an email.
+    """
+    if not email:
+        return "Chef Guest"
+    username = email.split("@")[0]
+    clean = "".join(c if c.isalpha() else " " for c in username).strip()
+    words = [w.capitalize() for w in clean.split() if w]
+    name_str = " ".join(words) if words else username.capitalize()
+    return f"Chef {name_str}"
+
+
+def get_chef_title_for_user(user_id, recipe_count=0):
+    """
+    Assigns a prestigious chef title based on user id and recipe count.
+    """
+    if recipe_count >= 10:
+        return "Executive Grand Master Chef 🌟👨‍🍳"
+    elif recipe_count >= 5:
+        return "Senior Culinary Specialist 🏆"
+    idx = user_id % len(CHEF_TITLES)
+    return CHEF_TITLES[idx]
+
+
+def get_chef_profile(user_id):
+    """
+    Retrieves comprehensive chef profile metrics for a user.
+    """
+    conn = get_conn()
+    user_row = conn.execute("SELECT id, email, created_at, preferred_cuisine, diet_type FROM users WHERE id = ?", (user_id,)).fetchone()
+    if not user_row:
+        conn.close()
+        return None
+
+    email = user_row["email"]
+    recipe_count = conn.execute("SELECT COUNT(*) FROM custom_dishes WHERE user_id = ?", (user_id,)).fetchone()[0]
+    public_recipe_count = conn.execute("SELECT COUNT(*) FROM custom_dishes WHERE user_id = ? AND is_public = 1", (user_id,)).fetchone()[0]
+    following_count = conn.execute("SELECT COUNT(*) FROM friendships WHERE user_id = ? AND status = 'accepted'", (user_id,)).fetchone()[0]
+    followers_count = conn.execute("SELECT COUNT(*) FROM friendships WHERE friend_id = ? AND status = 'accepted'", (user_id,)).fetchone()[0]
+    appliances_count = conn.execute("SELECT COUNT(*) FROM user_appliances WHERE user_id = ? AND status = 'owned'", (user_id,)).fetchone()[0]
+    tips_count = conn.execute("SELECT COUNT(*) FROM tips WHERE user_id = ?", (user_id,)).fetchone()[0]
+    conn.close()
+
+    return {
+        "id": user_id,
+        "email": email,
+        "chef_name": format_chef_name(email),
+        "handle": f"@{email.split('@')[0]}",
+        "title": get_chef_title_for_user(user_id, recipe_count),
+        "bio": "Culinary explorer on Chef Chat • Sharing handcrafted recipes, kitchen tips, and daily meal inspirations.",
+        "recipe_count": recipe_count,
+        "public_recipe_count": public_recipe_count,
+        "following_count": following_count,
+        "followers_count": followers_count,
+        "appliances_count": appliances_count,
+        "tips_count": tips_count,
+        "created_at": user_row["created_at"]
+    }
+
+
+def follow_chef(user_id, target_chef_id):
+    """
+    Follows a chef. Creates an accepted following relationship.
+    """
+    if int(user_id) == int(target_chef_id):
+        return False, "You cannot follow your own chef profile!"
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT OR REPLACE INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'accepted', ?)",
+        (int(user_id), int(target_chef_id), now)
+    )
+    conn.commit()
+    target_row = conn.execute("SELECT email FROM users WHERE id = ?", (int(target_chef_id),)).fetchone()
+    conn.close()
+    chef_name = format_chef_name(target_row["email"]) if target_row else "Chef"
+    return True, f"You are now following {chef_name}! 👨‍🍳✨"
+
+
+def unfollow_chef(user_id, target_chef_id):
+    """
+    Unfollows a chef.
+    """
+    conn = get_conn()
+    conn.execute(
+        "DELETE FROM friendships WHERE user_id = ? AND friend_id = ?",
+        (int(user_id), int(target_chef_id))
+    )
+    conn.commit()
+    target_row = conn.execute("SELECT email FROM users WHERE id = ?", (int(target_chef_id),)).fetchone()
+    conn.close()
+    chef_name = format_chef_name(target_row["email"]) if target_row else "Chef"
+    return True, f"Unfollowed {chef_name}."
+
+
+def toggle_follow_chef(user_id, target_chef_id):
+    """
+    Toggles following status for a target chef. Returns (is_following: bool, message: str).
+    """
+    if int(user_id) == int(target_chef_id):
+        return False, "You cannot follow yourself."
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT id FROM friendships WHERE user_id = ? AND friend_id = ? AND status = 'accepted'",
+        (int(user_id), int(target_chef_id))
+    ).fetchone()
+    conn.close()
+    if row:
+        _, msg = unfollow_chef(user_id, target_chef_id)
+        return False, msg
+    else:
+        _, msg = follow_chef(user_id, target_chef_id)
+        return True, msg
+
+
+def follow_chef_by_email(user_id, target_email):
+    """
+    Looks up a chef by email and follows them.
+    """
+    clean_email = (target_email or "").strip().lower()
+    if not clean_email:
+        return False, "Please enter a valid chef email address."
+    conn = get_conn()
+    row = conn.execute("SELECT id, email FROM users WHERE LOWER(email) = ?", (clean_email,)).fetchone()
+    conn.close()
+    if not row:
+        return False, f"No registered chef found with email '{clean_email}'. Invite them to join Chef Chat!"
+    if row["id"] == user_id:
+        return False, "You cannot follow yourself!"
+    return follow_chef(user_id, row["id"])
+
+
+def get_following_chefs(user_id):
+    """
+    Retrieves all chefs followed by user_id with rich profile info.
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        """
+        SELECT u.id, u.email, u.created_at, f.created_at AS followed_at,
+               (SELECT COUNT(*) FROM custom_dishes cd WHERE cd.user_id = u.id) AS recipe_count,
+               (SELECT COUNT(*) FROM friendships f2 WHERE f2.friend_id = u.id AND f2.status = 'accepted') AS followers_count,
+               (SELECT COUNT(*) FROM friendships f3 WHERE f3.user_id = u.id AND f3.friend_id = ? AND f3.status = 'accepted') AS follows_you
+        FROM friendships f
+        JOIN users u ON f.friend_id = u.id
+        WHERE f.user_id = ? AND f.status = 'accepted'
+        ORDER BY f.created_at DESC
+        """,
+        (user_id, user_id)
+    ).fetchall()
+
+    chefs = []
+    for r in rows:
+        c_dict = dict(r)
+        c_dict["chef_name"] = format_chef_name(c_dict["email"])
+        c_dict["handle"] = f"@{c_dict['email'].split('@')[0]}"
+        c_dict["title"] = get_chef_title_for_user(c_dict["id"], c_dict["recipe_count"])
+        c_dict["is_following"] = True
+        c_dict["follows_you"] = bool(c_dict["follows_you"])
+
+        # Fetch recent 3 dishes
+        dish_rows = conn.execute(
+            "SELECT name, cuisine, image, type FROM custom_dishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 3",
+            (c_dict["id"],)
+        ).fetchall()
+        c_dict["recent_dishes"] = [dict(d) for d in dish_rows]
+        chefs.append(c_dict)
+
+    conn.close()
+    return chefs
+
+
+def get_chef_followers(user_id):
+    """
+    Retrieves all followers of user_id with reciprocal status.
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        """
+        SELECT u.id, u.email, u.created_at, f.created_at AS followed_at,
+               (SELECT COUNT(*) FROM custom_dishes cd WHERE cd.user_id = u.id) AS recipe_count,
+               (SELECT COUNT(*) FROM friendships f2 WHERE f2.friend_id = u.id AND f2.status = 'accepted') AS followers_count,
+               (SELECT COUNT(*) FROM friendships f3 WHERE f3.user_id = ? AND f3.friend_id = u.id AND f3.status = 'accepted') AS is_following
+        FROM friendships f
+        JOIN users u ON f.user_id = u.id
+        WHERE f.friend_id = ? AND f.status = 'accepted'
+        ORDER BY f.created_at DESC
+        """,
+        (user_id, user_id)
+    ).fetchall()
+
+    followers = []
+    for r in rows:
+        f_dict = dict(r)
+        f_dict["chef_name"] = format_chef_name(f_dict["email"])
+        f_dict["handle"] = f"@{f_dict['email'].split('@')[0]}"
+        f_dict["title"] = get_chef_title_for_user(f_dict["id"], f_dict["recipe_count"])
+        f_dict["is_following"] = bool(f_dict["is_following"])
+        f_dict["follows_you"] = True
+
+        dish_rows = conn.execute(
+            "SELECT name, cuisine, image, type FROM custom_dishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 3",
+            (f_dict["id"],)
+        ).fetchall()
+        f_dict["recent_dishes"] = [dict(d) for d in dish_rows]
+        followers.append(f_dict)
+
+    conn.close()
+    return followers
+
+
+def get_discover_chefs(user_id, limit=12):
+    """
+    Discovers other chefs in the Chef Chat network not yet followed by user_id.
+    Also injects starter community master chefs if user pool is growing.
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        """
+        SELECT u.id, u.email, u.created_at,
+               (SELECT COUNT(*) FROM custom_dishes cd WHERE cd.user_id = u.id) AS recipe_count,
+               (SELECT COUNT(*) FROM friendships f2 WHERE f2.friend_id = u.id AND f2.status = 'accepted') AS followers_count,
+               (SELECT COUNT(*) FROM friendships f3 WHERE f3.user_id = u.id AND f3.friend_id = ? AND f3.status = 'accepted') AS follows_you
+        FROM users u
+        WHERE u.id != ? AND u.id NOT IN (
+            SELECT friend_id FROM friendships WHERE user_id = ? AND status = 'accepted'
+        )
+        ORDER BY recipe_count DESC, followers_count DESC, u.id ASC
+        LIMIT ?
+        """,
+        (user_id, user_id, user_id, limit)
+    ).fetchall()
+
+    discover = []
+    for r in rows:
+        d_dict = dict(r)
+        d_dict["chef_name"] = format_chef_name(d_dict["email"])
+        d_dict["handle"] = f"@{d_dict['email'].split('@')[0]}"
+        d_dict["title"] = get_chef_title_for_user(d_dict["id"], d_dict["recipe_count"])
+        d_dict["is_following"] = False
+        d_dict["follows_you"] = bool(d_dict["follows_you"])
+        d_dict["is_virtual"] = False
+
+        dish_rows = conn.execute(
+            "SELECT name, cuisine, image, type FROM custom_dishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 3",
+            (d_dict["id"],)
+        ).fetchall()
+        d_dict["recent_dishes"] = [dict(d) for d in dish_rows]
+        discover.append(d_dict)
+
+    conn.close()
+
+    # Curated trending community master chefs to make the discover feed rich and inspiring
+    curated_chefs = [
+        {
+            "id": 9991,
+            "email": "fatima.masterchef@chefchat.com",
+            "chef_name": "Chef Fatima Noor",
+            "handle": "@fatima_culinary",
+            "title": "Grand Master Chef • Royal Mughlai & Dum Biryanis 👑🍛",
+            "recipe_count": 18,
+            "followers_count": 240,
+            "is_following": False,
+            "follows_you": False,
+            "is_virtual": True,
+            "specialty": "Slow Dum Biryanis & Velvet Kormas",
+            "recent_dishes": [
+                {"name": "Hyderabadi Dum Biryani", "cuisine": "desi", "type": "nonveg", "image": "images/biryani.jpg"},
+                {"name": "Shahi Mutton Korma", "cuisine": "desi", "type": "nonveg", "image": "images/korma.jpg"},
+                {"name": "Zafrani Kheer", "cuisine": "desi", "type": "veg", "image": "images/halwa.jpg"}
+            ]
+        },
+        {
+            "id": 9992,
+            "email": "tariq.karahi@chefchat.com",
+            "chef_name": "Chef Tariq Gourmet",
+            "handle": "@tariq_wok_grill",
+            "title": "Shinwari Karahi & BBQ Grill Artisan 🍢",
+            "recipe_count": 14,
+            "followers_count": 185,
+            "is_following": False,
+            "follows_you": False,
+            "is_virtual": True,
+            "specialty": "Namkeen Karahi, BBQ Tikka & Tandoor",
+            "recent_dishes": [
+                {"name": "Peshawari Shinwari Karahi", "cuisine": "desi", "type": "nonveg", "image": "images/chicken_karahi.jpg"},
+                {"name": "Melt-in-Mouth Seekh Kabab", "cuisine": "desi", "type": "nonveg", "image": "images/tikka.jpg"},
+                {"name": "Charred Chicken Tikka Boti", "cuisine": "desi", "type": "nonveg", "image": "images/tikka.jpg"}
+            ]
+        },
+        {
+            "id": 9993,
+            "email": "ayesha.healthy@chefchat.com",
+            "chef_name": "Chef Ayesha Green",
+            "handle": "@ayesha_healthy_bites",
+            "title": "Clean Eating & Diet Macro Specialist 🥗🥑",
+            "recipe_count": 12,
+            "followers_count": 310,
+            "is_following": False,
+            "follows_you": False,
+            "is_virtual": True,
+            "specialty": "High Protein Salads & Low-Oil Curries",
+            "recent_dishes": [
+                {"name": "Grilled Lemon Herb Chicken Bowl", "cuisine": "diet", "type": "nonveg", "image": "images/tikka.jpg"},
+                {"name": "Crispy Air-Fryer Falafel & Hummus", "cuisine": "diet", "type": "veg", "image": "images/daal.jpg"},
+                {"name": "Quinoa Veggie Power Bowl", "cuisine": "diet", "type": "veg", "image": "images/salad.jpg"}
+            ]
+        },
+        {
+            "id": 9994,
+            "email": "saad.bistro@chefchat.com",
+            "chef_name": "Chef Saad Bistro",
+            "handle": "@saad_continental",
+            "title": "Italian Pastas & Continental Steaks 🍝🥩",
+            "recipe_count": 15,
+            "followers_count": 195,
+            "is_following": False,
+            "follows_you": False,
+            "is_virtual": True,
+            "specialty": "Creamy Fettuccine Alfredo & Sizzling Steaks",
+            "recent_dishes": [
+                {"name": "Fettuccine Alfredo with Grilled Chicken", "cuisine": "continental", "type": "nonveg", "image": "images/pasta.jpg"},
+                {"name": "Black Pepper Beef Steak", "cuisine": "continental", "type": "nonveg", "image": "images/chicken_karahi.jpg"},
+                {"name": "Crispy Garlic Butter Prawns", "cuisine": "continental", "type": "nonveg", "image": "images/fish.jpg"}
+            ]
+        }
+    ]
+
+    # Combine discover users
+    existing_emails = {d["email"].lower() for d in discover}
+    for c in curated_chefs:
+        if c["email"].lower() not in existing_emails:
+            discover.append(c)
+
+    return discover
+
+
+def get_chef_activity_feed(user_id):
+    """
+    Returns an Instagram-style feed of recent recipes posted by followed chefs and featured creators.
+    """
+    conn = get_conn()
+    # Recipes from followed chefs
+    followed_rows = conn.execute(
+        """
+        SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+               cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+               cd.ingredients, cd.instructions, cd.tips, cd.created_at, u.email AS creator_email,
+               1 AS is_followed_creator
+        FROM custom_dishes cd
+        JOIN users u ON cd.user_id = u.id
+        WHERE cd.user_id IN (
+            SELECT friend_id FROM friendships WHERE user_id = ? AND status = 'accepted'
+        )
+        ORDER BY cd.created_at DESC
+        LIMIT 20
+        """,
+        (user_id,)
+    ).fetchall()
+
+    # Public community recipes as supplemental feed
+    public_rows = conn.execute(
+        """
+        SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+               cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+               cd.ingredients, cd.instructions, cd.tips, cd.created_at, u.email AS creator_email,
+               (SELECT COUNT(*) FROM friendships WHERE user_id = ? AND friend_id = cd.user_id AND status = 'accepted') AS is_followed_creator
+        FROM custom_dishes cd
+        JOIN users u ON cd.user_id = u.id
+        WHERE cd.is_public = 1 AND cd.user_id != ?
+        ORDER BY cd.created_at DESC
+        LIMIT 15
+        """,
+        (user_id, user_id)
+    ).fetchall()
+
+    conn.close()
+
+    feed_items = []
+    seen_ids = set()
+
+    for r in list(followed_rows) + list(public_rows):
+        d = dict(r)
+        if d["id"] not in seen_ids:
+            seen_ids.add(d["id"])
+            d["creator_chef_name"] = format_chef_name(d["creator_email"])
+            d["creator_handle"] = f"@{d['creator_email'].split('@')[0]}"
+            d["is_followed_creator"] = bool(d["is_followed_creator"])
+            feed_items.append(d)
+
+    # Sort feed items by creation date
+    feed_items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    return feed_items
+
+
+# ==========================================
 # Kitchen Tips, Likes & Comments System
 # ==========================================
 

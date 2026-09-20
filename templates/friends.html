@@ -1,0 +1,785 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Chef Friends & Instagram Network{% endblock %}
+
+{% block content %}
+<div class="space-y-stack-md py-2">
+
+  <!-- 📸 INSTAGRAM-STYLE CHEF PROFILE HEADER -->
+  <div class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30">
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+      
+      <!-- Chef Avatar with Story-style Gradient Ring -->
+      <div class="relative shrink-0 group">
+        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-primary to-rose-500 shadow-md">
+          <div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center overflow-hidden border-2 border-white">
+            <span class="font-headline text-3xl md:text-4xl font-black text-primary">
+              {{ profile.chef_name[5] if profile.chef_name|length > 5 else 'C' }}
+            </span>
+          </div>
+        </div>
+        <div class="absolute bottom-1 right-1 bg-amber-500 text-white w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm" title="Chef Chat Member">
+          <span class="material-symbols-outlined text-[15px]">restaurant</span>
+        </div>
+      </div>
+
+      <!-- Chef Info & Bio -->
+      <div class="flex-1 text-center md:text-left space-y-2">
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+          <h1 class="font-headline text-2xl md:text-3xl font-bold text-on-surface">
+            {{ profile.chef_name }}
+          </h1>
+          <span class="inline-flex items-center space-x-1 bg-primary/10 text-primary text-xs font-bold px-3 py-0.5 rounded-full self-center md:self-auto">
+            <span class="material-symbols-outlined text-[14px]">verified</span>
+            <span>{{ profile.handle }}</span>
+          </span>
+        </div>
+
+        <p class="text-xs md:text-sm font-semibold text-amber-900 bg-amber-50/80 inline-block px-3 py-1 rounded-xl border border-amber-200">
+          {{ profile.title }}
+        </p>
+
+        <p class="text-xs text-on-surface-variant max-w-xl leading-relaxed">
+          {{ profile.bio }}
+        </p>
+
+        <!-- Instagram Stats Counters -->
+        <div class="flex items-center justify-center md:justify-start gap-6 pt-2 border-t border-outline-variant/20 text-xs">
+          <a href="#feed" onclick="switchChefTab('feed')" class="text-center group cursor-pointer">
+            <span class="block font-headline text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
+              {{ profile.recipe_count }}
+            </span>
+            <span class="text-on-surface-variant text-[11px] font-medium">Recipes</span>
+          </a>
+
+          <a href="#followers" onclick="switchChefTab('followers')" class="text-center group cursor-pointer">
+            <span class="block font-headline text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
+              {{ profile.followers_count }}
+            </span>
+            <span class="text-on-surface-variant text-[11px] font-medium">Followers</span>
+          </a>
+
+          <a href="#following" onclick="switchChefTab('following')" class="text-center group cursor-pointer">
+            <span class="block font-headline text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
+              {{ profile.following_count }}
+            </span>
+            <span class="text-on-surface-variant text-[11px] font-medium">Following</span>
+          </a>
+
+          <div class="text-center">
+            <span class="block font-headline text-lg md:text-xl font-bold text-on-surface">
+              {{ profile.appliances_count }}
+            </span>
+            <span class="text-on-surface-variant text-[11px] font-medium">Appliances</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Add / Search Chef Action -->
+      <div class="w-full md:w-auto shrink-0 flex flex-col gap-2">
+        <a href="/recipes#add-recipe" class="w-full bg-primary hover:bg-primary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all text-center flex items-center justify-center space-x-1.5 hover:scale-[1.02]">
+          <span class="material-symbols-outlined text-[16px]">post_add</span>
+          <span>Publish New Recipe</span>
+        </a>
+        <a href="#connect" onclick="document.getElementById('chef-search-input')?.focus()" class="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold py-2.5 px-4 rounded-xl transition-all text-center flex items-center justify-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px]">person_search</span>
+          <span>Find Chefs</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 🔍 FOLLOW CHEFS BY EMAIL SEARCH BAR -->
+  <div id="connect" class="bg-gradient-to-r from-amber-500/10 via-primary/5 to-rose-500/10 rounded-2xl p-4 md:p-5 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-3">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">person_add</span>
+      </div>
+      <div>
+        <h3 class="text-xs md:text-sm font-bold text-on-surface">Connect with a Friend or Family Chef</h3>
+        <p class="text-[11px] text-on-surface-variant">Enter their registered email to follow their kitchen creations & family recipes</p>
+      </div>
+    </div>
+
+    <form method="post" action="/chefs/follow" class="m-0 flex w-full md:w-auto gap-2">
+      <input 
+        type="email" 
+        name="chef_email" 
+        id="chef-search-input"
+        placeholder="e.g., chef.friend@gmail.com" 
+        required 
+        class="text-xs p-2.5 px-3.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary flex-1 md:w-64"
+      >
+      <button 
+        type="submit" 
+        class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-all shrink-0 flex items-center space-x-1"
+      >
+        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+        <span>Follow ➕</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- 🏷️ INSTAGRAM-STYLE TABS BAR -->
+  <div class="bg-surface-container-lowest rounded-2xl p-2 ambient-shadow border border-outline-variant/30 flex items-center justify-around font-body text-xs font-bold overflow-x-auto">
+    <button 
+      type="button" 
+      onclick="switchChefTab('feed')" 
+      id="tab-btn-feed" 
+      class="chef-tab-btn flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 {% if active_tab == 'feed' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high{% endif %}"
+    >
+      <span class="material-symbols-outlined text-[18px]">dynamic_feed</span>
+      <span>Recipe Feed 📸</span>
+    </button>
+
+    <button 
+      type="button" 
+      onclick="switchChefTab('following')" 
+      id="tab-btn-following" 
+      class="chef-tab-btn flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 {% if active_tab == 'following' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high{% endif %}"
+    >
+      <span class="material-symbols-outlined text-[18px]">group</span>
+      <span>Following ({{ following | length }})</span>
+    </button>
+
+    <button 
+      type="button" 
+      onclick="switchChefTab('followers')" 
+      id="tab-btn-followers" 
+      class="chef-tab-btn flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 {% if active_tab == 'followers' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high{% endif %}"
+    >
+      <span class="material-symbols-outlined text-[18px]">favorite</span>
+      <span>Followers ({{ followers | length }})</span>
+    </button>
+
+    <button 
+      type="button" 
+      onclick="switchChefTab('discover')" 
+      id="tab-btn-discover" 
+      class="chef-tab-btn flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 {% if active_tab == 'discover' %}bg-primary text-white shadow-sm{% else %}text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high{% endif %}"
+    >
+      <span class="material-symbols-outlined text-[18px]">explore</span>
+      <span>Discover Chefs 🌟</span>
+    </button>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- TAB 1: 📸 CHEF RECIPE ACTIVITY FEED -->
+  <!-- ==================================================== -->
+  <div id="chef-tab-feed" class="chef-tab-content {% if active_tab != 'feed' %}hidden{% endif %} space-y-6">
+    {% if chef_feed %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for post in chef_feed %}
+          <div class="bg-surface-container-lowest rounded-3xl overflow-hidden ambient-shadow border border-outline-variant/30 flex flex-col justify-between group transition-all hover:border-primary/40">
+            
+            <!-- Feed Post Header (Chef info + Follow badge) -->
+            <div class="p-4 flex items-center justify-between border-b border-outline-variant/10">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-primary p-0.5 shadow-sm">
+                  <div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-primary font-bold text-sm">
+                    {{ post.creator_chef_name[5] if post.creator_chef_name|length > 5 else 'C' }}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-on-surface leading-tight">{{ post.creator_chef_name }}</h4>
+                  <span class="text-[10px] text-on-surface-variant">{{ post.creator_handle }}</span>
+                </div>
+              </div>
+
+              {% if post.is_followed_creator %}
+                <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                  <span class="material-symbols-outlined text-[12px]">check</span>
+                  <span>Following</span>
+                </span>
+              {% else %}
+                <form method="post" action="/chefs/follow" class="m-0">
+                  <input type="hidden" name="chef_id" value="{{ post.user_id }}">
+                  <button type="submit" class="bg-primary/10 hover:bg-primary hover:text-white text-primary text-[10px] font-bold px-3 py-1 rounded-full transition-all">
+                    Follow ➕
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+
+            <!-- Feed Post Image -->
+            <div class="relative h-64 bg-surface-container overflow-hidden cursor-pointer" onclick="openRecipeModal('{{ post.name }}')">
+              {% if post.image %}
+                <img 
+                  src="{{ post.image if post.image.startswith('http') else url_for('static', filename=post.image) }}" 
+                  alt="{{ post.name }}" 
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';"
+                >
+              {% else %}
+                <div class="w-full h-full bg-amber-50 flex flex-col items-center justify-center text-amber-800">
+                  <span class="material-symbols-outlined text-5xl mb-1">restaurant</span>
+                  <span class="text-xs font-bold uppercase tracking-wider">{{ post.cuisine or 'Desi' }} Cuisine</span>
+                </div>
+              {% endif %}
+
+              <!-- Badges over image -->
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg capitalize">
+                  {{ post.cuisine or 'Desi' }}
+                </span>
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-lg uppercase {% if post.type == 'veg' %}bg-emerald-600 text-white{% else %}bg-amber-600 text-white{% endif %}">
+                  {{ 'Veg' if post.type == 'veg' else 'Meat' }}
+                </span>
+              </div>
+
+              <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white text-[10px] font-medium px-2.5 py-1 rounded-lg">
+                ⏱️ {{ post.cook_time or '30 mins' }} • 👥 {{ post.servings or '4 servings' }}
+              </div>
+            </div>
+
+            <!-- Feed Post Content -->
+            <div class="p-5 space-y-3">
+              <div>
+                <h3 class="font-headline text-lg font-bold text-on-surface group-hover:text-primary transition-colors cursor-pointer" onclick="openRecipeModal('{{ post.name }}')">
+                  {{ post.name }}
+                </h3>
+                {% if post.description %}
+                  <p class="text-xs text-on-surface-variant mt-1 line-clamp-2 leading-relaxed">
+                    {{ post.description }}
+                  </p>
+                {% endif %}
+              </div>
+
+              <!-- Quick Action Buttons -->
+              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/10">
+                <button 
+                  type="button" 
+                  onclick="openRecipeModal('{{ post.name }}')"
+                  class="w-full bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center space-x-1"
+                >
+                  <span class="material-symbols-outlined text-[15px]">menu_book</span>
+                  <span>View Recipe 📖</span>
+                </button>
+
+                <form method="post" action="/recipes/clone_public" class="m-0">
+                  <input type="hidden" name="name" value="{{ post.name }}">
+                  <input type="hidden" name="type" value="{{ post.type }}">
+                  <input type="hidden" name="serve_with" value="{{ post.serve_with }}">
+                  <input type="hidden" name="category" value="{{ post.category }}">
+                  <input type="hidden" name="style" value="{{ post.style }}">
+                  <input type="hidden" name="course" value="{{ post.course }}">
+                  <input type="hidden" name="cuisine" value="{{ post.cuisine or 'desi' }}">
+                  <input type="hidden" name="image" value="{{ post.image or '' }}">
+                  <input type="hidden" name="prep_time" value="{{ post.prep_time or '15 mins' }}">
+                  <input type="hidden" name="cook_time" value="{{ post.cook_time or '30 mins' }}">
+                  <input type="hidden" name="servings" value="{{ post.servings or '4 servings' }}">
+                  <input type="hidden" name="ingredients" value="{{ post.ingredients or '' }}">
+                  <input type="hidden" name="instructions" value="{{ post.instructions or '' }}">
+                  <input type="hidden" name="tips" value="{{ post.tips or '' }}">
+                  <button type="submit" class="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold py-2 px-3 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-1">
+                    <span class="material-symbols-outlined text-[15px]">bookmark_add</span>
+                    <span>Save Dish</span>
+                  </button>
+                </form>
+              </div>
+
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-12 text-on-surface-variant bg-surface-container-lowest rounded-3xl border border-outline-variant/30 p-8 space-y-3">
+        <span class="material-symbols-outlined text-5xl text-primary/40">diversity_3</span>
+        <h3 class="font-headline text-lg font-bold text-on-surface">No Followed Chef Activity Yet</h3>
+        <p class="text-xs text-on-surface-variant max-w-md mx-auto">
+          Start following fellow foodies, friends, and community master chefs to see their daily cooked dishes and secret recipes in your live feed!
+        </p>
+        <button type="button" onclick="switchChefTab('discover')" class="bg-primary text-white text-xs font-bold py-2.5 px-6 rounded-xl shadow-sm hover:bg-primary/90 transition-all">
+          Explore Trending Chefs 🌟
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- TAB 2: 👥 FOLLOWING CHEFS -->
+  <!-- ==================================================== -->
+  <div id="chef-tab-following" class="chef-tab-content {% if active_tab != 'following' %}hidden{% endif %} space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface flex items-center space-x-2">
+        <span class="material-symbols-outlined text-primary text-[22px]">group</span>
+        <span>Chefs You Follow ({{ following | length }})</span>
+      </h2>
+      <span class="text-xs text-on-surface-variant font-medium">Your culinary inner circle</span>
+    </div>
+
+    {% if following %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for chef in following %}
+          <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/30 ambient-shadow flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-primary p-0.5 shadow-sm">
+                    <div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-primary font-bold text-base">
+                      {{ chef.chef_name[5] if chef.chef_name|length > 5 else 'C' }}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 class="text-xs md:text-sm font-bold text-on-surface">{{ chef.chef_name }}</h3>
+                    <span class="text-[11px] text-on-surface-variant block">{{ chef.handle }}</span>
+                    {% if chef.follows_you %}
+                      <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-block mt-0.5">
+                        Follows you 🤝
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <form method="post" action="/chefs/unfollow" class="m-0">
+                  <input type="hidden" name="chef_id" value="{{ chef.id }}">
+                  <button type="submit" class="bg-surface-container hover:bg-rose-50 hover:text-rose-700 text-on-surface-variant text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all" onclick="return confirm('Unfollow {{ chef.chef_name }}?')">
+                    Unfollow
+                  </button>
+                </form>
+              </div>
+
+              <p class="text-[11px] text-amber-900 font-medium mt-2 bg-amber-50/60 p-1.5 px-2.5 rounded-lg border border-amber-100 line-clamp-1">
+                {{ chef.title }}
+              </p>
+
+              <!-- Recent Dishes Badges -->
+              {% if chef.recent_dishes %}
+                <div class="mt-3 space-y-1">
+                  <span class="text-[10px] uppercase font-bold text-on-surface-variant block">Recent Dishes</span>
+                  <div class="flex flex-wrap gap-1">
+                    {% for d in chef.recent_dishes %}
+                      <button type="button" onclick="openRecipeModal('{{ d.name }}')" class="text-[10px] font-medium bg-surface-container-high hover:bg-primary/10 hover:text-primary px-2 py-0.5 rounded-md transition-colors truncate max-w-[150px]">
+                        {{ d.name }}
+                      </button>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-on-surface-variant pt-2 border-t border-outline-variant/10">
+              <span>📖 {{ chef.recipe_count }} Recipes</span>
+              <span>👥 {{ chef.followers_count }} Followers</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-10 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 space-y-2">
+        <span class="material-symbols-outlined text-4xl text-outline">group_off</span>
+        <h3 class="font-headline text-base font-bold text-on-surface">You are not following any chefs yet</h3>
+        <p class="text-xs text-on-surface-variant max-w-sm mx-auto">
+          Discover master chefs below or enter a friend's email above to follow their culinary creations!
+        </p>
+        <button type="button" onclick="switchChefTab('discover')" class="mt-2 bg-primary text-white text-xs font-bold py-2 px-5 rounded-xl shadow-sm">
+          Discover Chefs 🌟
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- TAB 3: 💖 CHEF FOLLOWERS -->
+  <!-- ==================================================== -->
+  <div id="chef-tab-followers" class="chef-tab-content {% if active_tab != 'followers' %}hidden{% endif %} space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface flex items-center space-x-2">
+        <span class="material-symbols-outlined text-primary text-[22px]">favorite</span>
+        <span>Chefs Following You ({{ followers | length }})</span>
+      </h2>
+      <span class="text-xs text-on-surface-variant font-medium">Foodies inspired by your cookbook</span>
+    </div>
+
+    {% if followers %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for follower in followers %}
+          <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/30 ambient-shadow flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 p-0.5 shadow-sm">
+                    <div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-primary font-bold text-base">
+                      {{ follower.chef_name[5] if follower.chef_name|length > 5 else 'C' }}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 class="text-xs md:text-sm font-bold text-on-surface">{{ follower.chef_name }}</h3>
+                    <span class="text-[11px] text-on-surface-variant block">{{ follower.handle }}</span>
+                  </div>
+                </div>
+
+                {% if follower.is_following %}
+                  <span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1.5 rounded-xl">
+                    Mutual 🤝
+                  </span>
+                {% else %}
+                  <form method="post" action="/chefs/follow" class="m-0">
+                    <input type="hidden" name="chef_id" value="{{ follower.id }}">
+                    <button type="submit" class="bg-primary hover:bg-primary/90 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-xl shadow-sm transition-all flex items-center space-x-1">
+                      <span>Follow Back</span>
+                      <span class="material-symbols-outlined text-[13px]">add</span>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+
+              <p class="text-[11px] text-amber-900 font-medium mt-2 bg-amber-50/60 p-1.5 px-2.5 rounded-lg border border-amber-100 line-clamp-1">
+                {{ follower.title }}
+              </p>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-on-surface-variant pt-2 border-t border-outline-variant/10">
+              <span>📖 {{ follower.recipe_count }} Recipes</span>
+              <span>👥 {{ follower.followers_count }} Followers</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-10 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 space-y-2">
+        <span class="material-symbols-outlined text-4xl text-outline">favorite_border</span>
+        <h3 class="font-headline text-base font-bold text-on-surface">No followers yet</h3>
+        <p class="text-xs text-on-surface-variant max-w-sm mx-auto">
+          Share your recipes with the community or invite kitchen friends by email to build your chef following!
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- TAB 4: 🌟 DISCOVER CHEFS & CULINARY CREATORS -->
+  <!-- ==================================================== -->
+  <div id="chef-tab-discover" class="chef-tab-content {% if active_tab != 'discover' %}hidden{% endif %} space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-headline text-lg md:text-xl font-bold text-on-surface flex items-center space-x-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">explore</span>
+          <span>Discover Top Community Chefs</span>
+        </h2>
+        <p class="text-xs text-on-surface-variant">Explore trending recipe authors, cuisine specialists, and home bistro creators</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for chef in discover_chefs %}
+        <div class="bg-surface-container-lowest rounded-3xl p-5 border border-outline-variant/30 ambient-shadow flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
+          <div>
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-primary to-rose-500 p-0.5 shadow-sm">
+                  <div class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary font-black text-base">
+                    {{ chef.chef_name[5] if chef.chef_name|length > 5 else 'C' }}
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-xs md:text-sm font-bold text-on-surface">{{ chef.chef_name }}</h3>
+                  <span class="text-[11px] text-on-surface-variant block">{{ chef.handle }}</span>
+                </div>
+              </div>
+
+              {% if not chef.is_virtual %}
+                <form method="post" action="/chefs/follow" class="m-0">
+                  <input type="hidden" name="chef_id" value="{{ chef.id }}">
+                  <button type="submit" class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-1.5 rounded-xl shadow-sm transition-all flex items-center space-x-1">
+                    <span>Follow ➕</span>
+                  </button>
+                </form>
+              {% else %}
+                <form method="post" action="/chefs/follow" class="m-0">
+                  <input type="hidden" name="chef_email" value="{{ chef.email }}">
+                  <button type="submit" class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-1.5 rounded-xl shadow-sm transition-all flex items-center space-x-1">
+                    <span>Follow ➕</span>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+
+            <p class="text-[11px] text-amber-950 font-semibold mt-3 bg-amber-50/80 p-2 rounded-xl border border-amber-200/80">
+              {{ chef.title }}
+            </p>
+
+            {% if chef.specialty %}
+              <p class="text-[11px] text-on-surface-variant mt-2">
+                Specialty: <strong>{{ chef.specialty }}</strong>
+              </p>
+            {% endif %}
+
+            <!-- Signature Dishes Preview -->
+            {% if chef.recent_dishes %}
+              <div class="mt-3 space-y-1.5">
+                <span class="text-[10px] uppercase font-bold text-on-surface-variant block">Signature Dishes</span>
+                <div class="flex flex-wrap gap-1.5">
+                  {% for d in chef.recent_dishes %}
+                    <button type="button" onclick="openRecipeModal('{{ d.name }}')" class="text-[10px] font-medium bg-surface-container hover:bg-primary/10 hover:text-primary px-2.5 py-1 rounded-lg transition-colors truncate max-w-[170px] border border-outline-variant/20 flex items-center space-x-1">
+                      <span>🍽️</span>
+                      <span>{{ d.name }}</span>
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-on-surface-variant pt-3 border-t border-outline-variant/10">
+            <span>📖 {{ chef.recipe_count }} Recipes</span>
+            <span>👥 {{ chef.followers_count }} Followers</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- 📖 REUSABLE KITCHN RECIPE MODAL -->
+<div id="recipe-modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fade-in">
+  <div id="recipe-modal-content" class="bg-surface-container-lowest w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-outline-variant/30 max-h-[90vh] flex flex-col transform transition-transform scale-95 duration-200">
+    
+    <!-- Modal Header with Image & Title -->
+    <div class="relative bg-surface-container-high shrink-0">
+      <div class="h-48 md:h-60 relative overflow-hidden">
+        <img id="modal-image" src="" alt="Recipe" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        
+        <!-- Close Button -->
+        <button onclick="closeRecipeModal()" class="absolute top-4 right-4 bg-black/60 hover:bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-md z-10">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        <!-- Header Content Overlay -->
+        <div class="absolute bottom-4 left-4 right-4 text-white">
+          <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <span id="modal-cuisine-badge" class="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-diet-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-style-badge" class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+          </div>
+          <h2 id="modal-title" class="font-headline text-2xl md:text-3xl font-bold text-white drop-shadow-md"></h2>
+          <p id="modal-author" class="text-xs text-white/90 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Recipe Meta Summary Bar -->
+      <div class="bg-amber-50/90 border-b border-amber-200/80 px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-amber-950">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">timer</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Prep Time</span><span id="modal-prep-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">skillet</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Cook Time</span><span id="modal-cook-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">group</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Servings</span><span id="modal-servings" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">restaurant</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Serve With</span><span id="modal-serve-with" class="font-bold"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Scrollable Body -->
+    <div class="overflow-y-auto p-6 space-y-6 flex-1 bg-surface-container-lowest">
+      <p id="modal-description" class="text-xs md:text-sm text-on-surface-variant italic leading-relaxed border-l-4 border-primary pl-3"></p>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        <!-- Ingredients Checklist -->
+        <div class="md:col-span-5 bg-surface-container-low rounded-2xl p-5 border border-outline-variant/30 space-y-3">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-sm md:text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">checklist</span>
+              <span>Ingredients List</span>
+            </h3>
+            <span class="text-[10px] font-semibold text-on-surface-variant">Check as you cook</span>
+          </div>
+
+          <div id="modal-ingredients-list" class="space-y-2 text-xs text-on-surface"></div>
+
+          <!-- 1-Click Export to Shopping List -->
+          <form id="modal-export-shopping-form" method="post" action="/recipes/ingredients_to_shopping" class="m-0 pt-2 border-t border-outline-variant/20">
+            <input type="hidden" name="dish_name" id="modal-form-dish-name" value="">
+            <input type="hidden" name="ingredients" id="modal-form-ingredients" value="">
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center space-x-1.5">
+              <span class="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
+              <span>Add to What to Buy List 🛒</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Step-by-Step Instructions -->
+        <div class="md:col-span-7 space-y-4">
+          <div class="border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[20px]">menu_book</span>
+              <span>Step-by-Step Method</span>
+            </h3>
+          </div>
+
+          <div id="modal-instructions-list" class="space-y-3.5 text-xs text-on-surface leading-relaxed"></div>
+
+          <div id="modal-tip-box" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-1">
+            <span class="text-[11px] font-extrabold text-amber-900 uppercase flex items-center space-x-1">
+              <span class="material-symbols-outlined text-[16px] text-amber-600">lightbulb</span>
+              <span>Chef's Secret Tip</span>
+            </span>
+            <p id="modal-tip-text" class="text-xs text-amber-950 font-medium"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="bg-surface-container-high border-t border-outline-variant/20 p-4 px-6 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div class="flex items-center space-x-2">
+        <a id="modal-youtube-link" href="#" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">play_circle</span>
+          <span>Watch on YouTube</span>
+        </a>
+        <a href="/fridge" class="bg-surface-container-highest hover:bg-surface-container text-on-surface text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1">
+          <span class="material-symbols-outlined text-[16px]">storefront</span>
+          <span>Shop Nearby Marts 🛍️</span>
+        </a>
+      </div>
+
+      <button onclick="closeRecipeModal()" class="bg-surface-container hover:bg-surface-container-highest text-on-surface text-xs font-semibold py-2 px-5 rounded-xl transition-all">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function switchChefTab(tabName) {
+    document.querySelectorAll('.chef-tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.chef-tab-btn').forEach(btn => {
+      btn.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+      btn.classList.add('text-on-surface-variant');
+    });
+
+    const activeContent = document.getElementById('chef-tab-' + tabName);
+    const activeBtn = document.getElementById('tab-btn-' + tabName);
+    if (activeContent) activeContent.classList.remove('hidden');
+    if (activeBtn) {
+      activeBtn.classList.add('bg-primary', 'text-white', 'shadow-sm');
+      activeBtn.classList.remove('text-on-surface-variant');
+    }
+  }
+
+  // Modal Functions
+  function openRecipeModal(dishName) {
+    fetch('/recipes/card_json/' + encodeURIComponent(dishName))
+      .then(res => res.json())
+      .then(data => {
+        if (!data) return;
+
+        document.getElementById('modal-title').textContent = data.name;
+        document.getElementById('modal-author').textContent = 'Shared by ' + (data.creator_email || 'Chef Chat Community');
+        document.getElementById('modal-image').src = (data.image && data.image.startsWith('http')) ? data.image : ('/static/' + (data.image || 'images/biryani.jpg'));
+        
+        document.getElementById('modal-cuisine-badge').textContent = (data.cuisine || 'Desi').toUpperCase();
+        
+        const dietBadge = document.getElementById('modal-diet-badge');
+        dietBadge.textContent = data.type === 'veg' ? 'VEG' : 'MEAT';
+        dietBadge.className = data.type === 'veg' ? 'bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase' : 'bg-amber-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase';
+        
+        document.getElementById('modal-style-badge').textContent = (data.style || 'Rich').toUpperCase();
+
+        document.getElementById('modal-prep-time').textContent = data.prep_time || '15 mins';
+        document.getElementById('modal-cook-time').textContent = data.cook_time || '30 mins';
+        document.getElementById('modal-servings').textContent = data.servings || '4 servings';
+        document.getElementById('modal-serve-with').textContent = data.serve_with ? data.serve_with.toUpperCase() : 'ROTI / RICE';
+
+        const descElem = document.getElementById('modal-description');
+        if (data.description) {
+          descElem.textContent = '“' + data.description + '”';
+          descElem.classList.remove('hidden');
+        } else {
+          descElem.classList.add('hidden');
+        }
+
+        // Render Ingredients
+        const ingContainer = document.getElementById('modal-ingredients-list');
+        ingContainer.innerHTML = '';
+        const rawIngs = (data.ingredients || '').split(/[\n,]+/);
+        rawIngs.forEach(ing => {
+          const clean = ing.replace(/^[•\-\*\d\.\)\s]+/, '').trim();
+          if (clean) {
+            const itemDiv = document.createElement('label');
+            itemDiv.className = 'flex items-center space-x-2.5 cursor-pointer hover:bg-surface-container p-1 rounded-lg transition-colors';
+            itemDiv.innerHTML = `
+              <input type="checkbox" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-0">
+              <span>${clean}</span>
+            `;
+            ingContainer.appendChild(itemDiv);
+          }
+        });
+
+        // Set Export Form Inputs
+        document.getElementById('modal-form-dish-name').value = data.name;
+        document.getElementById('modal-form-ingredients').value = data.ingredients || '';
+
+        // Render Step-by-Step Instructions
+        const instContainer = document.getElementById('modal-instructions-list');
+        instContainer.innerHTML = '';
+        const rawSteps = (data.instructions || '').split(/\n+/);
+        let stepCount = 1;
+        rawSteps.forEach(step => {
+          const cleanStep = step.replace(/^(step\s*\d*[\:\.\-]?\s*)/i, '').trim();
+          if (cleanStep) {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'flex items-start space-x-3 bg-surface-container-low/60 rounded-xl p-3 border border-outline-variant/20';
+            stepDiv.innerHTML = `
+              <span class="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-sm">${stepCount}</span>
+              <p class="text-xs text-on-surface leading-relaxed">${cleanStep}</p>
+            `;
+            instContainer.appendChild(stepDiv);
+            stepCount++;
+          }
+        });
+
+        // Tips
+        const tipBox = document.getElementById('modal-tip-box');
+        const tipText = document.getElementById('modal-tip-text');
+        if (data.tips && data.tips.trim()) {
+          tipText.textContent = data.tips;
+          tipBox.classList.remove('hidden');
+        } else {
+          tipBox.classList.add('hidden');
+        }
+
+        // YouTube Link
+        document.getElementById('modal-youtube-link').href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(data.name + ' recipe');
+
+        // Show Modal
+        const backdrop = document.getElementById('recipe-modal-backdrop');
+        const content = document.getElementById('recipe-modal-content');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+          content.classList.remove('scale-95');
+          content.classList.add('scale-100');
+        }, 10);
+      })
+      .catch(err => console.error('Error loading recipe card:', err));
+  }
+
+  function closeRecipeModal() {
+    const backdrop = document.getElementById('recipe-modal-backdrop');
+    const content = document.getElementById('recipe-modal-content');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+      backdrop.classList.add('hidden');
+    }, 150);
+  }
+
+  document.getElementById('recipe-modal-backdrop')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeRecipeModal();
+    }
+  });
+</script>
+{% endblock %}

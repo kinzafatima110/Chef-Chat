@@ -803,42 +803,99 @@ def delete_tip_route(tip_id):
     return redirect(url_for("tips_view"))
 
 
+@app.route("/friends", methods=["GET"])
+@app.route("/chefs", methods=["GET"])
+@login_required
+def friends_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+
+    from db import (
+        get_chef_profile, get_following_chefs, get_chef_followers,
+        get_discover_chefs, get_chef_activity_feed
+    )
+
+    profile = get_chef_profile(user["id"])
+    following = get_following_chefs(user["id"])
+    followers = get_chef_followers(user["id"])
+    discover_chefs = get_discover_chefs(user["id"])
+    chef_feed = get_chef_activity_feed(user["id"])
+
+    # Determine default active tab
+    active_tab = request.args.get("tab", "feed" if (following or chef_feed) else "discover")
+
+    return render_template(
+        "friends.html",
+        profile=profile,
+        following=following,
+        followers=followers,
+        discover_chefs=discover_chefs,
+        chef_feed=chef_feed,
+        active_tab=active_tab,
+        email=user["email"]
+    )
+
+
+@app.route("/chefs/follow", methods=["POST"])
+@app.route("/friends/follow", methods=["POST"])
+@login_required
+def follow_chef_route():
+    user = current_user()
+    chef_id = request.form.get("chef_id")
+    chef_email = request.form.get("chef_email")
+
+    from db import follow_chef, follow_chef_by_email
+
+    if chef_email:
+        success, msg = follow_chef_by_email(user["id"], chef_email)
+        flash(msg)
+    elif chef_id:
+        success, msg = follow_chef(user["id"], int(chef_id))
+        flash(msg)
+    else:
+        success, msg = False, "No chef specified."
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        from flask import jsonify
+        return jsonify({"success": success, "message": msg, "is_following": True})
+
+    return redirect(request.referrer or url_for("friends_view"))
+
+
+@app.route("/chefs/unfollow", methods=["POST"])
+@app.route("/friends/unfollow", methods=["POST"])
+@login_required
+def unfollow_chef_route():
+    user = current_user()
+    chef_id = request.form.get("chef_id")
+
+    if chef_id:
+        from db import unfollow_chef
+        success, msg = unfollow_chef(user["id"], int(chef_id))
+        flash(msg)
+    else:
+        success, msg = False, "No chef specified."
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        from flask import jsonify
+        return jsonify({"success": success, "message": msg, "is_following": False})
+
+    return redirect(request.referrer or url_for("friends_view"))
+
+
 @app.route("/friends/request", methods=["POST"])
 @login_required
 def send_friend_request_route():
     user = current_user()
     friend_email = request.form.get("friend_email")
     if friend_email:
-        from db import add_friend_request
-        success, msg = add_friend_request(user["id"], friend_email)
+        from db import follow_chef_by_email
+        success, msg = follow_chef_by_email(user["id"], friend_email)
         flash(msg)
     else:
-        flash("Please enter a valid email address.")
-    return redirect(url_for("recipes_view"))
-
-
-@app.route("/friends/accept", methods=["POST"])
-@login_required
-def accept_friend_request_route():
-    user = current_user()
-    requester_id = request.form.get("requester_id")
-    if requester_id:
-        from db import accept_friend_request
-        accept_friend_request(user["id"], int(requester_id))
-        flash("Friend request accepted! 🤝 You can now see each other's custom recipes!")
-    return redirect(url_for("recipes_view"))
-
-
-@app.route("/friends/reject", methods=["POST"])
-@login_required
-def reject_friend_request_route():
-    user = current_user()
-    requester_id = request.form.get("requester_id")
-    if requester_id:
-        from db import reject_friend_request
-        reject_friend_request(user["id"], int(requester_id))
-        flash("Friend request declined/cancelled.")
-    return redirect(url_for("recipes_view"))
+        flash("Please enter a valid chef email address.")
+    return redirect(request.referrer or url_for("friends_view"))
 
 
 @app.route("/recipes/clone_public", methods=["POST"])
@@ -846,21 +903,22 @@ def reject_friend_request_route():
 @login_required
 def add_friend_suggestion_route():
     user = current_user()
-    name = request.form.get("name")
-    type_ = request.form.get("type")
-    serve_with = request.form.get("serve_with", "both")
-    category = request.form.get("category", "curry")
-    style = request.form.get("style", "rich")
-    course = request.form.get("course", "main")
-    cuisine = request.form.get("cuisine", "desi")
-    description = request.form.get("description", "")
-    prep_time = request.form.get("prep_time", "15 mins")
-    cook_time = request.form.get("cook_time", "30 mins")
-    servings = request.form.get("servings", "4 servings")
-    ingredients = request.form.get("ingredients", "")
-    instructions = request.form.get("instructions", "")
-    tips = request.form.get("tips", "")
-    
+    name = request.form.get("name", "").strip()
+    type_ = request.form.get("type", "nonveg").strip()
+    serve_with = request.form.get("serve_with", "both").strip()
+    category = request.form.get("category", "curry").strip()
+    style = request.form.get("style", "rich").strip()
+    course = request.form.get("course", "main").strip()
+    cuisine = request.form.get("cuisine", "desi").strip()
+    image = request.form.get("image", "").strip()
+    description = request.form.get("description", "").strip()
+    prep_time = request.form.get("prep_time", "15 mins").strip()
+    cook_time = request.form.get("cook_time", "30 mins").strip()
+    servings = request.form.get("servings", "4 servings").strip()
+    ingredients = request.form.get("ingredients", "").strip()
+    instructions = request.form.get("instructions", "").strip()
+    tips = request.form.get("tips", "").strip()
+
     if name and type_:
         from db import add_custom_dish
         success = add_custom_dish(
@@ -871,10 +929,10 @@ def add_friend_suggestion_route():
             is_public=0, public_status="private"
         )
         if success:
-            flash(f"Added \"{name}\" to your private recipes menu! ➕")
+            flash(f"Added \"{name}\" to your private recipes menu! 📖✨")
         else:
             flash(f"\"{name}\" is already in your recipes menu.")
-    return redirect(url_for("recipes_view"))
+    return redirect(request.referrer or url_for("recipes_view"))
 
 
 @app.route("/recipes/card_json/<path:dish_name>", methods=["GET"])
