@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Chef Chat — Recipes Hub & Community{% endblock %}
+{% block title %}Chef Chat — Recipes Hub & Written Recipes{% endblock %}
 
 {% block content %}
 <div class="space-y-stack-md py-2">
@@ -12,18 +12,18 @@
         <span>Culinary Recipes Hub</span>
       </div>
       <h1 class="font-headline text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface">
-        Recipes, Community & Creations
+        Recipes, Community & Written Guides
       </h1>
       <p class="text-xs md:text-sm text-on-surface-variant mt-1 max-w-2xl">
-        Discover community favorites, explore Recipe of the Week, manage your private cookbook, and share your signature dishes with fellow foodies.
+        Explore step-by-step written recipes, discover community creations, manage your cookbook, and export ingredients straight to your grocery list.
       </p>
     </div>
 
     <!-- Quick Jump Buttons -->
     <div class="flex flex-wrap gap-2 shrink-0">
       <a href="#add-recipe" class="inline-flex items-center space-x-1.5 bg-primary hover:bg-primary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all hover:scale-[1.02]">
-        <span class="material-symbols-outlined text-[16px]">add_circle</span>
-        <span>Add a Recipe</span>
+        <span class="material-symbols-outlined text-[16px]">post_add</span>
+        <span>Write a Recipe</span>
       </a>
       <a href="#my-recipes" class="inline-flex items-center space-x-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
         <span class="material-symbols-outlined text-[16px]">book</span>
@@ -51,11 +51,11 @@
     {% if recipe_of_the_week %}
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
         <!-- Photo -->
-        <div class="md:col-span-5 relative group overflow-hidden rounded-2xl border border-amber-200 shadow-inner bg-surface-container-low min-h-[200px] flex items-center justify-center">
+        <div class="md:col-span-5 relative group overflow-hidden rounded-2xl border border-amber-200 shadow-inner bg-surface-container-low min-h-[200px] flex items-center justify-center cursor-pointer" onclick="openRecipeModal('{{ recipe_of_the_week.name }}')">
           {% if recipe_of_the_week.image %}
             <img 
               src="{{ recipe_of_the_week.image if recipe_of_the_week.image.startswith('http') else url_for('static', filename=recipe_of_the_week.image) }}" 
-              alt="{{ recipe_of_the_week.name }}"
+              alt="{{ recipe_of_the_week.name }}" 
               class="w-full h-56 md:h-64 object-cover group-hover:scale-105 transition-transform duration-300"
               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';"
             >
@@ -68,6 +68,12 @@
           
           <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
             {{ recipe_of_the_week.cuisine | capitalize if recipe_of_the_week.cuisine else 'Desi' }}
+          </div>
+
+          <!-- Click to view overlay badge -->
+          <div class="absolute bottom-3 right-3 bg-black/70 hover:bg-black text-white text-[11px] font-bold px-2.5 py-1 rounded-lg flex items-center space-x-1 shadow-md">
+            <span class="material-symbols-outlined text-[14px]">menu_book</span>
+            <span>View Recipe 📖</span>
           </div>
         </div>
 
@@ -86,7 +92,7 @@
               </span>
             </div>
             
-            <h2 class="font-headline text-2xl md:text-3xl font-bold text-amber-950">
+            <h2 class="font-headline text-2xl md:text-3xl font-bold text-amber-950 cursor-pointer hover:text-amber-800 transition-colors" onclick="openRecipeModal('{{ recipe_of_the_week.name }}')">
               {{ recipe_of_the_week.name }}
             </h2>
             <p class="text-xs text-amber-800 mt-1 flex items-center space-x-1">
@@ -95,12 +101,23 @@
             </p>
           </div>
 
-          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-amber-200/80 text-xs text-amber-900 grid grid-cols-2 gap-2">
-            <div><span class="font-bold text-amber-950">Serve With:</span> {{ recipe_of_the_week.serve_with | capitalize if recipe_of_the_week.serve_with else 'Roti or Rice' }}</div>
-            <div><span class="font-bold text-amber-950">Category:</span> {{ recipe_of_the_week.category | capitalize if recipe_of_the_week.category else 'Curry' }}</div>
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-amber-200/80 text-xs text-amber-900 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div><span class="font-bold text-amber-950 block text-[10px] uppercase text-on-surface-variant">Prep Time</span> {{ recipe_of_the_week.prep_time or '15 mins' }}</div>
+            <div><span class="font-bold text-amber-950 block text-[10px] uppercase text-on-surface-variant">Cook Time</span> {{ recipe_of_the_week.cook_time or '30 mins' }}</div>
+            <div><span class="font-bold text-amber-950 block text-[10px] uppercase text-on-surface-variant">Servings</span> {{ recipe_of_the_week.servings or '4 servings' }}</div>
+            <div><span class="font-bold text-amber-950 block text-[10px] uppercase text-on-surface-variant">Serve With</span> {{ recipe_of_the_week.serve_with | capitalize if recipe_of_the_week.serve_with else 'Roti or Rice' }}</div>
           </div>
 
-          <div class="flex items-center space-x-3 pt-1">
+          <div class="flex flex-wrap items-center gap-2.5 pt-1">
+            <button 
+              type="button" 
+              onclick="openRecipeModal('{{ recipe_of_the_week.name }}')"
+              class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all flex items-center space-x-1.5 hover:scale-[1.02]"
+            >
+              <span class="material-symbols-outlined text-[16px]">menu_book</span>
+              <span>View Full Written Recipe 📖</span>
+            </button>
+
             <form method="post" action="/recipes/clone_public" class="m-0">
               <input type="hidden" name="name" value="{{ recipe_of_the_week.name }}">
               <input type="hidden" name="type" value="{{ recipe_of_the_week.type }}">
@@ -110,7 +127,13 @@
               <input type="hidden" name="course" value="{{ recipe_of_the_week.course }}">
               <input type="hidden" name="cuisine" value="{{ recipe_of_the_week.cuisine or 'desi' }}">
               <input type="hidden" name="image" value="{{ recipe_of_the_week.image or '' }}">
-              <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all flex items-center space-x-1.5 hover:scale-[1.02]">
+              <input type="hidden" name="prep_time" value="{{ recipe_of_the_week.prep_time or '15 mins' }}">
+              <input type="hidden" name="cook_time" value="{{ recipe_of_the_week.cook_time or '30 mins' }}">
+              <input type="hidden" name="servings" value="{{ recipe_of_the_week.servings or '4 servings' }}">
+              <input type="hidden" name="ingredients" value="{{ recipe_of_the_week.ingredients or '' }}">
+              <input type="hidden" name="instructions" value="{{ recipe_of_the_week.instructions or '' }}">
+              <input type="hidden" name="tips" value="{{ recipe_of_the_week.tips or '' }}">
+              <button type="submit" class="bg-white hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center space-x-1.5">
                 <span class="material-symbols-outlined text-[16px]">bookmark_add</span>
                 <span>Add to My Recipes ➕</span>
               </button>
@@ -138,7 +161,7 @@
           <span>Public Community Recipes</span>
         </h2>
         <p class="text-xs text-on-surface-variant mt-0.5">
-          Handcrafted dishes shared by home chefs & food enthusiasts worldwide.
+          Handcrafted dishes & written recipes shared by home chefs & food enthusiasts worldwide.
         </p>
       </div>
 
@@ -171,7 +194,7 @@
           <div class="public-recipe-card bg-surface-container-lowest hover:bg-surface-container-low rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" data-cuisine="{{ (r.cuisine or 'desi') | lower }}" data-name="{{ r.name | lower }}">
             <div>
               <!-- Dish Image with Overlay Badges -->
-              <div class="relative h-44 bg-surface-container overflow-hidden">
+              <div class="relative h-44 bg-surface-container overflow-hidden cursor-pointer" onclick="openRecipeModal('{{ r.name }}')">
                 {% if r.image %}
                   <img 
                     src="{{ r.image if r.image.startswith('http') else url_for('static', filename=r.image) }}" 
@@ -203,13 +226,14 @@
 
               <!-- Card Body -->
               <div class="p-4 space-y-2">
-                <h3 class="font-headline text-base font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+                <h3 class="font-headline text-base font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1 cursor-pointer" onclick="openRecipeModal('{{ r.name }}')">
                   {{ r.name }}
                 </h3>
 
                 <div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+                  <span>⏱️ {{ r.cook_time or '30 mins' }}</span>
+                  <span>👥 {{ r.servings or '4 servings' }}</span>
                   <span>Serve: <strong>{{ r.serve_with | capitalize }}</strong></span>
-                  <span>Style: <strong>{{ r.style | capitalize }}</strong></span>
                 </div>
 
                 <div class="text-[11px] text-on-surface-variant/80 truncate flex items-center space-x-1 pt-1 border-t border-outline-variant/10">
@@ -220,13 +244,17 @@
             </div>
 
             <!-- Card Action Footer -->
-            <div class="p-4 pt-0">
-              {% if r.creator_email == email %}
-                <div class="bg-primary/10 text-primary text-center py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center space-x-1">
-                  <span class="material-symbols-outlined text-[15px]">check_circle</span>
-                  <span>Your Shared Recipe</span>
-                </div>
-              {% else %}
+            <div class="p-4 pt-0 space-y-2">
+              <button 
+                type="button" 
+                onclick="openRecipeModal('{{ r.name }}')"
+                class="w-full bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center space-x-1"
+              >
+                <span class="material-symbols-outlined text-[15px]">menu_book</span>
+                <span>View Full Recipe 📖</span>
+              </button>
+
+              {% if r.creator_email != email %}
                 <form method="post" action="/recipes/clone_public" class="m-0">
                   <input type="hidden" name="name" value="{{ r.name }}">
                   <input type="hidden" name="type" value="{{ r.type }}">
@@ -236,9 +264,15 @@
                   <input type="hidden" name="course" value="{{ r.course }}">
                   <input type="hidden" name="cuisine" value="{{ r.cuisine or 'desi' }}">
                   <input type="hidden" name="image" value="{{ r.image or '' }}">
-                  <button type="submit" class="w-full bg-surface-container-high hover:bg-primary hover:text-white text-on-surface text-xs font-bold py-2 px-3 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-1">
-                    <span class="material-symbols-outlined text-[15px]">add_circle</span>
-                    <span>Add to My Recipes ➕</span>
+                  <input type="hidden" name="prep_time" value="{{ r.prep_time or '15 mins' }}">
+                  <input type="hidden" name="cook_time" value="{{ r.cook_time or '30 mins' }}">
+                  <input type="hidden" name="servings" value="{{ r.servings or '4 servings' }}">
+                  <input type="hidden" name="ingredients" value="{{ r.ingredients or '' }}">
+                  <input type="hidden" name="instructions" value="{{ r.instructions or '' }}">
+                  <input type="hidden" name="tips" value="{{ r.tips or '' }}">
+                  <button type="submit" class="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold py-1.5 px-3 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-1">
+                    <span class="material-symbols-outlined text-[14px]">add_circle</span>
+                    <span>Save to My Recipes</span>
                   </button>
                 </form>
               {% endif %}
@@ -284,7 +318,7 @@
           {% for dish in my_recipes %}
             <div class="bg-surface-container-low rounded-2xl p-3.5 border border-outline-variant/20 flex gap-3 items-center justify-between hover:border-primary/30 transition-all">
               <!-- Thumbnail -->
-              <div class="w-14 h-14 rounded-xl overflow-hidden bg-surface-container shrink-0 border border-outline-variant/20 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-xl overflow-hidden bg-surface-container shrink-0 border border-outline-variant/20 flex items-center justify-center cursor-pointer" onclick="openRecipeModal('{{ dish.name }}')">
                 {% if dish.image %}
                   <img 
                     src="{{ dish.image if dish.image.startswith('http') else url_for('static', filename=dish.image) }}" 
@@ -299,10 +333,8 @@
 
               <!-- Info -->
               <div class="min-w-0 flex-1">
-                <div class="flex items-center space-x-1.5 mb-0.5">
-                  <h4 class="text-xs font-bold text-on-surface truncate">{{ dish.name }}</h4>
-                </div>
-                <div class="flex flex-wrap items-center gap-1">
+                <h4 class="text-xs font-bold text-on-surface truncate cursor-pointer hover:text-primary" onclick="openRecipeModal('{{ dish.name }}')">{{ dish.name }}</h4>
+                <div class="flex flex-wrap items-center gap-1 my-1">
                   <span class="text-[9px] font-bold px-1.5 py-0.2 rounded capitalize bg-surface-container text-on-surface-variant">
                     {{ dish.cuisine or 'Desi' }}
                   </span>
@@ -321,6 +353,10 @@
                     </span>
                   {% endif %}
                 </div>
+                <button type="button" onclick="openRecipeModal('{{ dish.name }}')" class="text-[11px] font-bold text-primary hover:underline inline-flex items-center space-x-0.5">
+                  <span>View Recipe Card</span>
+                  <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                </button>
               </div>
 
               <!-- Delete Action -->
@@ -336,7 +372,7 @@
       {% else %}
         <div class="text-center py-10 text-on-surface-variant">
           <span class="material-symbols-outlined text-4xl mb-2 text-outline">menu_book</span>
-          <p class="text-xs italic">No custom recipes added yet. Use the form below to create your first dish!</p>
+          <p class="text-xs italic">No custom recipes added yet. Use the form below to write your first recipe!</p>
         </div>
       {% endif %}
     </div>
@@ -382,22 +418,22 @@
 
   </div>
 
-  <!-- ➕ SECTION 4: ADD A RECIPE FORM -->
+  <!-- ➕ SECTION 4: ADD A FULL WRITTEN RECIPE FORM -->
   <div id="add-recipe" class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border-2 border-primary/20 space-y-6">
     <div class="border-b border-outline-variant/20 pb-4">
       <div class="inline-flex items-center space-x-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-1.5">
-        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+        <span class="material-symbols-outlined text-[16px]">post_add</span>
         <span>Recipe Creation Studio</span>
       </div>
       <h2 class="font-headline text-xl md:text-2xl font-bold text-on-surface">
-        Add a New Recipe
+        Write a Full Recipe (The Kitchn Format)
       </h2>
       <p class="text-xs md:text-sm text-on-surface-variant mt-0.5">
-        Add your own household recipe, upload a photo or paste an image link, and optionally share it with the Chef Chat community.
+        Write your recipe with structured ingredients, step-by-step cooking directions, prep times, and photos.
       </p>
     </div>
 
-    <form method="post" action="/recipes/add" enctype="multipart/form-data" class="m-0 space-y-5">
+    <form method="post" action="/recipes/add" enctype="multipart/form-data" class="m-0 space-y-6">
       
       <!-- Row 1: Dish Name & Cuisine -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -410,7 +446,7 @@
             type="text" 
             name="name" 
             id="dish-name-input" 
-            placeholder="e.g., Mom's Special Chicken Handi, Kung Pao Chicken, Beef Lasagna" 
+            placeholder="e.g., Authentic Chicken Handi, Kung Pao Chicken, Creamy Alfredo Pasta" 
             list="existing-dishes-list" 
             required 
             autocomplete="off" 
@@ -427,18 +463,44 @@
             <option value="desi" selected>Desi 🍛 (South Asian)</option>
             <option value="chinese">Chinese 🥢 (Wok / Asian)</option>
             <option value="continental">Continental 🥩 (Western / Italian)</option>
-            <option value="diet">Diet & Light 🥗 (Healthy / Keto)</option>
+            <option value="diet">Diet & Light 🥗 (Healthy / Clean)</option>
           </select>
         </div>
 
       </div>
 
-      <!-- Row 2: Diet, Serve With, Course, Meal Style, Category -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <!-- Row 2: Short Description / Story -->
+      <div>
+        <label class="block text-xs font-bold text-on-surface mb-1">Recipe Overview & Description (Optional)</label>
+        <textarea 
+          name="description" 
+          rows="2" 
+          placeholder="Brief intro or story about this dish (e.g. A rich, creamy handi infused with roasted cumin, fenugreek leaves, and fresh cream. Best enjoyed with tandoori naan.)" 
+          class="w-full text-xs p-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary"
+        ></textarea>
+      </div>
+
+      <!-- Row 3: Timings, Servings, Diet, Serve With, Course, Style, Category -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
         
         <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">⏱️ Prep Time</label>
+          <input type="text" name="prep_time" value="15 mins" placeholder="15 mins" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">🍳 Cook Time</label>
+          <input type="text" name="cook_time" value="30 mins" placeholder="30 mins" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-on-surface mb-1">👥 Servings</label>
+          <input type="text" name="servings" value="4 servings" placeholder="4 servings" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
+        </div>
+
+        <div>
           <label class="block text-xs font-semibold text-on-surface mb-1">Diet Type</label>
-          <select name="type" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+          <select name="type" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
             <option value="nonveg" selected>Meat 🍗</option>
             <option value="veg">Non-Meat 🥦</option>
           </select>
@@ -446,52 +508,112 @@
 
         <div>
           <label class="block text-xs font-semibold text-on-surface mb-1">Serve With</label>
-          <select name="serve_with" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+          <select name="serve_with" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
             <option value="both" selected>Roti or Rice 🍛</option>
             <option value="roti">Roti Only 🫓</option>
             <option value="rice">Rice Only 🍚</option>
-            <option value="none">None / Standalone 🍽️</option>
+            <option value="none">None 🍽️</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-on-surface mb-1">Course Level</label>
-          <select name="course" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
-            <option value="main" selected>Main Course 🍲</option>
-            <option value="side">Side Dish / Snack 🍟</option>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Course</label>
+          <select name="course" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
+            <option value="main" selected>Main 🍲</option>
+            <option value="side">Side / Snack 🍟</option>
             <option value="dessert">Dessert 🍨</option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-on-surface mb-1">Meal Style</label>
-          <select name="style" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
+          <select name="style" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
             <option value="rich">Rich & Gravy 🧈</option>
             <option value="light" selected>Light & Healthy 🥗</option>
           </select>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-on-surface mb-1">Category Tag</label>
-          <select name="category" class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary">
-            <option value="curry" selected>Curry 🍛</option>
-            <option value="karahi">Karahi 🍳</option>
-            <option value="rice-dish">Rice Dish 🌾</option>
-            <option value="sabzi">Sabzi 🥦</option>
-            <option value="bbq">Barbeque 🍢</option>
-            <option value="stir-fry">Stir Fry / Noodles 🥢</option>
-            <option value="pasta">Pasta / Italian 🍝</option>
-            <option value="steak">Steak / Continental 🥩</option>
-            <option value="salad">Salad / Healthy 🥗</option>
-            <option value="snack">Snack 🍿</option>
-            <option value="sweet">Sweet 🍬</option>
-            <option value="quick">Quick Meal ⏱️</option>
-          </select>
+      </div>
+
+      <!-- Row 4: Category Tag -->
+      <div>
+        <label class="block text-xs font-semibold text-on-surface mb-1">Category Tag</label>
+        <select name="category" class="w-full max-w-xs text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary">
+          <option value="curry" selected>Curry / Handi 🍛</option>
+          <option value="karahi">Karahi 🍳</option>
+          <option value="rice-dish">Rice Dish 🌾</option>
+          <option value="sabzi">Sabzi 🥦</option>
+          <option value="bbq">Barbeque 🍢</option>
+          <option value="stir-fry">Stir Fry / Noodles 🥢</option>
+          <option value="pasta">Pasta / Italian 🍝</option>
+          <option value="steak">Steak / Continental 🥩</option>
+          <option value="salad">Salad / Healthy 🥗</option>
+          <option value="snack">Snack 🍿</option>
+          <option value="sweet">Sweet 🍬</option>
+          <option value="quick">Quick Meal ⏱️</option>
+        </select>
+      </div>
+
+      <!-- 📝 Row 5: SEPARATE INGREDIENTS WRITING & STEP-BY-STEP INSTRUCTIONS (The Kitchn Layout) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+        
+        <!-- Ingredients Writer Column -->
+        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">checklist</span>
+              <span>1. Ingredients List (Write 1 item per line)</span>
+            </label>
+            <span class="text-[10px] text-on-surface-variant">Include quantities</span>
+          </div>
+          
+          <textarea 
+            name="ingredients" 
+            rows="8" 
+            required
+            placeholder="e.g.&#10;500g Boneless Chicken, cut into cubes&#10;2 tbsp Cooking Oil or Desi Ghee&#10;1 large Onion, finely sliced&#10;1 tbsp Ginger Garlic Paste&#10;1 cup Plain Yogurt (Dahi), whisked&#10;2 Tomatoes, pureed&#10;1 tsp Red Chili Powder&#10;1 tsp Roasted Cumin Powder&#10;1/2 tsp Garam Masala&#10;Fresh Coriander & Green Chilies for garnish" 
+            class="w-full text-xs p-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono leading-relaxed"
+          ></textarea>
+          <span class="text-[11px] text-on-surface-variant block">Tip: Ingredients can be exported directly into your What to Buy grocery list with 1-click!</span>
+        </div>
+
+        <!-- Step-by-Step Instructions Writer Column -->
+        <div class="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">format_list_numbered</span>
+              <span>2. Step-by-Step Instructions</span>
+            </label>
+            <span class="text-[10px] text-on-surface-variant">Step by step method</span>
+          </div>
+          
+          <textarea 
+            name="instructions" 
+            rows="8" 
+            required
+            placeholder="e.g.&#10;Step 1: Heat cooking oil in a clay handi or deep wok over medium heat.&#10;Step 2: Add sliced onions and fry for 5-6 minutes until soft and golden amber.&#10;Step 3: Add ginger garlic paste and sauté for 1 minute until fragrant.&#10;Step 4: Add chicken cubes and sear on high heat until the color turns white.&#10;Step 5: Stir in tomato puree, whisked yogurt, and all powdered spices. Mix well.&#10;Step 6: Cover and simmer on low heat (dum) for 15 minutes until chicken is tender and oil separates.&#10;Step 7: Finish with kasuri methi, garam masala, and fresh coriander. Serve hot!" 
+            class="w-full text-xs p-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono leading-relaxed"
+          ></textarea>
+          <span class="text-[11px] text-on-surface-variant block">Tip: Write clear, numbered steps for home cooks to follow along.</span>
         </div>
 
       </div>
 
-      <!-- Row 3: Photo Upload / Photo URL -->
+      <!-- Row 6: Chef's Secret Tips (Optional) -->
+      <div>
+        <label class="block text-xs font-bold text-on-surface mb-1 flex items-center space-x-1">
+          <span class="material-symbols-outlined text-amber-600 text-[16px]">lightbulb</span>
+          <span>Chef's Secret Tips & Variations (Optional)</span>
+        </label>
+        <input 
+          type="text" 
+          name="tips" 
+          placeholder="e.g. For extra restaurant aroma, smoke with a piece of glowing charcoal for 2 minutes before serving!" 
+          class="w-full text-xs p-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary"
+        >
+      </div>
+
+      <!-- Row 7: Photo Upload / Photo URL -->
       <div class="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30 space-y-3">
         <label class="block text-xs font-bold text-on-surface flex items-center space-x-1.5">
           <span class="material-symbols-outlined text-primary text-[18px]">add_a_photo</span>
@@ -523,7 +645,7 @@
         </div>
       </div>
 
-      <!-- Row 4: Make Recipe Public Checkbox & Sharing -->
+      <!-- Row 8: Make Recipe Public Checkbox & Sharing -->
       <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
         <div class="pt-0.5">
           <input 
@@ -536,10 +658,10 @@
         </div>
         <div>
           <label for="is_public" class="text-xs font-bold text-amber-950 cursor-pointer flex items-center space-x-1">
-            <span>Request to make this recipe Public for the Chef Chat community 🌟</span>
+            <span>Request to make this written recipe Public for the Chef Chat community 🌟</span>
           </label>
           <p class="text-[11px] text-amber-800/90 mt-0.5 leading-relaxed">
-            When checked, your recipe will appear on the Public Community Recipes board where other foodies can discover, clone, and cook it. It also becomes eligible for <strong>Recipe of the Week</strong>!
+            When checked, your recipe and step-by-step instructions will appear on the Public Community board where other foodies can cook it, and it becomes eligible for <strong>Recipe of the Week</strong>!
           </p>
         </div>
       </div>
@@ -551,8 +673,8 @@
           id="submit-dish-btn" 
           class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white text-xs font-bold py-3 px-8 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 hover:scale-[1.02]"
         >
-          <span class="material-symbols-outlined text-[18px]">add_circle</span>
-          <span>Save Recipe to Kitchen 🍽️</span>
+          <span class="material-symbols-outlined text-[18px]">post_add</span>
+          <span>Publish & Save Recipe 🍽️</span>
         </button>
       </div>
 
@@ -585,7 +707,7 @@
             <div class="bg-surface-container-low rounded-xl p-3 border border-outline-variant/20 flex flex-col justify-between">
               <div>
                 <div class="flex items-start justify-between gap-1 mb-1">
-                  <h4 class="font-headline text-xs font-bold text-on-surface leading-tight">{{ suggestion.name }}</h4>
+                  <h4 class="font-headline text-xs font-bold text-on-surface leading-tight cursor-pointer hover:text-primary" onclick="openRecipeModal('{{ suggestion.name }}')">{{ suggestion.name }}</h4>
                   <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase {% if suggestion.type == 'veg' %}bg-emerald-100 text-emerald-800{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
                     {{ 'Veg' if suggestion.type == 'veg' else 'Meat' }}
                   </span>
@@ -593,19 +715,24 @@
                 <span class="text-[10px] text-on-surface-variant block mb-2">by {{ suggestion.creator_email }}</span>
               </div>
 
-              <form method="post" action="/custom_dish/add_friend_suggestion" class="m-0 pt-2 border-t border-outline-variant/20">
-                <input type="hidden" name="name" value="{{ suggestion.name }}">
-                <input type="hidden" name="type" value="{{ suggestion.type }}">
-                <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
-                <input type="hidden" name="category" value="{{ suggestion.category }}">
-                <input type="hidden" name="style" value="{{ suggestion.style }}">
-                <input type="hidden" name="course" value="{{ suggestion.course }}">
-                <input type="hidden" name="cuisine" value="{{ suggestion.cuisine or 'desi' }}">
-                <input type="hidden" name="image" value="{{ suggestion.image or '' }}">
-                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded-lg text-xs font-bold transition-all shadow-sm">
-                  Add to My Menu ➕
+              <div class="flex items-center space-x-1.5 pt-2 border-t border-outline-variant/20">
+                <button type="button" onclick="openRecipeModal('{{ suggestion.name }}')" class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold py-1.5 px-2 rounded-lg transition-colors">
+                  View 📖
                 </button>
-              </form>
+                <form method="post" action="/custom_dish/add_friend_suggestion" class="m-0 flex-1">
+                  <input type="hidden" name="name" value="{{ suggestion.name }}">
+                  <input type="hidden" name="type" value="{{ suggestion.type }}">
+                  <input type="hidden" name="serve_with" value="{{ suggestion.serve_with }}">
+                  <input type="hidden" name="category" value="{{ suggestion.category }}">
+                  <input type="hidden" name="style" value="{{ suggestion.style }}">
+                  <input type="hidden" name="course" value="{{ suggestion.course }}">
+                  <input type="hidden" name="cuisine" value="{{ suggestion.cuisine or 'desi' }}">
+                  <input type="hidden" name="image" value="{{ suggestion.image or '' }}">
+                  <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all shadow-sm">
+                    Add ➕
+                  </button>
+                </form>
+              </div>
             </div>
           {% endfor %}
         </div>
@@ -688,6 +815,134 @@
 
 </div>
 
+<!-- 📖 THE KITCHN STYLE FULL RECIPE CARD MODAL -->
+<div id="recipe-modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fade-in">
+  <div id="recipe-modal-content" class="bg-surface-container-lowest w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-outline-variant/30 max-h-[90vh] flex flex-col transform transition-transform scale-95 duration-200">
+    
+    <!-- Modal Header with Image & Title -->
+    <div class="relative bg-surface-container-high shrink-0">
+      <div class="h-48 md:h-64 relative overflow-hidden">
+        <img id="modal-image" src="" alt="Recipe" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        
+        <!-- Close Button -->
+        <button onclick="closeRecipeModal()" class="absolute top-4 right-4 bg-black/60 hover:bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-md z-10">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        <!-- Header Content Overlay -->
+        <div class="absolute bottom-4 left-4 right-4 text-white">
+          <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <span id="modal-cuisine-badge" class="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-diet-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-style-badge" class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+          </div>
+          <h2 id="modal-title" class="font-headline text-2xl md:text-3xl font-bold text-white drop-shadow-md"></h2>
+          <p id="modal-author" class="text-xs text-white/90 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Recipe Meta Summary Bar (The Kitchn format) -->
+      <div class="bg-amber-50/90 border-b border-amber-200/80 px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-amber-950">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">timer</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Prep Time</span><span id="modal-prep-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">skillet</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Cook Time</span><span id="modal-cook-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">group</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Servings</span><span id="modal-servings" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">restaurant</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Serve With</span><span id="modal-serve-with" class="font-bold"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Scrollable Body (2-Column Kitchn Layout) -->
+    <div class="overflow-y-auto p-6 space-y-6 flex-1 bg-surface-container-lowest">
+      
+      <p id="modal-description" class="text-xs md:text-sm text-on-surface-variant italic leading-relaxed border-l-4 border-primary pl-3"></p>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Ingredients Checklist (5 cols) -->
+        <div class="md:col-span-5 bg-surface-container-low rounded-2xl p-5 border border-outline-variant/30 space-y-3">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-sm md:text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">checklist</span>
+              <span>Ingredients List</span>
+            </h3>
+            <span class="text-[10px] font-semibold text-on-surface-variant">Check as you cook</span>
+          </div>
+
+          <div id="modal-ingredients-list" class="space-y-2 text-xs text-on-surface">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- 1-Click Export to What to Buy -->
+          <form id="modal-export-shopping-form" method="post" action="/recipes/ingredients_to_shopping" class="m-0 pt-2 border-t border-outline-variant/20">
+            <input type="hidden" name="dish_name" id="modal-form-dish-name" value="">
+            <input type="hidden" name="ingredients" id="modal-form-ingredients" value="">
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center space-x-1.5">
+              <span class="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
+              <span>Add to What to Buy List 🛒</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Step-by-Step Instructions (7 cols) -->
+        <div class="md:col-span-7 space-y-4">
+          <div class="border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[20px]">menu_book</span>
+              <span>Step-by-Step Method</span>
+            </h3>
+          </div>
+
+          <div id="modal-instructions-list" class="space-y-3.5 text-xs text-on-surface leading-relaxed">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Chef's Secret Tip Callout -->
+          <div id="modal-tip-box" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-1">
+            <span class="text-[11px] font-extrabold text-amber-900 uppercase flex items-center space-x-1">
+              <span class="material-symbols-outlined text-[16px] text-amber-600">lightbulb</span>
+              <span>Chef's Secret Tip</span>
+            </span>
+            <p id="modal-tip-text" class="text-xs text-amber-950 font-medium"></p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="bg-surface-container-high border-t border-outline-variant/20 p-4 px-6 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div class="flex items-center space-x-2">
+        <a id="modal-youtube-link" href="#" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">play_circle</span>
+          <span>Watch on YouTube</span>
+        </a>
+        <a href="/fridge" class="bg-surface-container-highest hover:bg-surface-container text-on-surface text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1">
+          <span class="material-symbols-outlined text-[16px]">storefront</span>
+          <span>Shop at Nearby Marts 🛍️</span>
+        </a>
+      </div>
+
+      <button onclick="closeRecipeModal()" class="bg-surface-container hover:bg-surface-container-highest text-on-surface text-xs font-semibold py-2 px-5 rounded-xl transition-all">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <script>
   // Real-time duplicate checking
   const existing = {{ existing_names | tojson }};
@@ -714,7 +969,6 @@
 
   // Public recipe filtering
   function filterPublicRecipes(cuisine) {
-    // Update active button state
     document.querySelectorAll('.cuisine-filter-btn').forEach(btn => {
       if (btn.dataset.filter === cuisine) {
         btn.classList.add('active', 'bg-primary', 'text-white');
@@ -764,5 +1018,119 @@
       }
     }
   }
+
+  // Recipe Modal Controller
+  function openRecipeModal(dishName) {
+    fetch('/recipes/card_json/' + encodeURIComponent(dishName))
+      .then(res => res.json())
+      .then(data => {
+        if (!data) return;
+
+        document.getElementById('modal-title').textContent = data.name;
+        document.getElementById('modal-author').textContent = 'Shared by ' + (data.creator_email || 'Chef Chat Community');
+        document.getElementById('modal-image').src = (data.image && data.image.startsWith('http')) ? data.image : ('/static/' + (data.image || 'images/biryani.jpg'));
+        
+        document.getElementById('modal-cuisine-badge').textContent = (data.cuisine || 'Desi').toUpperCase();
+        
+        const dietBadge = document.getElementById('modal-diet-badge');
+        dietBadge.textContent = data.type === 'veg' ? 'VEG' : 'MEAT';
+        dietBadge.className = data.type === 'veg' ? 'bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase' : 'bg-amber-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase';
+        
+        document.getElementById('modal-style-badge').textContent = (data.style || 'Rich').toUpperCase();
+
+        document.getElementById('modal-prep-time').textContent = data.prep_time || '15 mins';
+        document.getElementById('modal-cook-time').textContent = data.cook_time || '30 mins';
+        document.getElementById('modal-servings').textContent = data.servings || '4 servings';
+        document.getElementById('modal-serve-with').textContent = data.serve_with ? data.serve_with.toUpperCase() : 'ROTI / RICE';
+
+        const descElem = document.getElementById('modal-description');
+        if (data.description) {
+          descElem.textContent = '“' + data.description + '”';
+          descElem.classList.remove('hidden');
+        } else {
+          descElem.classList.add('hidden');
+        }
+
+        // Render Ingredients
+        const ingContainer = document.getElementById('modal-ingredients-list');
+        ingContainer.innerHTML = '';
+        const rawIngs = (data.ingredients || '').split(/[\n,]+/);
+        rawIngs.forEach((ing, idx) => {
+          const clean = ing.replace(/^[•\-\*\d\.\)\s]+/, '').trim();
+          if (clean) {
+            const itemDiv = document.createElement('label');
+            itemDiv.className = 'flex items-center space-x-2.5 cursor-pointer hover:bg-surface-container p-1 rounded-lg transition-colors';
+            itemDiv.innerHTML = `
+              <input type="checkbox" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-0">
+              <span>${clean}</span>
+            `;
+            ingContainer.appendChild(itemDiv);
+          }
+        });
+
+        // Set Export Form Inputs
+        document.getElementById('modal-form-dish-name').value = data.name;
+        document.getElementById('modal-form-ingredients').value = data.ingredients || '';
+
+        // Render Step-by-Step Instructions
+        const instContainer = document.getElementById('modal-instructions-list');
+        instContainer.innerHTML = '';
+        const rawSteps = (data.instructions || '').split(/\n+/);
+        let stepCount = 1;
+        rawSteps.forEach(step => {
+          const cleanStep = step.replace(/^(step\s*\d*[\:\.\-]?\s*)/i, '').trim();
+          if (cleanStep) {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'flex items-start space-x-3 bg-surface-container-low/60 rounded-xl p-3 border border-outline-variant/20';
+            stepDiv.innerHTML = `
+              <span class="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-sm">${stepCount}</span>
+              <p class="text-xs text-on-surface leading-relaxed">${cleanStep}</p>
+            `;
+            instContainer.appendChild(stepDiv);
+            stepCount++;
+          }
+        });
+
+        // Tips
+        const tipBox = document.getElementById('modal-tip-box');
+        const tipText = document.getElementById('modal-tip-text');
+        if (data.tips && data.tips.trim()) {
+          tipText.textContent = data.tips;
+          tipBox.classList.remove('hidden');
+        } else {
+          tipBox.classList.add('hidden');
+        }
+
+        // YouTube Link
+        document.getElementById('modal-youtube-link').href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(data.name + ' recipe');
+
+        // Show Modal
+        const backdrop = document.getElementById('recipe-modal-backdrop');
+        const content = document.getElementById('recipe-modal-content');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+          content.classList.remove('scale-95');
+          content.classList.add('scale-100');
+        }, 10);
+      })
+      .catch(err => console.error('Error loading recipe card:', err));
+  }
+
+  function closeRecipeModal() {
+    const backdrop = document.getElementById('recipe-modal-backdrop');
+    const content = document.getElementById('recipe-modal-content');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+      backdrop.classList.add('hidden');
+    }, 150);
+  }
+
+  // Close modal when clicking backdrop
+  document.getElementById('recipe-modal-backdrop')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeRecipeModal();
+    }
+  });
 </script>
 {% endblock %}

@@ -378,6 +378,13 @@ def add_custom():
     style = request.form.get("style", "rich").strip()
     course = request.form.get("course", "main").strip()
     cuisine = request.form.get("cuisine", "desi").strip()
+    description = request.form.get("description", "").strip()
+    prep_time = request.form.get("prep_time", "15 mins").strip()
+    cook_time = request.form.get("cook_time", "30 mins").strip()
+    servings = request.form.get("servings", "4 servings").strip()
+    ingredients = request.form.get("ingredients", "").strip()
+    instructions = request.form.get("instructions", "").strip()
+    tips = request.form.get("tips", "").strip()
     is_public = 1 if request.form.get("is_public") == "1" else 0
     image_url = request.form.get("image_url", "").strip()
 
@@ -399,7 +406,10 @@ def add_custom():
     public_status = "approved" if is_public else "private"
     success = add_custom_dish(
         user["id"], name, type_, serve_with, category, style, course,
-        image=final_image, cuisine=cuisine, is_public=is_public, public_status=public_status
+        image=final_image, cuisine=cuisine, description=description,
+        prep_time=prep_time, cook_time=cook_time, servings=servings,
+        ingredients=ingredients, instructions=instructions, tips=tips,
+        is_public=is_public, public_status=public_status
     )
     
     from flask import flash
@@ -573,11 +583,12 @@ def fridge_view():
         return redirect(url_for("quiz_form"))
         
     from db import (
-        get_fridge_inventory, get_shopping_list, get_smart_grocery_recommendations
+        get_fridge_inventory, get_shopping_list, get_smart_grocery_recommendations, get_nearby_marts
     )
     inventory = get_fridge_inventory(user["id"])
     shopping_list = get_shopping_list(user["id"])
     recommended_to_buy = get_smart_grocery_recommendations(user["id"])
+    nearby_marts = get_nearby_marts()
     
     # Extract list of available item names for recipe matching
     available_items = [item["item_name"] for item in inventory]
@@ -598,6 +609,7 @@ def fridge_view():
         pantry_items=pantry_items,
         shopping_list=shopping_list,
         recommended_to_buy=recommended_to_buy,
+        nearby_marts=nearby_marts,
         matches=matches,
         email=user["email"]
     )
@@ -841,19 +853,137 @@ def add_friend_suggestion_route():
     style = request.form.get("style", "rich")
     course = request.form.get("course", "main")
     cuisine = request.form.get("cuisine", "desi")
-    image = request.form.get("image", "")
+    description = request.form.get("description", "")
+    prep_time = request.form.get("prep_time", "15 mins")
+    cook_time = request.form.get("cook_time", "30 mins")
+    servings = request.form.get("servings", "4 servings")
+    ingredients = request.form.get("ingredients", "")
+    instructions = request.form.get("instructions", "")
+    tips = request.form.get("tips", "")
     
     if name and type_:
         from db import add_custom_dish
         success = add_custom_dish(
             user["id"], name, type_, serve_with, category, style, course,
-            image=image, cuisine=cuisine, is_public=0, public_status="private"
+            image=image, cuisine=cuisine, description=description,
+            prep_time=prep_time, cook_time=cook_time, servings=servings,
+            ingredients=ingredients, instructions=instructions, tips=tips,
+            is_public=0, public_status="private"
         )
         if success:
             flash(f"Added \"{name}\" to your private recipes menu! ➕")
         else:
             flash(f"\"{name}\" is already in your recipes menu.")
     return redirect(url_for("recipes_view"))
+
+
+@app.route("/recipes/card_json/<path:dish_name>", methods=["GET"])
+@login_required
+def recipe_card_json(dish_name):
+    user = current_user()
+    from db import get_dish_recipe_card
+    from flask import jsonify
+    card = get_dish_recipe_card(dish_name, user_id=user["id"])
+    return jsonify(card)
+
+
+@app.route("/recipes/ingredients_to_shopping", methods=["POST"])
+@login_required
+def recipe_ingredients_to_shopping():
+    user = current_user()
+    dish_name = request.form.get("dish_name", "").strip()
+    ingredients_raw = request.form.get("ingredients", "").strip()
+    
+    if not ingredients_raw and dish_name:
+        from db import get_dish_recipe_card
+        card = get_dish_recipe_card(dish_name, user_id=user["id"])
+        ingredients_raw = card.get("ingredients", "")
+        
+    if ingredients_raw:
+        import re
+        from db import add_shopping_item
+        # Split by comma or newline
+        items = [i.strip() for i in re.split(r'[\n,]+', ingredients_raw) if i.strip()]
+        added_count = 0
+        for item in items:
+            # clean bullet points / numbers if any
+            clean_item = re.sub(r'^[•\-\*\d\.\)\s]+', '', item).strip()
+            if clean_item and len(clean_item) > 1:
+                cat = "produce"
+                item_lower = clean_item.lower()
+                if any(m in item_lower for m in ["chicken", "beef", "mutton", "meat", "fish", "prawn", "keema", "gosht"]):
+                    cat = "meat"
+                elif any(d in item_lower for d in ["milk", "yogurt", "cheese", "cream", "butter", "dahi", "paneer"]):
+                    cat = "dairy"
+                elif any(p in item_lower for p in ["rice", "daal", "lentil", "flour", "atta", "oil", "ghee", "pasta", "noodles"]):
+                    cat = "pantry"
+                elif any(s in item_lower for s in ["chili", "masala", "garam", "turmeric", "cumin", "coriander", "salt", "pepper", "sauce"]):
+                    cat = "spices"
+                    
+                add_shopping_item(user["id"], clean_item.title(), category=cat, quantity="1 unit")
+                added_count += 1
+                
+        flash(f"Added {added_count} ingredients for '{dish_name or 'Recipe'}' to your What to Buy grocery list! 🛒")
+    else:
+        flash("No ingredients found to add.")
+        
+    return redirect(request.referrer or url_for("fridge_view"))
+
+
+@app.route("/essentials")
+@app.route("/kitchen_essentials")
+@login_required
+def essentials_view():
+    user = current_user()
+    if not user["onboarded"]:
+        return redirect(url_for("quiz_form"))
+        
+    from db import (
+        get_curated_appliances, get_user_appliances, get_appliance_compatible_dishes
+    )
+    appliances = get_curated_appliances()
+    user_appliances_map = get_user_appliances(user["id"])
+    
+    # Calculate stats
+    owned_count = sum(1 for a in user_appliances_map.values() if a.get("status") == "owned")
+    wishlist_count = sum(1 for a in user_appliances_map.values() if a.get("status") == "wishlist")
+    
+    # Get compatible dishes for owned appliances
+    compatible_dishes = get_appliance_compatible_dishes(user["id"])
+    
+    return render_template(
+        "essentials.html",
+        appliances=appliances,
+        user_appliances_map=user_appliances_map,
+        owned_count=owned_count,
+        wishlist_count=wishlist_count,
+        compatible_dishes=compatible_dishes,
+        email=user["email"]
+    )
+
+
+@app.route("/essentials/toggle", methods=["POST"])
+@login_required
+def essentials_toggle():
+    user = current_user()
+    appliance_id = request.form.get("appliance_id")
+    status = request.form.get("status")  # 'owned', 'wishlist', or 'remove'
+    custom_name = request.form.get("custom_name")
+    
+    if appliance_id:
+        from db import toggle_user_appliance
+        toggle_user_appliance(user["id"], appliance_id, status, custom_name)
+        if status == "owned":
+            flash("Appliance marked as Owned! 🍳 Compatible recipes are now unlocked.")
+        elif status == "wishlist":
+            flash("Added appliance to your Kitchen Wishlist! ⭐")
+        else:
+            flash("Appliance updated.")
+            
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return {"success": True, "appliance_id": appliance_id, "status": status}
+        
+    return redirect(url_for("essentials_view"))
 
 
 if __name__ == "__main__":

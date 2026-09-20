@@ -227,6 +227,14 @@
           {% endif %}
         </a>
 
+        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path.startswith('/essentials') or request.path.startswith('/kitchen_essentials') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/essentials">
+          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path.startswith('/essentials') or request.path.startswith('/kitchen_essentials') %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">blender</span>
+          <span class="text-xs tracking-tight">Essentials</span>
+          {% if request.path.startswith('/essentials') or request.path.startswith('/kitchen_essentials') %}
+            <span class="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full"></span>
+          {% endif %}
+        </a>
+
       </nav>
     {% endif %}
   </header>
@@ -257,25 +265,29 @@
   {% if session.get('user_id') and user %}
     <!-- Mobile Bottom Navigation Bar (Fixed on Mobile) -->
     <nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 pb-safe bg-surface-container-lowest/95 backdrop-blur-md dark:bg-inverse-surface shadow-[0_-4px_16px_0_rgba(171,52,36,0.08)] rounded-t-2xl z-50 border-t border-outline-variant/30">
-      <a href="/" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path == '/' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+      <a href="/" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path == '/' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path == '/' %}fill-1{% endif %}">restaurant_menu</span>
         <span class="text-[10px] font-medium">Today</span>
       </a>
-      <a href="/quick_quiz" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path == '/quick_quiz' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+      <a href="/quick_quiz" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path == '/quick_quiz' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path == '/quick_quiz' %}fill-1{% endif %}">explore</span>
         <span class="text-[10px] font-medium">Quiz</span>
       </a>
-      <a href="/fridge" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/fridge') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+      <a href="/fridge" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path.startswith('/fridge') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/fridge') %}fill-1{% endif %}">kitchen</span>
         <span class="text-[10px] font-medium">Fridge</span>
       </a>
-      <a href="/weekly" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/weekly') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+      <a href="/weekly" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path.startswith('/weekly') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/weekly') %}fill-1{% endif %}">calendar_month</span>
         <span class="text-[10px] font-medium">Weekly</span>
       </a>
-      <a href="/recipes" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-3 rounded-xl {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+      <a href="/recipes" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/recipes') or request.path.startswith('/custom_dish') %}fill-1{% endif %}">menu_book</span>
         <span class="text-[10px] font-medium">Recipes</span>
+      </a>
+      <a href="/essentials" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2.5 rounded-xl {% if request.path.startswith('/essentials') or request.path.startswith('/kitchen_essentials') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/essentials') or request.path.startswith('/kitchen_essentials') %}fill-1{% endif %}">blender</span>
+        <span class="text-[10px] font-medium">Gear</span>
       </a>
     </nav>
   {% endif %}

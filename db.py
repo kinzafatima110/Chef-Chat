@@ -68,6 +68,13 @@ CREATE TABLE IF NOT EXISTS custom_dishes (
     course TEXT NOT NULL,
     image TEXT,
     cuisine TEXT DEFAULT 'desi',
+    description TEXT,
+    prep_time TEXT,
+    cook_time TEXT,
+    servings TEXT,
+    ingredients TEXT,
+    instructions TEXT,
+    tips TEXT,
     is_public INTEGER NOT NULL DEFAULT 0,
     public_status TEXT DEFAULT 'private',
     created_at TEXT NOT NULL,
@@ -153,6 +160,17 @@ CREATE TABLE IF NOT EXISTS shopping_list (
     created_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS user_appliances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    appliance_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'owned', -- 'owned' or 'wishlist'
+    custom_name TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, appliance_id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 """
 
 
@@ -184,6 +202,21 @@ def init_db():
         conn.execute("ALTER TABLE users ADD COLUMN preferred_cuisine TEXT DEFAULT 'all'")
         conn.commit()
 
+    # Migration: ensure user_appliances table exists
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS user_appliances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        appliance_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'owned',
+        custom_name TEXT,
+        created_at TEXT NOT NULL,
+        UNIQUE(user_id, appliance_id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+    """)
+    conn.commit()
+
     # Migration: check and add custom_dishes columns if missing
     cursor = conn.execute("PRAGMA table_info(custom_dishes)")
     cd_columns = [row[1] for row in cursor.fetchall()]
@@ -199,6 +232,18 @@ def init_db():
     if "public_status" not in cd_columns:
         conn.execute("ALTER TABLE custom_dishes ADD COLUMN public_status TEXT DEFAULT 'private'")
         conn.commit()
+    for col, col_type in [
+        ("description", "TEXT"),
+        ("prep_time", "TEXT"),
+        ("cook_time", "TEXT"),
+        ("servings", "TEXT"),
+        ("ingredients", "TEXT"),
+        ("instructions", "TEXT"),
+        ("tips", "TEXT")
+    ]:
+        if col not in cd_columns:
+            conn.execute(f"ALTER TABLE custom_dishes ADD COLUMN {col} {col_type}")
+            conn.commit()
 
     # Automatically seed master user accounts so deployments never lock you out
     from werkzeug.security import generate_password_hash
@@ -403,21 +448,30 @@ def update_weekly_day(user_id, day_index, new_dish, new_side=None):
     conn.close()
 
 
-def add_custom_dish(user_id, name, type_, serve_with, category, style, course, image=None, cuisine="desi", is_public=0, public_status="private"):
+def add_custom_dish(
+    user_id, name, type_, serve_with, category, style, course,
+    image=None, cuisine="desi", description=None, prep_time="15 mins",
+    cook_time="30 mins", servings="4 servings", ingredients=None,
+    instructions=None, tips=None, is_public=0, public_status="private"
+):
     """
-    Adds a custom user dish to their personalized inventory with optional image, cuisine, and public status.
+    Adds a custom user dish to their personalized inventory with optional image, written ingredients, instructions, and metadata.
     """
     conn = get_conn()
     now = datetime.utcnow().isoformat()
     try:
         conn.execute(
             """INSERT INTO custom_dishes (
-                user_id, name, type, serve_with, category, style, course, image, cuisine, is_public, public_status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                user_id, name, type, serve_with, category, style, course, image, cuisine,
+                description, prep_time, cook_time, servings, ingredients, instructions, tips,
+                is_public, public_status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user_id, name.strip(), type_.strip(), serve_with.strip(), category.strip(),
                 style.strip(), course.strip(), (image or "").strip(), (cuisine or "desi").strip().lower(),
-                1 if is_public else 0, public_status.strip() if is_public else "private", now
+                (description or "").strip(), (prep_time or "15 mins").strip(), (cook_time or "30 mins").strip(),
+                (servings or "4 servings").strip(), (ingredients or "").strip(), (instructions or "").strip(),
+                (tips or "").strip(), 1 if is_public else 0, public_status.strip() if is_public else "private", now
             )
         )
         conn.commit()
@@ -430,11 +484,14 @@ def add_custom_dish(user_id, name, type_, serve_with, category, style, course, i
 
 def get_custom_dishes(user_id):
     """
-    Retrieves all custom dishes created by the user.
+    Retrieves all custom dishes created by the user with full written recipe metadata.
     """
     conn = get_conn()
     rows = conn.execute(
-        "SELECT id, user_id, name, type, serve_with, category, style, course, image, cuisine, is_public, public_status, created_at FROM custom_dishes WHERE user_id = ? ORDER BY name ASC",
+        """SELECT id, user_id, name, type, serve_with, category, style, course, image, cuisine,
+                  description, prep_time, cook_time, servings, ingredients, instructions, tips,
+                  is_public, public_status, created_at 
+           FROM custom_dishes WHERE user_id = ? ORDER BY name ASC""",
         (user_id,)
     ).fetchall()
     conn.close()
@@ -454,13 +511,14 @@ def delete_custom_dish(user_id, dish_name):
 
 def get_public_recipes():
     """
-    Retrieves all community dishes requested/marked as public.
+    Retrieves all community dishes requested/marked as public with full written recipe metadata.
     """
     conn = get_conn()
     rows = conn.execute(
         """
         SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
-               cd.image, cd.cuisine, cd.is_public, cd.public_status, cd.created_at,
+               cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+               cd.ingredients, cd.instructions, cd.tips, cd.is_public, cd.public_status, cd.created_at,
                u.email AS creator_email
         FROM custom_dishes cd
         JOIN users u ON cd.user_id = u.id
@@ -472,6 +530,111 @@ def get_public_recipes():
     return [dict(row) for row in rows]
 
 
+def get_recipe_by_id(recipe_id):
+    """
+    Retrieves full details for a recipe by ID.
+    """
+    conn = get_conn()
+    row = conn.execute(
+        """
+        SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+               cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+               cd.ingredients, cd.instructions, cd.tips, cd.is_public, cd.public_status, cd.created_at,
+               u.email AS creator_email
+        FROM custom_dishes cd
+        JOIN users u ON cd.user_id = u.id
+        WHERE cd.id = ?
+        """,
+        (int(recipe_id),)
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_dish_recipe_card(dish_name, user_id=None):
+    """
+    Constructs a rich Kitchn-style recipe card for ANY dish (custom or core menu).
+    """
+    conn = get_conn()
+    clean_name = dish_name.strip()
+    
+    # Check if exists in custom dishes first
+    if user_id:
+        custom_row = conn.execute(
+            """SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+                      cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+                      cd.ingredients, cd.instructions, cd.tips, cd.is_public, cd.public_status, cd.created_at,
+                      u.email AS creator_email
+               FROM custom_dishes cd
+               JOIN users u ON cd.user_id = u.id
+               WHERE LOWER(cd.name) = LOWER(?) AND (cd.user_id = ? OR cd.is_public = 1)""",
+            (clean_name, user_id)
+        ).fetchone()
+        if custom_row:
+            conn.close()
+            return dict(custom_row)
+            
+    # Check public dishes generally
+    pub_row = conn.execute(
+        """SELECT cd.id, cd.user_id, cd.name, cd.type, cd.serve_with, cd.category, cd.style, cd.course,
+                  cd.image, cd.cuisine, cd.description, cd.prep_time, cd.cook_time, cd.servings,
+                  cd.ingredients, cd.instructions, cd.tips, cd.is_public, cd.public_status, cd.created_at,
+                  u.email AS creator_email
+           FROM custom_dishes cd
+           JOIN users u ON cd.user_id = u.id
+           WHERE LOWER(cd.name) = LOWER(?) AND cd.is_public = 1""",
+        (clean_name,)
+    ).fetchone()
+    if pub_row:
+        conn.close()
+        return dict(pub_row)
+
+    # Core menu fallback: generate rich recipe card using dish_ingredients
+    ing_row = conn.execute(
+        "SELECT ingredients FROM dish_ingredients WHERE LOWER(dish_name) = LOWER(?)",
+        (clean_name,)
+    ).fetchone()
+    conn.close()
+
+    from suggestions import DISHES, get_dish_image
+    core_dish = next((d for d in DISHES if d["name"].lower() == clean_name.lower()), None)
+    
+    ing_str = ing_row["ingredients"] if ing_row and ing_row["ingredients"] else ""
+    if not ing_str and core_dish:
+        ing_str = f"{core_dish['name']} fresh cuts or main produce, cooking oil, onions, ginger garlic paste, salt & traditional spices"
+        
+    # Build default professional step-by-step instructions
+    inst_lines = [
+        f"Gather and prepare all fresh ingredients and spices as listed.",
+        f"Heat cooking oil in a pan or deep pot over medium heat. Sauté aromatics (onions, ginger, garlic) until fragrant and golden.",
+        f"Add the main ingredients and seasonings. Cook thoroughly until tender, aromatic, and flavorful.",
+        f"Simmer on low heat (dum) for 5-10 minutes until the gravy reaches the desired rich consistency.",
+        f"Garnish with freshly chopped coriander and julienned ginger. Serve hot with roti or steamed basmati rice!"
+    ]
+    
+    return {
+        "id": None,
+        "name": clean_name,
+        "type": core_dish["type"] if core_dish else "nonveg",
+        "serve_with": core_dish["serve_with"] if core_dish else "both",
+        "category": core_dish["category"] if core_dish else "curry",
+        "style": core_dish["style"] if core_dish else "rich",
+        "course": core_dish["course"] if core_dish else "main",
+        "cuisine": core_dish.get("cuisine", "desi") if core_dish else "desi",
+        "image": get_dish_image(core_dish or {"name": clean_name}),
+        "description": f"Classic and authentic {clean_name} prepared with home-style spices and rich aromatics.",
+        "prep_time": "15 mins",
+        "cook_time": "30-40 mins",
+        "servings": "4-6 servings",
+        "ingredients": ing_str,
+        "instructions": "\n".join(inst_lines),
+        "tips": "For best flavor, allow the spices to bloom gently in oil before adding proteins or vegetables.",
+        "is_public": 1,
+        "creator_email": "Chef Chat Editorial",
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+
 def get_recipe_of_the_week():
     """
     Returns the featured Recipe of the Week.
@@ -479,17 +642,69 @@ def get_recipe_of_the_week():
     public = get_public_recipes()
     if public:
         return public[0]
-    return {
-        "name": "Chicken Manchurian with Fried Rice",
-        "type": "nonveg",
-        "serve_with": "rice",
-        "category": "chinese",
-        "style": "light",
-        "course": "main",
-        "cuisine": "chinese",
-        "creator_email": "masterchef@chefchat.com",
-        "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Punjabi_Chicken_Karahi.JPG/960px-Punjabi_Chicken_Karahi.JPG"
-    }
+    return get_dish_recipe_card("Chicken Manchurian with Fried Rice")
+
+
+def get_nearby_marts():
+    """
+    Returns curated nearby grocery marts and supermarkets with location and online ordering links.
+    """
+    return [
+        {
+            "name": "Imtiaz Super Market",
+            "type": "Superstore / Hypermarket",
+            "icon": "storefront",
+            "timing": "9:00 AM - 12:00 AM",
+            "delivery": "Same-day Delivery Available",
+            "url": "https://www.google.com/maps/search/Imtiaz+Super+Market+near+me",
+            "badge": "Popular Mart ⭐"
+        },
+        {
+            "name": "PandaMart (Foodpanda Groceries)",
+            "type": "Express Grocery Delivery",
+            "icon": "delivery_dining",
+            "timing": "24/7 Delivery (15-30 mins)",
+            "delivery": "Instant 20-min Delivery",
+            "url": "https://www.foodpanda.pk/darkstore",
+            "badge": "Fastest ⚡"
+        },
+        {
+            "name": "Carrefour Hypermarket",
+            "type": "Hypermarket & Fresh Produce",
+            "icon": "shopping_cart",
+            "timing": "10:00 AM - 11:30 PM",
+            "delivery": "Online App & Store Pickup",
+            "url": "https://www.google.com/maps/search/Carrefour+near+me",
+            "badge": "Fresh Meats & Veggies 🥦"
+        },
+        {
+            "name": "Metro Cash & Carry",
+            "type": "Wholesale & Bulk Rashan",
+            "icon": "inventory_2",
+            "timing": "9:00 AM - 11:00 PM",
+            "delivery": "Wholesale Bulk Rashan",
+            "url": "https://www.google.com/maps/search/Metro+Cash+and+Carry+near+me",
+            "badge": "Best for Monthly Rashan 🌾"
+        },
+        {
+            "name": "Local Butcher & Meat Shop",
+            "type": "Fresh Halal Meats & Chicken",
+            "icon": "egg",
+            "timing": "7:00 AM - 10:00 PM",
+            "delivery": "Fresh Cuts & Mince",
+            "url": "https://www.google.com/maps/search/meat+shop+or+butcher+near+me",
+            "badge": "Fresh Cuts 🍗"
+        },
+        {
+            "name": "Local Green Grocer & Sabzi Mandi",
+            "type": "Fresh Daily Vegetables & Herbs",
+            "icon": "eco",
+            "timing": "7:00 AM - 11:00 PM",
+            "delivery": "Daily Morning Farm Fresh",
+            "url": "https://www.google.com/maps/search/vegetable+shop+near+me",
+            "badge": "Fresh Farm Produce 🍅"
+        }
+    ]
 
 
 def add_fridge_item(user_id, item_name, location, quantity):
@@ -1049,4 +1264,254 @@ def get_smart_grocery_recommendations(user_id):
                     
     conn.close()
     return recommendations
+
+
+def get_curated_appliances():
+    """
+    Returns curated catalog of modern kitchen machineries, smart cookers, and appliances.
+    """
+    return [
+        {
+            "id": "nutricook_smart_pot",
+            "name": "Nutricook Smart Pot 2 (Multi-Cooker 9-in-1)",
+            "brand": "Nutricook",
+            "category": "smart_cooking",
+            "category_label": "Smart Cookers & Air Fryers ⚡",
+            "icon": "skillet",
+            "badge": "Top Essential ⭐",
+            "image": "https://images.unsplash.com/photo-1544233726-9f1d2b27be8b?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Replaces 9 kitchen appliances in one. Cooks pressure curries & biryanis 70% faster.",
+            "specs": ["6L / 8L Capacity", "1000W Smart Heating", "9-in-1: Pressure, Slow Cook, Rice, Sauté, Steamer, Yogurt", "Smart Lid with Auto Pressure Release"],
+            "best_for": "Dum Biryani, Haleem, Beef Nihari, Mutton Kunna, Dal Tadka, Bone Broths",
+            "compatible_dishes": ["Chicken Biryani", "Beef Nihari", "Haleem", "Daal Chawal", "Mutton Karahi", "Chicken Pulao", "Aloo Gosht", "Daal Makhani"],
+            "buy_url": "https://www.google.com/search?q=nutricook+smart+pot+2+buy+online"
+        },
+        {
+            "id": "nutricook_air_fryer",
+            "name": "Nutricook Rapid Air Fryer 5.7L",
+            "brand": "Nutricook",
+            "category": "smart_cooking",
+            "category_label": "Smart Cookers & Air Fryers ⚡",
+            "icon": "airware",
+            "badge": "Healthy & Fast 🥗",
+            "image": "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Guilt-free frying with 85% less oil. Perfectly crispy texture in half the time.",
+            "specs": ["5.7L XL Basket", "1700W Rapid Air Circulation", "10 One-Touch Cooking Presets", "Shake Reminder & Auto Shut-off"],
+            "best_for": "Crispy Chicken Roast, Seekh Kababs, Samosas, Fish Fry, Chicken Nuggets, Roasted Vegetables",
+            "compatible_dishes": ["Chicken Tikka", "Seekh Kabab", "Grilled Chicken Steak", "Fish and Chips", "French Fries", "Chicken Manchurian", "Crispy Roast Chicken"],
+            "buy_url": "https://www.google.com/search?q=nutricook+air+fryer+buy+online"
+        },
+        {
+            "id": "automatic_roti_maker",
+            "name": "Automatic Electric Roti Maker & Press",
+            "brand": "Chef Master",
+            "category": "roti_dough",
+            "category_label": "Roti & Dough Makers 🫓",
+            "icon": "cookie",
+            "badge": "Daily Essential 🫓",
+            "image": "https://images.unsplash.com/photo-1626074353765-517a681e40be?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Presses and cooks round, soft, puffed phulkas and rotis in under 60 seconds with zero rolling.",
+            "specs": ["Non-Stick Double Heating Plates", "Thermostatically Controlled 900W", "Heavy-Duty Handle Press", "Lightweight & Portable Design"],
+            "best_for": "Soft Phulkas, Daily Chapatis, Parathas, Tortillas, Poori Pressing",
+            "compatible_dishes": ["Roti", "Paratha", "Chapati", "Poori", "Aloo Paratha"],
+            "buy_url": "https://www.google.com/search?q=automatic+electric+roti+maker+machine"
+        },
+        {
+            "id": "atta_kneader_stand_mixer",
+            "name": "Electric Stand Mixer & Automatic Atta Dough Kneader",
+            "brand": "KitchenPro",
+            "category": "roti_dough",
+            "category_label": "Roti & Dough Makers 🫓",
+            "icon": "blender",
+            "badge": "Game Changer ⚡",
+            "image": "https://images.unsplash.com/photo-1594221708779-94832f4320d1?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Effortlessly kneads 1-2 kg of smooth, soft whole wheat atta dough in just 3 minutes.",
+            "specs": ["5L Stainless Steel Bowl", "1200W High-Torque Pure Copper Motor", "Planetary Mixing Action", "Dough Hook, Whisk & Beater Attachments"],
+            "best_for": "Soft Atta Dough for Rotis, Naan Dough, Pizza Crust, Cake Batters, Bread Loaves",
+            "compatible_dishes": ["Roti", "Naan", "Paratha", "Pizza", "Cake", "Puri"],
+            "buy_url": "https://www.google.com/search?q=electric+atta+kneader+stand+mixer+buy+online"
+        },
+        {
+            "id": "electric_chopper_processor",
+            "name": "Electric Quad-Blade Chopper & Multi Food Processor",
+            "brand": "MultiCut",
+            "category": "choppers",
+            "category_label": "Choppers & Processors 🔪",
+            "icon": "restaurant",
+            "badge": "Prep Lifesaver ⏱️",
+            "image": "https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Chops onions tear-free, minces keema, shreds vegetables, and purees tomatoes in 5 seconds.",
+            "specs": ["2L Glass / Steel Bowl", "4 Bi-Level Stainless Steel Blades", "500W Powerful Pulse Motor", "BPA-Free Food-Grade Materials"],
+            "best_for": "Keema Mincing, Onion Dicing, Ginger-Garlic Paste, Tomato Puree, Salad Shredding",
+            "compatible_dishes": ["Keema Matar", "Seekh Kabab", "Chicken Manchurian", "Beef Burger", "Chicken Chow Mein", "Shami Kabab"],
+            "buy_url": "https://www.google.com/search?q=electric+food+chopper+meat+grinder"
+        },
+        {
+            "id": "immersion_hand_blender",
+            "name": "Immersion Hand Blender & Emulsifier Set (3-in-1)",
+            "brand": "BlendPro",
+            "category": "blenders_grinders",
+            "category_label": "Blenders & Grinders 🌪️",
+            "icon": "blender",
+            "badge": "Chef Favorite 👨‍🍳",
+            "image": "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Blend directly inside hot cooking pots without messy transfers. Creates velvety smooth gravies.",
+            "specs": ["Stainless Steel Immersion Wand", "800W Turbo Speed Motor", "Whisk & Mini Chopper Attachments", "Anti-Splash Design"],
+            "best_for": "Handi Gravies, Creamy Alfredo Sauce, Dal Pureeing, Mint Raita Chutney, Fresh Lassi & Smoothies",
+            "compatible_dishes": ["Chicken Handi", "Alfredo Pasta", "Daal Makhani", "Palak Paneer", "Hot & Sour Soup", "Mango Lassi"],
+            "buy_url": "https://www.google.com/search?q=hand+blender+immersion+set+buy+online"
+        },
+        {
+            "id": "electric_tandoor_bbq",
+            "name": "Electric Smokeless Tandoor & Indoor BBQ Grill",
+            "brand": "GrillMaster",
+            "category": "grills_tandoor",
+            "category_label": "Smokeless Grills & Tandoors 🍢",
+            "icon": "outdoor_grill",
+            "badge": "BBQ Specialist 🍢",
+            "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Authentic charred tandoori flavor and char-marks right in your kitchen without smoke or charcoal.",
+            "specs": ["2000W Infrared Radiant Heating", "Smokeless Drip Tray Technology", "Non-Stick Ribbed Grill & Flat Griddle", "Adjustable Thermostat up to 250°C"],
+            "best_for": "Chicken Tikka, Malai Boti, Seekh Kababs, Grilled Fish, Tandoori Roti & Naan",
+            "compatible_dishes": ["Chicken Tikka", "Seekh Kabab", "Grilled Chicken Steak", "Fish Tikka", "Tandoori Roti"],
+            "buy_url": "https://www.google.com/search?q=electric+smokeless+indoor+grill+tandoor"
+        },
+        {
+            "id": "spice_coffee_grinder",
+            "name": "Electric Stainless Steel Dry Spice & Masala Grinder",
+            "brand": "SpiceKing",
+            "category": "blenders_grinders",
+            "category_label": "Blenders & Grinders 🌪️",
+            "icon": "grain",
+            "badge": "Aroma Booster 🌶️",
+            "image": "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Grind whole cumin, cardamom, and cinnamon into fresh, fragrant spice powders in 10 seconds.",
+            "specs": ["Heavy Duty Stainless Steel Cup", "High-Speed 28000 RPM Motor", "One-Touch Push-Down Pulse Operation", "Safety Lock Lid"],
+            "best_for": "Fresh Garam Masala, Roasted Cumin Powder, Biryani Spices, Coriander Powder, Coffee Beans",
+            "compatible_dishes": ["Chicken Biryani", "Mutton Karahi", "Beef Nihari", "Chicken Korma", "Chana Chaat"],
+            "buy_url": "https://www.google.com/search?q=electric+dry+masala+spice+grinder"
+        },
+        {
+            "id": "digital_kitchen_scale",
+            "name": "Digital Kitchen Food Scale & Precision Timer (0.1g)",
+            "brand": "AccuScale",
+            "category": "prep_precision",
+            "category_label": "Precision & Prep ⚖️",
+            "icon": "scale",
+            "badge": "Diet & Baking 🥗",
+            "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Exact gram precision for macro tracking, healthy diet portioning, and flawless baking consistency.",
+            "specs": ["High-Precision Sensor (0.1g - 5000g)", "Tare Function (Zeroes Container Weight)", "Backlit LCD Display in g/oz/ml", "Tempered Glass Waterproof Surface"],
+            "best_for": "Diet Macro Tracking, Protein Portioning, Cake & Bread Baking, Exact Spice Formulations",
+            "compatible_dishes": ["Grilled Chicken Salad", "Oatmeal Bowl", "Steamed Fish", "Caesar Salad", "Pancake Batter"],
+            "buy_url": "https://www.google.com/search?q=digital+kitchen+food+scale+buy+online"
+        },
+        {
+            "id": "electric_kettle",
+            "name": "Rapid Boil Stainless Steel Electric Kettle (1.8L)",
+            "brand": "QuickBoil",
+            "category": "prep_precision",
+            "category_label": "Precision & Prep ⚖️",
+            "icon": "coffee",
+            "badge": "Speed Essential ⚡",
+            "image": "https://images.unsplash.com/photo-1594834749740-74b3f6764be4?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Boils water in 90 seconds. Speeds up curries, gravies, pasta boiling, and chai prep.",
+            "specs": ["1.8L Large Capacity", "1500W Rapid Boil Element", "Auto Shut-Off & Boil-Dry Protection", "Food Grade 304 Stainless Steel"],
+            "best_for": "Instant Hot Water for Stocks, Curries, Rice Soaking, Instant Noodles, Green Tea & Chai",
+            "compatible_dishes": ["Chicken Chow Mein", "Hot & Sour Soup", "Alfredo Pasta", "Daal Chawal"],
+            "buy_url": "https://www.google.com/search?q=electric+kettle+stainless+steel+buy+online"
+        },
+        {
+            "id": "sandwich_panini_press",
+            "name": "Electric Non-Stick Panini Press & Sandwich Grill",
+            "brand": "ToastPro",
+            "category": "grills_tandoor",
+            "category_label": "Smokeless Grills & Tandoors 🍢",
+            "icon": "lunch_dining",
+            "badge": "Quick Breakfast 🥪",
+            "image": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Toasts crispy golden sandwiches, club sandwiches, wraps, and quesadillas with melt-in-the-middle cheese.",
+            "specs": ["Floating Hinge for Thick Sandwiches", "Non-Stick Easy Clean Plates", "1000W Rapid Dual Heating", "Upright Storage Design"],
+            "best_for": "Club Sandwiches, Chicken Cheese Paninis, Breakfast Toasties, Paratha Rolls, Shawarmas",
+            "compatible_dishes": ["Club Sandwich", "Chicken Cheese Wrap", "Grilled Cheese", "Quesadilla"],
+            "buy_url": "https://www.google.com/search?q=electric+panini+press+sandwich+maker"
+        },
+        {
+            "id": "slow_cooker_pot",
+            "name": "Ceramic Slow Cooker & Tender Stew Pot (4.5L)",
+            "brand": "SlowChef",
+            "category": "smart_cooking",
+            "category_label": "Smart Cookers & Air Fryers ⚡",
+            "icon": "soup_kitchen",
+            "badge": "Melt-in-Mouth 🍲",
+            "image": "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80",
+            "tagline": "Simmers meat on gentle low heat for hours, extracting rich gelatinous bone broths and tender curries.",
+            "specs": ["4.5L Removable Ceramic Pot", "Low, High & Auto Keep-Warm Settings", "Tempered Glass Lid", "Low Energy Consumption (220W)"],
+            "best_for": "Mutton Paya, Beef Kunna, Slow-Cooked Haleem, Chicken Stew, Bone Broth",
+            "compatible_dishes": ["Haleem", "Beef Nihari", "Mutton Kunna", "Aloo Gosht", "Chicken Stew"],
+            "buy_url": "https://www.google.com/search?q=ceramic+slow+cooker+buy+online"
+        }
+    ]
+
+
+def get_user_appliances(user_id):
+    """
+    Returns a dictionary of user's appliance statuses: {appliance_id: {"status": 'owned' | 'wishlist', "created_at": ...}}
+    """
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT appliance_id, status, custom_name, created_at FROM user_appliances WHERE user_id = ?",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return {row["appliance_id"]: dict(row) for row in rows}
+
+
+def toggle_user_appliance(user_id, appliance_id, status=None, custom_name=None):
+    """
+    Toggles or sets the status of an appliance for a user.
+    If status is None or 'remove', deletes the row.
+    Otherwise sets status to 'owned' or 'wishlist'.
+    """
+    conn = get_conn()
+    now_str = datetime.now().isoformat()
+    if not status or status == "remove":
+        conn.execute(
+            "DELETE FROM user_appliances WHERE user_id = ? AND appliance_id = ?",
+            (user_id, appliance_id)
+        )
+    else:
+        conn.execute("""
+            INSERT INTO user_appliances (user_id, appliance_id, status, custom_name, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, appliance_id) DO UPDATE SET status = excluded.status, custom_name = excluded.custom_name
+        """, (user_id, appliance_id, status, custom_name, now_str))
+    conn.commit()
+    conn.close()
+
+
+def get_appliance_compatible_dishes(user_id):
+    """
+    Returns a list of compatible dishes that can be prepared with the user's owned appliances.
+    """
+    user_apps = get_user_appliances(user_id)
+    owned_ids = {app_id for app_id, data in user_apps.items() if data.get("status") == "owned"}
+    
+    curated = get_curated_appliances()
+    matched_dish_names = set()
+    appliance_dish_map = {}
+    
+    for app in curated:
+        if app["id"] in owned_ids:
+            for d in app["compatible_dishes"]:
+                matched_dish_names.add(d)
+                if d not in appliance_dish_map:
+                    appliance_dish_map[d] = []
+                appliance_dish_map[d].append(app["name"])
+                
+    return [
+        {"name": dish_name, "appliances": appliance_dish_map[dish_name]}
+        for dish_name in sorted(matched_dish_names)
+    ]
+
 

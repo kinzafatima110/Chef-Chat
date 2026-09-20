@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% block title %}Chef Chat — Kitchen Essentials & Smart Machineries{% endblock %}
+
+{% block content %}
+<div class="space-y-stack-md py-2">
+
+  <!-- Header Banner with Navigation Jump Links & Stats -->
+  <div class="bg-surface-container-lowest rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-5">
+    <div>
+      <div class="inline-flex items-center space-x-2 bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+        <span class="material-symbols-outlined text-[16px]">blender</span>
+        <span>Smart Kitchen Gear & Machineries</span>
+      </div>
+      <h1 class="font-headline text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface">
+        Kitchen Essentials & Appliances
+      </h1>
+      <p class="text-xs md:text-sm text-on-surface-variant mt-1 max-w-2xl">
+        Explore modern culinary machineries—from Nutricook smart cookers and rapid air fryers to automatic roti makers and atta kneaders. Track what you own to unlock tailored recipes!
+      </p>
+    </div>
+
+    <!-- Quick Stats Pills -->
+    <div class="flex flex-wrap gap-2.5 shrink-0">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 px-4 flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+          {{ owned_count }}
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-emerald-800 uppercase block">In My Kitchen</span>
+          <span class="text-xs font-bold text-emerald-950">{{ owned_count }} Owned 🍳</span>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 px-4 flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+          {{ wishlist_count }}
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-amber-800 uppercase block">Wishlist</span>
+          <span class="text-xs font-bold text-amber-950">{{ wishlist_count }} Saved ⭐</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🍳 SECTION 1: COOK WITH YOUR EQUIPMENT (Matched Recipes) -->
+  {% if compatible_dishes %}
+    <div class="bg-gradient-to-r from-emerald-500/10 via-primary/5 to-emerald-500/10 rounded-3xl p-6 md:p-8 border border-emerald-300 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+          </div>
+          <div>
+            <h2 class="font-headline text-lg md:text-xl font-bold text-emerald-950">
+              Dishes You Can Cook with Your Equipment
+            </h2>
+            <p class="text-xs text-emerald-800">
+              Personalized recipe matches optimized for the appliances you have in your kitchen:
+            </p>
+          </div>
+        </div>
+        <span class="text-xs font-bold bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full">
+          {{ compatible_dishes | length }} Dishes Unlocked 🚀
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+        {% for dish in compatible_dishes %}
+          <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-3.5 border border-emerald-200/80 shadow-sm hover:border-emerald-500 transition-all flex flex-col justify-between group">
+            <div>
+              <h3 class="font-headline text-sm font-bold text-on-surface group-hover:text-emerald-800 transition-colors cursor-pointer truncate" onclick="openRecipeModal('{{ dish.name }}')">
+                {{ dish.name }}
+              </h3>
+              <div class="mt-1 flex flex-wrap gap-1">
+                {% for app_name in dish.appliances %}
+                  <span class="text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded truncate max-w-full">
+                    ⚡ {{ app_name.split('(')[0].strip() }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="pt-3 mt-2 border-t border-emerald-100 flex items-center justify-between">
+              <button 
+                type="button" 
+                onclick="openRecipeModal('{{ dish.name }}')"
+                class="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center space-x-1"
+              >
+                <span>View Recipe</span>
+                <span class="material-symbols-outlined text-[14px]">menu_book</span>
+              </button>
+              <a href="https://www.youtube.com/results?search_query={{ dish.name | replace(' ', '+') }}+recipe" target="_blank" class="text-red-600 hover:text-red-700 p-1" title="Watch on YouTube">
+                <span class="material-symbols-outlined text-[16px]">play_circle</span>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- 🎛️ SECTION 2: APPLIANCE DIRECTORY & CATEGORY FILTERS -->
+  <div class="space-y-4">
+    
+    <!-- Filter Pills Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/30">
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
+        <button type="button" onclick="filterAppliances('all')" class="appliance-filter-btn active bg-primary text-white font-bold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="all">All Gear ({{ appliances | length }})</button>
+        <button type="button" onclick="filterAppliances('smart_cooking')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="smart_cooking">Smart Cookers & Air Fryers ⚡</button>
+        <button type="button" onclick="filterAppliances('roti_dough')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="roti_dough">Roti & Dough Makers 🫓</button>
+        <button type="button" onclick="filterAppliances('choppers')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="choppers">Choppers & Processors 🔪</button>
+        <button type="button" onclick="filterAppliances('blenders_grinders')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="blenders_grinders">Blenders & Grinders 🌪️</button>
+        <button type="button" onclick="filterAppliances('grills_tandoor')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="grills_tandoor">Smokeless Grills 🍢</button>
+        <button type="button" onclick="filterAppliances('prep_precision')" class="appliance-filter-btn bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold px-3.5 py-1.5 rounded-full transition-all text-xs" data-filter="prep_precision">Precision & Prep ⚖️</button>
+      </div>
+
+      <div class="relative w-full sm:w-64">
+        <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
+        <input 
+          type="text" 
+          id="appliance-search-input" 
+          placeholder="Search gear by name or dish..." 
+          class="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-outline-variant/60 bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:border-primary"
+          oninput="searchAppliances()"
+        >
+      </div>
+    </div>
+
+    <!-- Appliance Cards Grid -->
+    <div id="appliances-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for app in appliances %}
+        {% set user_status = user_appliances_map.get(app.id, {}).get('status') %}
+        
+        <div class="appliance-card bg-surface-container-lowest hover:bg-surface-container-low rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" data-category="{{ app.category }}" data-name="{{ app.name | lower }} {{ app.tagline | lower }} {{ app.best_for | lower }}">
+          
+          <div>
+            <!-- Top Image with Badges -->
+            <div class="relative h-48 bg-surface-container overflow-hidden">
+              <img 
+                src="{{ app.image }}" 
+                alt="{{ app.name }}" 
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80';"
+              >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent"></div>
+
+              <!-- Badges -->
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                  {{ app.brand }}
+                </span>
+                <span class="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                  {{ app.badge }}
+                </span>
+              </div>
+
+              <!-- Ownership Status Pin (Top Right) -->
+              <div class="absolute top-3 right-3">
+                {% if user_status == 'owned' %}
+                  <span class="bg-emerald-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1">
+                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    <span>I Own This</span>
+                  </span>
+                {% elif user_status == 'wishlist' %}
+                  <span class="bg-amber-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1">
+                    <span class="material-symbols-outlined text-[14px]">star</span>
+                    <span>Wishlisted</span>
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Bottom Title Overlay -->
+              <div class="absolute bottom-3 left-3 right-3 text-white">
+                <span class="text-[10px] font-semibold text-white/80 uppercase tracking-wider block">
+                  {{ app.category_label }}
+                </span>
+                <h3 class="font-headline text-base font-bold text-white leading-tight drop-shadow-sm">
+                  {{ app.name }}
+                </h3>
+              </div>
+            </div>
+
+            <!-- Card Body: Tagline, Specs & Best For -->
+            <div class="p-5 space-y-3.5 text-xs">
+              <p class="text-on-surface-variant leading-relaxed">
+                {{ app.tagline }}
+              </p>
+
+              <!-- Specs Pills -->
+              <div class="bg-surface-container-low/60 rounded-2xl p-3 border border-outline-variant/20 space-y-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80 block">Key Specs & Capabilities:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  {% for spec in app.specs %}
+                    <span class="bg-surface-container-lowest text-on-surface text-[10px] font-semibold px-2 py-0.5 rounded-md border border-outline-variant/30">
+                      ✓ {{ spec }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Best For Dishes -->
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-primary block mb-1">
+                  🍳 Excels At:
+                </span>
+                <p class="text-[11px] font-medium text-on-surface">
+                  {{ app.best_for }}
+                </p>
+              </div>
+
+              <!-- Compatible Dishes Clickable Tags -->
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80 block mb-1.5">
+                  📖 Compatible Recipes (Click to open):
+                </span>
+                <div class="flex flex-wrap gap-1.5">
+                  {% for dish in app.compatible_dishes %}
+                    <button 
+                      type="button" 
+                      onclick="openRecipeModal('{{ dish }}')"
+                      class="bg-primary/5 hover:bg-primary hover:text-white text-primary text-[10px] font-bold px-2 py-0.5 rounded-lg border border-primary/20 transition-all flex items-center space-x-0.5"
+                    >
+                      <span>{{ dish }}</span>
+                      <span class="material-symbols-outlined text-[10px]">arrow_forward</span>
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Footer Actions: Own / Wishlist / Buy Online -->
+          <div class="p-5 pt-0 space-y-2.5">
+            <!-- 1-Click Ownership Toggle Buttons -->
+            <div class="grid grid-cols-2 gap-2">
+              
+              <!-- I Own This Toggle -->
+              <form method="post" action="/essentials/toggle" class="m-0">
+                <input type="hidden" name="appliance_id" value="{{ app.id }}">
+                <input type="hidden" name="status" value="{{ 'remove' if user_status == 'owned' else 'owned' }}">
+                <button 
+                  type="submit" 
+                  class="w-full py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 shadow-sm {% if user_status == 'owned' %}bg-emerald-600 text-white ring-2 ring-emerald-600/30{% else %}bg-surface-container hover:bg-emerald-50 hover:text-emerald-800 text-on-surface border border-outline-variant/30{% endif %}"
+                  title="{{ 'Click to remove from owned' if user_status == 'owned' else 'Mark as owned in your kitchen' }}"
+                >
+                  <span class="material-symbols-outlined text-[15px] {% if user_status == 'owned' %}fill-1{% endif %}">check_circle</span>
+                  <span>{{ 'Owned 🍳' if user_status == 'owned' else 'I Own This' }}</span>
+                </button>
+              </form>
+
+              <!-- Wishlist Toggle -->
+              <form method="post" action="/essentials/toggle" class="m-0">
+                <input type="hidden" name="appliance_id" value="{{ app.id }}">
+                <input type="hidden" name="status" value="{{ 'remove' if user_status == 'wishlist' else 'wishlist' }}">
+                <button 
+                  type="submit" 
+                  class="w-full py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 shadow-sm {% if user_status == 'wishlist' %}bg-amber-500 text-white ring-2 ring-amber-500/30{% else %}bg-surface-container hover:bg-amber-50 hover:text-amber-800 text-on-surface border border-outline-variant/30{% endif %}"
+                  title="{{ 'Click to remove from wishlist' if user_status == 'wishlist' else 'Save to wishlist' }}"
+                >
+                  <span class="material-symbols-outlined text-[15px] {% if user_status == 'wishlist' %}fill-1{% endif %}">star</span>
+                  <span>{{ 'Wishlisted ⭐' if user_status == 'wishlist' else 'Wishlist' }}</span>
+                </button>
+              </form>
+
+            </div>
+
+            <!-- Buy Online Store Link -->
+            <a 
+              href="{{ app.buy_url }}" 
+              target="_blank" 
+              class="w-full bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[15px]">shopping_cart</span>
+              <span>Find & Buy Online (Daraz / Stores)</span>
+              <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+            </a>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- No match state -->
+    <div id="no-gear-match" class="hidden text-center py-12 text-on-surface-variant bg-surface-container-low rounded-2xl">
+      <span class="material-symbols-outlined text-4xl mb-2 text-outline">search_off</span>
+      <h4 class="font-headline text-sm font-bold text-on-surface">No equipment found matching your filter</h4>
+      <p class="text-xs text-on-surface-variant mt-0.5">Try searching with a different term or view All Gear.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 📖 THE KITCHN STYLE FULL RECIPE CARD MODAL -->
+<div id="recipe-modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fade-in">
+  <div id="recipe-modal-content" class="bg-surface-container-lowest w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-outline-variant/30 max-h-[90vh] flex flex-col transform transition-transform scale-95 duration-200">
+    
+    <!-- Modal Header with Image & Title -->
+    <div class="relative bg-surface-container-high shrink-0">
+      <div class="h-48 md:h-64 relative overflow-hidden">
+        <img id="modal-image" src="" alt="Recipe" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        
+        <!-- Close Button -->
+        <button onclick="closeRecipeModal()" class="absolute top-4 right-4 bg-black/60 hover:bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-md z-10">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        <!-- Header Content Overlay -->
+        <div class="absolute bottom-4 left-4 right-4 text-white">
+          <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <span id="modal-cuisine-badge" class="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-diet-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+            <span id="modal-style-badge" class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+          </div>
+          <h2 id="modal-title" class="font-headline text-2xl md:text-3xl font-bold text-white drop-shadow-md"></h2>
+          <p id="modal-author" class="text-xs text-white/90 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Recipe Meta Summary Bar (The Kitchn format) -->
+      <div class="bg-amber-50/90 border-b border-amber-200/80 px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-amber-950">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">timer</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Prep Time</span><span id="modal-prep-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">skillet</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Cook Time</span><span id="modal-cook-time" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">group</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Servings</span><span id="modal-servings" class="font-bold"></span></div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">restaurant</span>
+          <div><span class="block text-[9px] font-bold text-amber-800 uppercase">Serve With</span><span id="modal-serve-with" class="font-bold"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Scrollable Body (2-Column Kitchn Layout) -->
+    <div class="overflow-y-auto p-6 space-y-6 flex-1 bg-surface-container-lowest">
+      
+      <p id="modal-description" class="text-xs md:text-sm text-on-surface-variant italic leading-relaxed border-l-4 border-primary pl-3"></p>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Ingredients Checklist (5 cols) -->
+        <div class="md:col-span-5 bg-surface-container-low rounded-2xl p-5 border border-outline-variant/30 space-y-3">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-sm md:text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">checklist</span>
+              <span>Ingredients List</span>
+            </h3>
+            <span class="text-[10px] font-semibold text-on-surface-variant">Check as you cook</span>
+          </div>
+
+          <div id="modal-ingredients-list" class="space-y-2 text-xs text-on-surface">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- 1-Click Export to What to Buy -->
+          <form id="modal-export-shopping-form" method="post" action="/recipes/ingredients_to_shopping" class="m-0 pt-2 border-t border-outline-variant/20">
+            <input type="hidden" name="dish_name" id="modal-form-dish-name" value="">
+            <input type="hidden" name="ingredients" id="modal-form-ingredients" value="">
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center space-x-1.5">
+              <span class="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
+              <span>Add to What to Buy List 🛒</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Step-by-Step Instructions (7 cols) -->
+        <div class="md:col-span-7 space-y-4">
+          <div class="border-b border-outline-variant/20 pb-2">
+            <h3 class="font-headline text-base font-bold text-on-surface flex items-center space-x-1.5">
+              <span class="material-symbols-outlined text-primary text-[20px]">menu_book</span>
+              <span>Step-by-Step Method</span>
+            </h3>
+          </div>
+
+          <div id="modal-instructions-list" class="space-y-3.5 text-xs text-on-surface leading-relaxed">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Chef's Secret Tip Callout -->
+          <div id="modal-tip-box" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-1">
+            <span class="text-[11px] font-extrabold text-amber-900 uppercase flex items-center space-x-1">
+              <span class="material-symbols-outlined text-[16px] text-amber-600">lightbulb</span>
+              <span>Chef's Secret Tip</span>
+            </span>
+            <p id="modal-tip-text" class="text-xs text-amber-950 font-medium"></p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="bg-surface-container-high border-t border-outline-variant/20 p-4 px-6 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div class="flex items-center space-x-2">
+        <a id="modal-youtube-link" href="#" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">play_circle</span>
+          <span>Watch on YouTube</span>
+        </a>
+        <a href="/fridge" class="bg-surface-container-highest hover:bg-surface-container text-on-surface text-xs font-bold py-2 px-4 rounded-xl transition-all inline-flex items-center space-x-1">
+          <span class="material-symbols-outlined text-[16px]">storefront</span>
+          <span>Shop at Nearby Marts 🛍️</span>
+        </a>
+      </div>
+
+      <button onclick="closeRecipeModal()" class="bg-surface-container hover:bg-surface-container-highest text-on-surface text-xs font-semibold py-2 px-5 rounded-xl transition-all">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function filterAppliances(category) {
+    document.querySelectorAll('.appliance-filter-btn').forEach(btn => {
+      if (btn.dataset.filter === category) {
+        btn.classList.add('active', 'bg-primary', 'text-white');
+        btn.classList.remove('bg-surface-container', 'text-on-surface');
+      } else {
+        btn.classList.remove('active', 'bg-primary', 'text-white');
+        btn.classList.add('bg-surface-container', 'text-on-surface');
+      }
+    });
+
+    applyApplianceFilters();
+  }
+
+  function searchAppliances() {
+    applyApplianceFilters();
+  }
+
+  function applyApplianceFilters() {
+    const activeBtn = document.querySelector('.appliance-filter-btn.active');
+    const category = activeBtn ? activeBtn.dataset.filter : 'all';
+    const query = (document.getElementById('appliance-search-input')?.value || '').trim().toLowerCase();
+
+    const cards = document.querySelectorAll('.appliance-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const cardCategory = card.dataset.category || '';
+      const cardName = card.dataset.name || '';
+
+      const matchesCat = (category === 'all') || (cardCategory === category);
+      const matchesSearch = !query || cardName.includes(query);
+
+      if (matchesCat && matchesSearch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    const noMatch = document.getElementById('no-gear-match');
+    if (noMatch) {
+      if (visibleCount === 0 && cards.length > 0) {
+        noMatch.classList.remove('hidden');
+      } else {
+        noMatch.classList.add('hidden');
+      }
+    }
+  }
+
+  // Recipe Modal Controller
+  function openRecipeModal(dishName) {
+    fetch('/recipes/card_json/' + encodeURIComponent(dishName))
+      .then(res => res.json())
+      .then(data => {
+        if (!data) return;
+
+        document.getElementById('modal-title').textContent = data.name;
+        document.getElementById('modal-author').textContent = 'Shared by ' + (data.creator_email || 'Chef Chat Community');
+        document.getElementById('modal-image').src = (data.image && data.image.startsWith('http')) ? data.image : ('/static/' + (data.image || 'images/biryani.jpg'));
+        
+        document.getElementById('modal-cuisine-badge').textContent = (data.cuisine || 'Desi').toUpperCase();
+        
+        const dietBadge = document.getElementById('modal-diet-badge');
+        dietBadge.textContent = data.type === 'veg' ? 'VEG' : 'MEAT';
+        dietBadge.className = data.type === 'veg' ? 'bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase' : 'bg-amber-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase';
+        
+        document.getElementById('modal-style-badge').textContent = (data.style || 'Rich').toUpperCase();
+
+        document.getElementById('modal-prep-time').textContent = data.prep_time || '15 mins';
+        document.getElementById('modal-cook-time').textContent = data.cook_time || '30 mins';
+        document.getElementById('modal-servings').textContent = data.servings || '4 servings';
+        document.getElementById('modal-serve-with').textContent = data.serve_with ? data.serve_with.toUpperCase() : 'ROTI / RICE';
+
+        const descElem = document.getElementById('modal-description');
+        if (data.description) {
+          descElem.textContent = '“' + data.description + '”';
+          descElem.classList.remove('hidden');
+        } else {
+          descElem.classList.add('hidden');
+        }
+
+        // Render Ingredients
+        const ingContainer = document.getElementById('modal-ingredients-list');
+        ingContainer.innerHTML = '';
+        const rawIngs = (data.ingredients || '').split(/[\n,]+/);
+        rawIngs.forEach((ing, idx) => {
+          const clean = ing.replace(/^[•\-\*\d\.\)\s]+/, '').trim();
+          if (clean) {
+            const itemDiv = document.createElement('label');
+            itemDiv.className = 'flex items-center space-x-2.5 cursor-pointer hover:bg-surface-container p-1 rounded-lg transition-colors';
+            itemDiv.innerHTML = `
+              <input type="checkbox" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-0">
+              <span>${clean}</span>
+            `;
+            ingContainer.appendChild(itemDiv);
+          }
+        });
+
+        // Set Export Form Inputs
+        document.getElementById('modal-form-dish-name').value = data.name;
+        document.getElementById('modal-form-ingredients').value = data.ingredients || '';
+
+        // Render Step-by-Step Instructions
+        const instContainer = document.getElementById('modal-instructions-list');
+        instContainer.innerHTML = '';
+        const rawSteps = (data.instructions || '').split(/\n+/);
+        let stepCount = 1;
+        rawSteps.forEach(step => {
+          const cleanStep = step.replace(/^(step\s*\d*[\:\.\-]?\s*)/i, '').trim();
+          if (cleanStep) {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'flex items-start space-x-3 bg-surface-container-low/60 rounded-xl p-3 border border-outline-variant/20';
+            stepDiv.innerHTML = `
+              <span class="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-sm">${stepCount}</span>
+              <p class="text-xs text-on-surface leading-relaxed">${cleanStep}</p>
+            `;
+            instContainer.appendChild(stepDiv);
+            stepCount++;
+          }
+        });
+
+        // Tips
+        const tipBox = document.getElementById('modal-tip-box');
+        const tipText = document.getElementById('modal-tip-text');
+        if (data.tips && data.tips.trim()) {
+          tipText.textContent = data.tips;
+          tipBox.classList.remove('hidden');
+        } else {
+          tipBox.classList.add('hidden');
+        }
+
+        // YouTube Link
+        document.getElementById('modal-youtube-link').href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(data.name + ' recipe');
+
+        // Show Modal
+        const backdrop = document.getElementById('recipe-modal-backdrop');
+        const content = document.getElementById('recipe-modal-content');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+          content.classList.remove('scale-95');
+          content.classList.add('scale-100');
+        }, 10);
+      })
+      .catch(err => console.error('Error loading recipe card:', err));
+  }
+
+  function closeRecipeModal() {
+    const backdrop = document.getElementById('recipe-modal-backdrop');
+    const content = document.getElementById('recipe-modal-content');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+      backdrop.classList.add('hidden');
+    }, 150);
+  }
+
+  document.getElementById('recipe-modal-backdrop')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeRecipeModal();
+    }
+  });
+</script>
+{% endblock %}
