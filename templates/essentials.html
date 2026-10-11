@@ -128,28 +128,33 @@
     </div>
 
     <!-- Appliance Cards Grid -->
-    <div id="appliances-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div id="appliances-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for app in appliances %}
         {% set user_status = user_appliances_map.get(app.id, {}).get('status') %}
         
-        <div class="appliance-card bg-surface-container-lowest hover:bg-surface-container-low rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" data-category="{{ app.category }}" data-name="{{ app.name | lower }} {{ app.tagline | lower }} {{ app.best_for | lower }}">
+        <div class="appliance-card bg-surface-container-lowest hover:bg-surface-container-low rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" data-category="{{ app.category }}" data-name="{{ app.name | lower }} {{ app.brand | lower }} {{ app.model_no | lower if app.model_no else '' }} {{ app.tagline | lower }} {{ app.best_for | lower }}">
           
           <div>
             <!-- Top Image with Badges -->
-            <div class="relative h-48 bg-surface-container overflow-hidden">
+            <div class="relative h-52 bg-surface-container overflow-hidden">
               <img 
                 src="{{ app.image }}" 
                 alt="{{ app.name }}" 
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80';"
               >
-              <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
 
-              <!-- Badges -->
-              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                <span class="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+              <!-- Top Left Badges: Brand + Model -->
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center">
+                <span class="bg-black/75 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-white/20 uppercase tracking-wide">
                   {{ app.brand }}
                 </span>
+                {% if app.model_no %}
+                  <span class="bg-white/25 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-1 rounded-lg border border-white/20">
+                    {{ app.model_no }}
+                  </span>
+                {% endif %}
                 <span class="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
                   {{ app.badge }}
                 </span>
@@ -158,12 +163,12 @@
               <!-- Ownership Status Pin (Top Right) -->
               <div class="absolute top-3 right-3">
                 {% if user_status == 'owned' %}
-                  <span class="bg-emerald-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1">
+                  <span class="bg-emerald-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1 border border-white/30">
                     <span class="material-symbols-outlined text-[14px]">check_circle</span>
                     <span>I Own This</span>
                   </span>
                 {% elif user_status == 'wishlist' %}
-                  <span class="bg-amber-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1">
+                  <span class="bg-amber-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md flex items-center space-x-1 border border-white/30">
                     <span class="material-symbols-outlined text-[14px]">star</span>
                     <span>Wishlisted</span>
                   </span>
@@ -172,10 +177,10 @@
 
               <!-- Bottom Title Overlay -->
               <div class="absolute bottom-3 left-3 right-3 text-white">
-                <span class="text-[10px] font-semibold text-white/80 uppercase tracking-wider block">
+                <span class="text-[10px] font-semibold text-amber-300 uppercase tracking-wider block">
                   {{ app.category_label }}
                 </span>
-                <h3 class="font-headline text-base font-bold text-white leading-tight drop-shadow-sm">
+                <h3 class="font-headline text-base md:text-lg font-bold text-white leading-tight drop-shadow-md">
                   {{ app.name }}
                 </h3>
               </div>
@@ -183,16 +188,27 @@
 
             <!-- Card Body: Tagline, Specs & Best For -->
             <div class="p-5 space-y-3.5 text-xs">
-              <p class="text-on-surface-variant leading-relaxed">
+              <p class="text-on-surface-variant leading-relaxed font-medium">
                 {{ app.tagline }}
               </p>
 
-              <!-- Specs Pills -->
-              <div class="bg-surface-container-low/60 rounded-2xl p-3 border border-outline-variant/20 space-y-1.5">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80 block">Key Specs & Capabilities:</span>
+              <!-- Authentic Verified Specs Pills -->
+              <div class="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/30 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/90 flex items-center space-x-1">
+                    <span class="material-symbols-outlined text-[14px] text-emerald-700">verified</span>
+                    <span>Authentic Specs & Capabilities:</span>
+                  </span>
+                  {% if app.official_url %}
+                    <a href="{{ app.official_url }}" target="_blank" class="text-[10px] font-bold text-primary hover:underline flex items-center space-x-0.5">
+                      <span>Official Site</span>
+                      <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                    </a>
+                  {% endif %}
+                </div>
                 <div class="flex flex-wrap gap-1.5">
                   {% for spec in app.specs %}
-                    <span class="bg-surface-container-lowest text-on-surface text-[10px] font-semibold px-2 py-0.5 rounded-md border border-outline-variant/30">
+                    <span class="bg-surface-container-lowest text-on-surface text-[10px] font-semibold px-2 py-0.5 rounded-md border border-outline-variant/30 shadow-2xs">
                       ✓ {{ spec }}
                     </span>
                   {% endfor %}
@@ -202,7 +218,7 @@
               <!-- Best For Dishes -->
               <div>
                 <span class="text-[10px] font-bold uppercase tracking-wider text-primary block mb-1">
-                  🍳 Excels At:
+                  🍳 Excels At Cooking:
                 </span>
                 <p class="text-[11px] font-medium text-on-surface">
                   {{ app.best_for }}
@@ -212,7 +228,7 @@
               <!-- Compatible Dishes Clickable Tags -->
               <div>
                 <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80 block mb-1.5">
-                  📖 Compatible Recipes (Click to open):
+                  📖 Tailored Recipes (Click to open):
                 </span>
                 <div class="flex flex-wrap gap-1.5">
                   {% for dish in app.compatible_dishes %}
@@ -230,7 +246,7 @@
             </div>
           </div>
 
-          <!-- Card Footer Actions: Own / Wishlist / Buy Online -->
+          <!-- Card Footer Actions: Own / Wishlist / Official Site / Buy Online -->
           <div class="p-5 pt-0 space-y-2.5">
             <!-- 1-Click Ownership Toggle Buttons -->
             <div class="grid grid-cols-2 gap-2">
@@ -265,16 +281,30 @@
 
             </div>
 
-            <!-- Buy Online Store Link -->
-            <a 
-              href="{{ app.buy_url }}" 
-              target="_blank" 
-              class="w-full bg-secondary hover:bg-secondary/90 text-white text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 shadow-sm"
-            >
-              <span class="material-symbols-outlined text-[15px]">shopping_cart</span>
-              <span>Find & Buy Online (Daraz / Stores)</span>
-              <span class="material-symbols-outlined text-[13px]">open_in_new</span>
-            </a>
+            <!-- External Links: Official Brand Portal & Find Online -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {% if app.official_url %}
+                <a 
+                  href="{{ app.official_url }}" 
+                  target="_blank" 
+                  class="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-[11px] font-bold py-2 px-2.5 rounded-xl transition-all flex items-center justify-center space-x-1 border border-outline-variant/30 shadow-2xs"
+                >
+                  <span class="material-symbols-outlined text-[14px] text-primary">public</span>
+                  <span>Official Site</span>
+                  <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                </a>
+              {% endif %}
+
+              <a 
+                href="{{ app.buy_url }}" 
+                target="_blank" 
+                class="w-full bg-secondary hover:bg-secondary/90 text-white text-[11px] font-bold py-2 px-2.5 rounded-xl transition-all flex items-center justify-center space-x-1 shadow-sm {% if not app.official_url %}sm:col-span-2{% endif %}"
+              >
+                <span class="material-symbols-outlined text-[14px]">shopping_cart</span>
+                <span>Find Online 🛍️</span>
+                <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+              </a>
+            </div>
           </div>
 
         </div>
