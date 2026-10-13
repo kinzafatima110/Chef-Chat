@@ -271,10 +271,51 @@ def weekly_plan_view():
     if not user["onboarded"]:
         return redirect(url_for("quiz_form"))
     from db import get_weekly_plan
+    from datetime import date
     weekly_plan = get_weekly_plan(user["id"])
+    
+    # Auto-generate if empty so the window is never blank
+    if not weekly_plan:
+        diet_type = user.get("diet_type") or "nonveg"
+        start_type = "veg" if diet_type == "veg" else "nonveg"
+        diet_rule = (user.get("diet_rule") or "").lower()
+        pattern = "alternate"
+        if "veg" in diet_type and "non" not in diet_type:
+            pattern = "all_veg"
+        elif "gosht" in diet_rule or "meat" in diet_rule:
+            pattern = "all_gosht"
+        weekly_plan = suggestions.generate_weekly_plan(user["id"], start_type, pattern)
+
+    # Enrich each day with dish photography and today's spotlight
+    today_idx = date.today().weekday()  # Monday = 0, Sunday = 6
+    today_meal = None
+
+    for day in weekly_plan:
+        dish_name = day.get("dish", "")
+        day["image"] = suggestions.get_dish_image(dish_name)
+        day["is_today"] = (day.get("day_index") == today_idx)
+        if day["is_today"]:
+            today_meal = day
+
+    if not today_meal and weekly_plan:
+        today_meal = weekly_plan[0]
+
+    meat_count = 0
+    veg_count = 0
+    for day in weekly_plan:
+        mtype = day.get("meal_type")
+        dname = day.get("dish", "").lower()
+        if mtype == "nonveg" or any(w in dname for w in ["chicken", "mutton", "beef", "meat", "gosht", "fish", "keema", "qorma", "karahi", "tikka", "kebab"]):
+            meat_count += 1
+        else:
+            veg_count += 1
+
     return render_template(
         "weekly.html",
         weekly_plan=weekly_plan,
+        today_meal=today_meal,
+        meat_count=meat_count,
+        veg_count=veg_count,
         email=user["email"]
     )
 
@@ -287,7 +328,56 @@ def generate_weekly():
     pattern = request.form.get("pattern", "alternate")
     
     suggestions.generate_weekly_plan(user["id"], start_type, pattern)
+    flash(f"Generated fresh 7-day meal schedule ({pattern.replace('_', ' ').title()})! 🗓️")
     return redirect(url_for("weekly_plan_view"))
+
+
+@app.route("/weekly/quick_pattern/<pattern>", methods=["POST", "GET"])
+@login_required
+def weekly_quick_pattern(pattern):
+    user = current_user()
+    start_type = "veg" if pattern == "all_veg" else "nonveg"
+    suggestions.generate_weekly_plan(user["id"], start_type, pattern)
+    flash(f"Switched weekly diet to {pattern.replace('_', ' ').title()}! ✨")
+    return redirect(url_for("weekly_plan_view"))
+
+
+@app.route("/weekly/export_all_to_shopping", methods=["POST"])
+@login_required
+def weekly_export_all_to_shopping():
+    user = current_user()
+    from db import get_weekly_plan, get_dish_recipe_card, add_shopping_item
+    import re
+
+    weekly_plan = get_weekly_plan(user["id"])
+    total_added = 0
+
+    for day in weekly_plan:
+        dish_name = day.get("dish", "")
+        dish_parts = [p.strip() for p in dish_name.split(" & ")] if " & " in dish_name else [dish_name]
+        for dp in dish_parts:
+            card = get_dish_recipe_card(dp, user_id=user["id"])
+            raw_ings = card.get("ingredients", "")
+            if raw_ings:
+                items = [i.strip() for i in re.split(r'[\n,]+', raw_ings) if i.strip()]
+                for item in items:
+                    clean = re.sub(r'^[•\-\*\d\.\)\s]+', '', item).strip()
+                    if clean and len(clean) > 1:
+                        cat = "produce"
+                        item_lower = clean.lower()
+                        if any(m in item_lower for m in ["chicken", "beef", "mutton", "meat", "fish", "prawn", "keema", "gosht"]):
+                            cat = "meat"
+                        elif any(d in item_lower for d in ["milk", "yogurt", "cheese", "cream", "butter", "dahi", "paneer"]):
+                            cat = "dairy"
+                        elif any(p in item_lower for p in ["rice", "daal", "lentil", "flour", "atta", "oil", "ghee", "pasta", "bread"]):
+                            cat = "pantry"
+                        elif any(s in item_lower for s in ["chili", "masala", "garam", "turmeric", "cumin", "coriander", "salt", "pepper", "sauce"]):
+                            cat = "spices"
+                        add_shopping_item(user["id"], clean.title(), category=cat, quantity="1 pack")
+                        total_added += 1
+
+    flash(f"Added {total_added} ingredients from your 7-day meal plan to your What to Buy grocery list! 🛒")
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 @app.route("/weekly/reroll", methods=["POST"])
@@ -308,6 +398,20 @@ def reroll_today():
     from db import update_user
     update_user(user["id"], suggestion_seed_offset=current_offset + 1)
     return redirect(url_for("dashboard"))
+
+
+@app.route("/sync_dish_photos", methods=["POST", "GET"])
+@login_required
+def sync_dish_photos_route():
+    try:
+        import subprocess
+        from pathlib import Path
+        script_path = Path(__file__).resolve().parent / "scripts" / "sync_dish_images.py"
+        subprocess.run(["python3", str(script_path)], capture_output=True, text=True)
+        flash("Dish photos & Excel spreadsheet synchronized successfully! 📸📊")
+    except Exception as e:
+        flash(f"Sync error: {e}")
+    return redirect(request.referrer or url_for("weekly_plan_view"))
 
 
 @app.route("/recipes", methods=["GET"])
@@ -575,6 +679,12 @@ def webhook_receive():
     return "OK", 200
 
 
+@app.route("/what_to_buy")
+@login_required
+def what_to_buy_view():
+    return redirect(url_for("fridge_view", tab="buy"))
+
+
 @app.route("/fridge", methods=["GET"])
 @login_required
 def fridge_view():
@@ -585,6 +695,10 @@ def fridge_view():
     from db import (
         get_fridge_inventory, get_shopping_list, get_smart_grocery_recommendations, get_nearby_marts
     )
+    active_tab = request.args.get("tab", "buy")
+    if active_tab not in ("buy", "stock", "matches", "marts"):
+        active_tab = "buy"
+
     inventory = get_fridge_inventory(user["id"])
     shopping_list = get_shopping_list(user["id"])
     recommended_to_buy = get_smart_grocery_recommendations(user["id"])
@@ -604,6 +718,7 @@ def fridge_view():
     
     return render_template(
         "fridge.html",
+        active_tab=active_tab,
         fridge_items=fridge_items,
         freezer_items=freezer_items,
         pantry_items=pantry_items,
@@ -627,7 +742,7 @@ def fridge_add():
         from db import add_fridge_item
         add_fridge_item(user["id"], item_name, location, quantity)
         
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="stock"))
 
 
 @app.route("/fridge/update", methods=["POST"])
@@ -641,7 +756,7 @@ def fridge_update():
         from db import update_fridge_item
         update_fridge_item(user["id"], int(item_id), quantity)
         
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="stock"))
 
 
 @app.route("/fridge/delete", methods=["POST"])
@@ -654,7 +769,7 @@ def fridge_delete():
         from db import delete_fridge_item
         delete_fridge_item(user["id"], int(item_id))
         
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="stock"))
 
 
 @app.route("/fridge/shopping/add", methods=["POST"])
@@ -669,7 +784,7 @@ def shopping_add():
         from db import add_shopping_item
         add_shopping_item(user["id"], item_name, category=category, quantity=quantity)
         flash(f"Added '{item_name}' to What to Buy grocery list! 🛒")
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 @app.route("/fridge/shopping/toggle", methods=["POST"])
@@ -680,7 +795,7 @@ def shopping_toggle():
     if item_id:
         from db import toggle_shopping_item
         toggle_shopping_item(user["id"], int(item_id))
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 @app.route("/fridge/shopping/delete", methods=["POST"])
@@ -691,7 +806,7 @@ def shopping_delete():
     if item_id:
         from db import delete_shopping_item
         delete_shopping_item(user["id"], int(item_id))
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 @app.route("/fridge/shopping/clear_bought", methods=["POST"])
@@ -701,7 +816,7 @@ def shopping_clear_bought():
     from db import clear_bought_shopping_items
     clear_bought_shopping_items(user["id"])
     flash("Cleared all purchased items from shopping list. ✨")
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 @app.route("/fridge/shopping/move_to_fridge", methods=["POST"])
@@ -716,7 +831,32 @@ def shopping_move_to_fridge():
         if success:
             loc_label = {"fridge": "Fridge 🥦", "freezer": "Freezer ❄️", "pantry": "Pantry 🌾"}.get(location, location)
             flash(f"Moved '{name}' to your {loc_label}!")
-    return redirect(url_for("fridge_view"))
+    return redirect(url_for("fridge_view", tab="buy"))
+
+
+@app.route("/fridge/shopping/move_all_bought", methods=["POST"])
+@login_required
+def shopping_move_all_bought():
+    user = current_user()
+    from db import get_shopping_list, move_shopping_to_fridge
+    shopping_list = get_shopping_list(user["id"])
+    moved_count = 0
+    for item in shopping_list:
+        if item.get("is_bought"):
+            cat = (item.get("category") or "produce").lower()
+            if cat == "meat":
+                loc = "freezer"
+            elif cat in ("pantry", "spices"):
+                loc = "pantry"
+            else:
+                loc = "fridge"
+            move_shopping_to_fridge(user["id"], item["id"], location=loc)
+            moved_count += 1
+    if moved_count > 0:
+        flash(f"Moved {moved_count} purchased item(s) into your Kitchen Stock! 🥦❄️🌾")
+    else:
+        flash("No purchased items to move yet. Check items off as bought first! ✓")
+    return redirect(url_for("fridge_view", tab="buy"))
 
 
 

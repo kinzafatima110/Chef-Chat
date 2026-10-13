@@ -1,5 +1,6 @@
 import csv
 import random
+import re
 from datetime import date
 from pathlib import Path
 
@@ -21,14 +22,32 @@ DISHES = _load_dishes()
 def get_dish_image(dish_or_name):
     """
     Returns the appropriate image path or URL for any dish.
+    Prioritizes dedicated dish images from data/dishes.csv and static/images/dishes/.
     """
     if isinstance(dish_or_name, dict):
         if dish_or_name.get("image"):
             return dish_or_name["image"]
-        name = (dish_or_name.get("name") or "").lower()
+        raw_name = dish_or_name.get("name") or ""
     else:
-        name = str(dish_or_name or "").lower()
+        raw_name = str(dish_or_name or "")
 
+    name = raw_name.lower().strip()
+
+    # 1. Look up exact or close dish name in DISHES (from dishes.csv)
+    for d in DISHES:
+        if d.get("name") and d["name"].lower().strip() == name:
+            img = d.get("image")
+            if img and img.strip():
+                return img.strip()
+
+    # 2. Check if a local synced image exists in static/images/dishes/
+    clean_slug = re.sub(r'[^a-zA-Z0-9_\-]', '_', raw_name).lower()
+    for ext in ['.jpg', '.jpeg', '.png', '.webp', '.avif']:
+        local_candidate = Path(__file__).parent / "static" / "images" / "dishes" / f"{clean_slug}{ext}"
+        if local_candidate.exists():
+            return f"images/dishes/{clean_slug}{ext}"
+
+    # 3. Keyword fallbacks
     if "biryani" in name or "pulao" in name or "rice" in name or "khichdi" in name:
         return "images/biryani.jpg"
     elif "karahi" in name or "chicken" in name or "jalfrezi" in name or "tikka" in name or "kebab" in name or "boti" in name or "manchurian" in name or "shawarma" in name or "fish" in name or "dum pukht" in name:

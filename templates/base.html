@@ -203,10 +203,18 @@
           {% endif %}
         </a>
 
-        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path.startswith('/fridge') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/fridge">
-          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path.startswith('/fridge') %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">kitchen</span>
+        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path == '/what_to_buy' or (request.path.startswith('/fridge') and request.args.get('tab') == 'buy') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/what_to_buy">
+          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path == '/what_to_buy' or (request.path.startswith('/fridge') and request.args.get('tab') == 'buy') %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">shopping_basket</span>
+          <span class="text-xs tracking-tight">What to Buy</span>
+          {% if request.path == '/what_to_buy' or (request.path.startswith('/fridge') and request.args.get('tab') == 'buy') %}
+            <span class="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full"></span>
+          {% endif %}
+        </a>
+
+        <a class="flex flex-col items-center group relative pb-1.5 transition-all {% if request.path.startswith('/fridge') and request.args.get('tab') != 'buy' and request.path != '/what_to_buy' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary font-semibold{% endif %}" href="/fridge?tab=stock">
+          <span class="material-symbols-outlined text-[22px] mb-0.5 {% if request.path.startswith('/fridge') and request.args.get('tab') != 'buy' and request.path != '/what_to_buy' %}text-primary fill-1{% else %}group-hover:text-primary{% endif %}">kitchen</span>
           <span class="text-xs tracking-tight">My Fridge</span>
-          {% if request.path.startswith('/fridge') %}
+          {% if request.path.startswith('/fridge') and request.args.get('tab') != 'buy' and request.path != '/what_to_buy' %}
             <span class="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full"></span>
           {% endif %}
         </a>
@@ -277,9 +285,9 @@
         <span class="material-symbols-outlined text-[22px] {% if request.path == '/' %}fill-1{% endif %}">restaurant_menu</span>
         <span class="text-[10px] font-medium">Today</span>
       </a>
-      <a href="/fridge" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2 rounded-xl {% if request.path.startswith('/fridge') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-        <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/fridge') %}fill-1{% endif %}">kitchen</span>
-        <span class="text-[10px] font-medium">Fridge</span>
+      <a href="/what_to_buy" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2 rounded-xl {% if request.path == '/what_to_buy' or (request.path.startswith('/fridge') and request.args.get('tab') == 'buy') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+        <span class="material-symbols-outlined text-[22px] {% if request.path == '/what_to_buy' or (request.path.startswith('/fridge') and request.args.get('tab') == 'buy') %}fill-1{% endif %}">shopping_basket</span>
+        <span class="text-[10px] font-medium">To Buy</span>
       </a>
       <a href="/weekly" class="flex flex-col items-center justify-center gap-1 transition-all py-1 px-2 rounded-xl {% if request.path.startswith('/weekly') %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
         <span class="material-symbols-outlined text-[22px] {% if request.path.startswith('/weekly') %}fill-1{% endif %}">calendar_month</span>
